@@ -6,6 +6,7 @@ from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem import rdFingerprintGenerator
 
 import numpy as np
+import pandas as pd
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -171,3 +172,27 @@ class MorganTransformer(FpsTransformer):
                 mol,self.radius,nBits=self.nBits, useFeatures=self.useFeatures,
                 useChirality=self.useChirality,
             )
+        
+
+class SmilesToMol(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, X=None, y=None):
+        #Nothing to do here
+        return self
+
+    def transform(self, X_smiles_list):
+        # Unfortunately, transform is only X to X in Scikit-learn, so can't filter at this level
+        # external class sanitizer, may be needed before entering the pipeline
+        # TODO: Return same type as put in (e.g. List to list, numpy to numpy, pandas Series to pandas series)
+        X_out = []
+
+        for smiles in X_smiles_list:
+            mol = Chem.MolFromSmiles(smiles)
+            if mol:
+                X_out.append(mol)
+            else:
+                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer first')
+
+        return X_out
