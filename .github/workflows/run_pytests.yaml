@@ -37,3 +37,32 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('tests/conftest.py') }}
       - name: Run Tests
         run: pytest --cov=./scikit_mol .
+
+ # deploy scikit_mol to pypi for tagged commits if tests pass
+  deploy:
+    needs: [ tests ]
+    name: deploy to pypi
+    runs-on: ubuntu-latest
+    # this checks that the commit is a tagged commit
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+      - name: Build a binary wheel and a source tarball
+        run: |
+          python -m build .
+      # push all tagged versions to pypi.org
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
