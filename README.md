@@ -24,3 +24,12 @@ Make Notebook with examples
     Hyperparameter optimization via native Scikit-Classes
     Hyperparameter optimization via external optimizer e.g. https://scikit-optimize.github.io/stable/
 
+
+Make basic unit-tests
+
+
+Installation
+    git clone git@github.com:EBjerrum/scikit-mol.git
+    pip install -e .
+
+

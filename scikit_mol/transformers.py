@@ -48,3 +48,19 @@ class MorganTransformer(BaseEstimator, TransformerMixin):
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
         return arr
+
+
+class SmilesToMol(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, X=None, y=None):
+        #Nothing to do here
+        return self
+
+    def transform(self, X_smiles_list, y=None):
+        #TODO: Error handling
+        # If one molecule is not parsable, we should both remove it from list and remove corresponding y
+        # Log error and collect faulty SMILES and corresponding y's for possible inspection
+        # TODO: Return same type as put in (e.g. List to list, numpy to numpy, pandas Series to pandas series)
+        return [Chem.MolFromSmiles(smiles) for smiles in X_smiles_list]
