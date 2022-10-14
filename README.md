@@ -8,6 +8,7 @@ TODO:
         TopologicalTorsions
         RDKit
         Descriptors
+        LINGOS
         ...
 
     Make dictionary based FP class
@@ -33,3 +34,6 @@ Installation
     pip install -e .
 
 
+
+Contributers:
+    Please add yourself here, we'll properly markdown it later

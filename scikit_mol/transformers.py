@@ -5,6 +5,7 @@ from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
 from rdkit.Chem.rdMolDescriptors import GetHashedMorganFingerprint
 
 import numpy as np
+import pandas as pd
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -58,9 +59,19 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         #Nothing to do here
         return self
 
-    def transform(self, X_smiles_list, y=None):
-        #TODO: Error handling
-        # If one molecule is not parsable, we should both remove it from list and remove corresponding y
-        # Log error and collect faulty SMILES and corresponding y's for possible inspection
+    def transform(self, X_smiles_list):
+        # Unfortunately, transform is only X to X in Scikit-learn, so can't filter at this level
+        # external class sanitizer, may be needed before entering the pipeline
         # TODO: Return same type as put in (e.g. List to list, numpy to numpy, pandas Series to pandas series)
-        return [Chem.MolFromSmiles(smiles) for smiles in X_smiles_list]
+        X_out = []
+
+        for smiles in X_smiles_list:
+            mol = Chem.MolFromSmiles(smiles)
+            if mol:
+                X_out.append(mol)
+            else:
+                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer first')
+
+        return X_out
+
+        
