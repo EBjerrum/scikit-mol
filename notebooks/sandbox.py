@@ -2,7 +2,14 @@
 %load_ext autoreload 
 %autoreload 2
 from rdkit import Chem
-from scikit_mol.transformers import MorganTransformer
+from scikit_mol.transformers import MorganTransformer, SmilesToMol
+
+
+#
+smiles_list = ['c1ccccc1'] * 10
+smilestomol = SmilesToMol()
+mols = smilestomol.fit_transform(smiles_list)
+mols[0]
 
 #%%
 X= [Chem.MolFromSmiles('c1ccccc1')]*10
