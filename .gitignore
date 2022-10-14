@@ -127,13 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
 .scikit-mol.code-workspace.swp
 scikit-mol.code-workspace
 notebooks/25747817
+*.ipynb
 
 # test data
 tests/data/
 
 # setuptools_scm version
 scikit_mol/_version.py
-
