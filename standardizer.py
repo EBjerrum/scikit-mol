@@ -1,4 +1,5 @@
 #TODO Implement a scikit-learn compatible molecule standardizer
+# Author: Son Ha
 
 from rdkit import Chem
 from sklearn.base import BaseEstimator, TransformerMixin
