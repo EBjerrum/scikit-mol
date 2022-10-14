@@ -127,6 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
 .scikit-mol.code-workspace.swp
 scikit-mol.code-workspace
 notebooks/25747817
+*.ipynb
