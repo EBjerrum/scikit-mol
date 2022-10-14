@@ -20,7 +20,7 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
             if mol:
                 X_out.append(mol)
             else:
-                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer first')
+                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.CheckSmilesSanitazion first')
 
         return X_out
 

@@ -5,11 +5,67 @@ from rdkit import Chem
 from scikit_mol.transformers import MorganTransformer, SmilesToMol
 
 
-#
+#%%
+from scikit_mol.smilestomol import SmilesToMol
 smiles_list = ['c1ccccc1'] * 10
 smilestomol = SmilesToMol()
 mols = smilestomol.fit_transform(smiles_list)
 mols[0]
+
+
+#%%
+from scikit_mol.smilestomol import SmilesToMol
+smiles_list = ['c1ccccc1'] * 10
+y = list(range(10))
+y.append(1000)
+smiles_list.append('Invalid')
+
+#%% This should raise Value-error
+smilestomol = SmilesToMol()
+mols = smilestomol.fit_transform(smiles_list)
+
+#%%
+from scikit_mol.sanitizer import CheckSmilesSanitazion
+smiles_list = ['c1ccccc1'] * 10
+y = list(range(10))
+y.append(1000)
+smiles_list.append('Invalid')
+
+sanitizer = CheckSmilesSanitazion(return_mol=False)
+
+smiles_list_valid, y_valid, X_errors, y_errors = sanitizer.sanitize(smiles_list, y)
+
+print(sanitizer.errors)
+print(X_errors)
+
+mols = smilestomol.fit_transform(smiles_list_valid)
+mols[0]
+
+
+
+#%%
+y_out = []
+X_out = []
+y_error = []
+X_error = []
+
+for smiles, y_value in zip(smiles_list, y):
+    mol = Chem.MolFromSmiles(smiles)
+    if mol:
+        X_out.append(mol)
+        y_out.append(y_value)
+    else:
+        print(f'Logging: Error in parsing {smiles}')
+        X_error.append(smiles)
+        y_error.append(y_value)
+
+print(X_out)
+print(y_out)
+print(X_error)
+print(y_error)
+
+
+
 
 #%%
 X= [Chem.MolFromSmiles('c1ccccc1')]*10
