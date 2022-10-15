@@ -44,6 +44,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
 class MACCSTransformer(FpsTransformer):
     def __init__(self):
+        self.nBits = 167
         pass
 
     def _mol2fp(self, mol):
