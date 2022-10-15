@@ -14,7 +14,7 @@ mols[0]
 
 
 #%%
-from scikit_mol.smilestomol import SmilesToMol
+from scikit_mol.transformers import SmilesToMol
 smiles_list = ['c1ccccc1'] * 10
 y = list(range(10))
 y.append(1000)
@@ -40,29 +40,6 @@ print(X_errors)
 
 mols = smilestomol.fit_transform(smiles_list_valid)
 mols[0]
-
-
-
-#%%
-y_out = []
-X_out = []
-y_error = []
-X_error = []
-
-for smiles, y_value in zip(smiles_list, y):
-    mol = Chem.MolFromSmiles(smiles)
-    if mol:
-        X_out.append(mol)
-        y_out.append(y_value)
-    else:
-        print(f'Logging: Error in parsing {smiles}')
-        X_error.append(smiles)
-        y_error.append(y_value)
-
-print(X_out)
-print(y_out)
-print(X_error)
-print(y_error)
 
 
 
