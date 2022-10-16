@@ -38,4 +38,5 @@ Installation
 Contributers:
     Esben Bjerrum, esben@cheminformania.com
     Son Ha, sonha@uni-mainz.de
+    Oh-hyeon Choung, ohhyeon.choung@gmail.com
     Please add yourself here, we'll properly markdown it later

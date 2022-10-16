@@ -11,7 +11,6 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
     def __init__(
         self, custom_desc_list: Optional[str] = None
     ):
-        #self.use_all_descriptors = use_all_descriptors
         self.desc_list = custom_desc_list
         self.calculators = self._get_desc_calculator()
 
@@ -36,7 +35,7 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
     def _transform_mol(self, mol: Mol) -> List[Any]:
         return list(self.calculators.CalcDescriptors(mol))
 
-    def fit(self, X, y=None):
+    def fit(self, x, y=None):
         return self
 
     def transform(self, x: List[Mol], y=None) -> np.ndarray:
