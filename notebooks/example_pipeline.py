@@ -34,15 +34,18 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
 
 #%%
-X_train, X_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
+mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
 
 # %%
 pipe = Pipeline([('mol_transformer', MorganTransformer()), ('Regressor', Ridge())])
 # %%
-pipe.fit(X_train, y_train)
-pipe.score(X_train,y_train)
+pipe.fit(mol_list_train, y_train)
+pipe.score(mol_list_train,y_train)
 #%%
-pipe.score(X_test, y_test)
+pipe.score(mol_list_test, y_test)
+
+#%%
+pipe.predict([Chem.MolFromSmiles('c1ccccc1C(=O)C')])
 
 #%% Now hyperparameter tuning
 from sklearn.model_selection import RandomizedSearchCV
@@ -86,7 +89,7 @@ random_search = RandomizedSearchCV(
 )
 
 start = time()
-random_search.fit(X_train.values, y_train.values)
+random_search.fit(mol_list_train.values, y_train.values)
 print(
     "RandomizedSearchCV took %.2f seconds for %d candidates parameter settings."
     % ((time() - start), n_iter_search)
@@ -94,5 +97,5 @@ print(
 #%%
 report(random_search.cv_results_)
 # %%
-random_search.best_estimator_.score(X_test, y_test)
+random_search.best_estimator_.score(mol_list_test, y_test)
 # %%

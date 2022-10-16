@@ -66,7 +66,7 @@ Probably still
 
 
 ## Contributers:
-* Esben Bjerrum, esben@cheminformania.com
+* Esben Jannik Bjerrum, esben@cheminformania.com
 * Carmen Esposito https://github.com/cespos
 * Son Ha, sonha@uni-mainz.de
 * Oh-hyeon Choung, ohhyeon.choung@gmail.com
