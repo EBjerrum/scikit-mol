@@ -28,7 +28,7 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
     * TopologicalTorsionFingerprintTransformer
     * MorganTransformer
 <br>
-<br>
+
 * Utilities
     * CheckSmilesSanitazion
 
