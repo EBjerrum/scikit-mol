@@ -27,13 +27,16 @@ plt.plot(np.array(features).T)
 # If we only want some of them, we can specify that at descriptor creation time
 
 # %%
-some_descriptors = Desc2DTransformer(custom_desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
+some_descriptors = Desc2DTransformer(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
+print(f"Selected descriptors are {some_descriptors.selected_descriptors}")
 features = some_descriptors.transform(mols)
 plt.plot(np.array(features).T)
 
+# %%
+print(some_descriptors)
 # %% [markdown]
 # There is an error check of the specified descriptor list
 
 # %%
-some_faulty_descriptors = Desc2DTransformer(custom_desc_list=['Color', 'Icecream content', 'ChokolateDarkness', 'Content42', 'MolWt'])
+some_faulty_descriptors = Desc2DTransformer(desc_list=['Color', 'Icecream content', 'ChokolateDarkness', 'Content42', 'MolWt'])
 # %%

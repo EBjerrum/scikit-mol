@@ -9,10 +9,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class Desc2DTransformer(BaseEstimator, TransformerMixin):
     def __init__(
-        self, custom_desc_list: Optional[str] = None
+        self, desc_list: Optional[str] = None
     ):
-        self.desc_list = custom_desc_list
-        self.calculators = self._get_desc_calculator()
+        self.desc_list = desc_list
 
     def _get_desc_calculator(self) -> MolecularDescriptorCalculator:
         if self.desc_list:
@@ -23,12 +22,21 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
         return MolecularDescriptorCalculator(self.desc_list)
 
     @property
+    def desc_list(self):
+        return self._desc_list
+
+    @desc_list.setter
+    def desc_list(self, desc_list):
+        self._desc_list = desc_list
+        self.calculators = self._get_desc_calculator()
+
+    @property
     def available_descriptors(self) -> List[str]:
         """Property to get list of all available descriptor names"""
         return [descriptor[0] for descriptor in Descriptors._descList]
 
     @property
-    def get_selected_descriptor_names(self) -> List[str]:
+    def selected_descriptors(self) -> List[str]:
         """Property to get list of the selected descriptor names"""
         return list(self.calculators.GetDescriptorNames())
 
