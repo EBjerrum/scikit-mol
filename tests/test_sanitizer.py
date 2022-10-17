@@ -19,6 +19,15 @@ def test_checksmilessanitation(smiles_list, invalid_smiles_list, sanitizer):
     assert all([ a == b for a, b in zip(smiles_list, smiles_list_sanitized)])
     assert errors[0] == sanitizer.errors.SMILES[0]
 
+def test_checksmilessanitation_x_and_y(smiles_list, invalid_smiles_list, sanitizer):
+    smiles_list_sanitized, y_sanitized, errors, y_errors = sanitizer.sanitize(smiles_list, list(range(len(smiles_list))))
+    assert len(invalid_smiles_list) > len(smiles_list_sanitized)
+    assert all([ a == b for a, b in zip(smiles_list, smiles_list_sanitized)])
+    assert errors[0] == sanitizer.errors.SMILES[0]
+    #Test that y is correctly split into y_error and the rest
+    assert all([ a == b for a, b in zip(y_sanitized, list(range(len(smiles_list) -1 )))])
+    assert y_errors[0] == len(smiles_list)-1 #Last smiles is invalid
+
 def test_checksmilessanitation_np(smiles_list, invalid_smiles_list, sanitizer):
     smiles_list_sanitized, errors = sanitizer.sanitize(np.array(invalid_smiles_list))
     assert len(invalid_smiles_list) > len(smiles_list_sanitized)

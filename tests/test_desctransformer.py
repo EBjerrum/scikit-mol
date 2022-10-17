@@ -52,7 +52,10 @@ def test_descriptor_transformer_transform(mols_list, default_descriptor_transfor
         features = default_descriptor_transformer.transform(mols)
         assert(len(features) == len(mols))
         assert(len(features[0]) == len(Descriptors._descList))
-
+        
+def test_descriptor_transformer_wrong_descriptors():
+    with pytest.raises(AssertionError):
+        Desc2DTransformer(desc_list=['Color', 'Icecream content', 'ChokolateDarkness', 'Content42', 'MolWt'])
 
 
 
