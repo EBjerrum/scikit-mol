@@ -4,15 +4,8 @@ import pandas as pd
 from sklearn import clone
 from rdkit import Chem
 from scikit_mol.transformers import SmilesToMol
+from fixtures import smiles_list, invalid_smiles_list
 
-
-@pytest.fixture
-def smiles_list():
-    return [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  ['O=C(O)c1ccccc1',
-                'O=C([O-])c1ccccc1',
-                'O=C([O-])c1ccccc1.[Na+]',
-                'O=C(O[Na])c1ccccc1',
-                'C[N+](C)C.O=C([O-])c1ccccc1']]
 
 @pytest.fixture
 def smilestomol_transformer():
@@ -38,10 +31,8 @@ def test_smilestomol_clone(smilestomol_transformer):
     params_2 = t2.get_params()
     assert all([ params[key] == params_2[key] for key in params.keys()])
 
-def test_smilestomol_unsanitzable(smilestomol_transformer):
-    smiles_list = ['Invalid']
-    
+def test_smilestomol_unsanitzable(invalid_smiles_list, smilestomol_transformer):
     with pytest.raises(ValueError):
-        smilestomol_transformer.transform(smiles_list)
+        smilestomol_transformer.transform(invalid_smiles_list)
 
     
