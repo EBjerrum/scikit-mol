@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from rdkit import Chem
-from fixtures import mols_list, smiles_list
+from fixtures import mols_list, smiles_list, fingerprint
 from sklearn import clone
 from scikit_mol.transformers import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer
 
@@ -28,19 +28,38 @@ def maccs_transformer():
     return MACCSTransformer()
 
 
+def test_fpstransformer_fp2array(morgan_transformer, fingerprint):
+    fp = morgan_transformer._fp2array(fingerprint)
+    #See that fp is the correct type, shape and bit count
+    assert(type(fp) == type(np.array([0])))
+    assert(fp.shape == (1000,))
+    assert(fp.sum() == 25)
+
+def test_fpstransformer_transform_mol(morgan_transformer, mols_list):
+    fp = morgan_transformer._transform_mol(mols_list[0])
+    #See that fp is the correct type, shape and bit count
+    assert(type(fp) == type(np.array([0])))
+    assert(fp.shape == (2048,))
+    assert(fp.sum() == 14)
+
 def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer):
     for t in [maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer]:
         params   = t.get_params()
         t2 = clone(t)
         params_2 = t2.get_params()
+        #Parameters of cloned transformers should be the same
         assert all([ params[key] == params_2[key] for key in params.keys()])
+        #Cloned transformers should not be the same object
         assert t2 != t
 
 def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer):
     for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer]:
         params   = t.get_params()
+        #change extracted dictionary
         params['nBits'] = 4242
+        #change params in transformer
         t.set_params(nBits = 4242)
+        # get parameters as dictionary and assert that it is the same
         params_2 = t.get_params()
         assert all([ params[key] == params_2[key] for key in params.keys()])
 
@@ -70,4 +89,3 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
                 fpsize = params['nBits']
             
             assert len(fps[0]) == fpsize
-        

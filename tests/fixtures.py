@@ -1,5 +1,6 @@
 import pytest
 from rdkit import Chem
+from rdkit.Chem import rdMolDescriptors
 
 @pytest.fixture
 def smiles_list():
@@ -17,3 +18,7 @@ def invalid_smiles_list(smiles_list):
 @pytest.fixture
 def mols_list(smiles_list):
     return [Chem.MolFromSmiles(smiles) for smiles in smiles_list]
+
+@pytest.fixture
+def fingerprint(mols_list):
+    return rdMolDescriptors.GetHashedMorganFingerprint(mols_list[0],2,nBits=1000)
