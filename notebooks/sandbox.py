@@ -6,7 +6,7 @@ from scikit_mol.transformers import MorganTransformer, SmilesToMol
 
 
 #%%
-from scikit_mol.smilestomol import SmilesToMol
+from scikit_mol.transformers import SmilesToMol
 smiles_list = ['c1ccccc1'] * 10
 smilestomol = SmilesToMol()
 mols = smilestomol.fit_transform(smiles_list)
