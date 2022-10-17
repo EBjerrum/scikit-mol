@@ -54,8 +54,9 @@ Probably still
 
 
 ## TODO
-* Make standardizer less 'chatty'
 * Unit test coverage of classes
+* If possible return same type as input (e.g. List to list, numpy to numpy, pandas Series to pandas series)
+* Docstrings for classes and methods
 * Make further example notebooks
     * Standalone usage (not in pipeline)
     * Advanced pipelining

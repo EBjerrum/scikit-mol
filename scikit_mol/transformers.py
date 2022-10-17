@@ -184,9 +184,6 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X_smiles_list):
-        # Unfortunately, transform is only X to X in Scikit-learn, so can't filter at this level
-        # external class sanitizer, may be needed before entering the pipeline
-        # TODO: Return same type as put in (e.g. List to list, numpy to numpy, pandas Series to pandas series)
         X_out = []
 
         for smiles in X_smiles_list:
