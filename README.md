@@ -54,15 +54,16 @@ Probably still
 
 
 ## TODO
-* Unit test coverage of classes
-* If possible return same type as input (e.g. List to list, numpy to numpy, pandas Series to pandas series)
+* Integration tests
 * Docstrings for classes and methods
+* If possible return same type as input (e.g. List to list, numpy to numpy, pandas Series to pandas series)
 * Make further example notebooks
     * Standalone usage (not in pipeline)
     * Advanced pipelining
     * Hyperparameter optimization via external optimizer e.g. https://scikit-optimize.github.io/stable/
 
 ## Ideas
+* Avalon fingerprints
 * LINGOS transformer
 
 
