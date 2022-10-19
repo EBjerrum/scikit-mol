@@ -259,7 +259,7 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         Raises
         ------
         ValueError
-            Raises ValueError of a SMILES string is unparsable by RDKit
+            Raises ValueError if a SMILES string is unparsable by RDKit
         """
         X_out = []
 
@@ -268,6 +268,6 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
             if mol:
                 X_out.append(mol)
             else:
-                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer first')
+                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer on your dataset first')
 
         return X_out
