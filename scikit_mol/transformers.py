@@ -33,9 +33,24 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         return arr
 
     def fit(self, X, y=None):
+        """Included for scikit-learn compatibility, does nothing"""
         return self
 
     def transform(self, X, y=None):
+        """Transform a list of RDKit molecule objects into a fingerprint array
+
+        Parameters
+        ----------
+        X : (List, np.array, pd.Series)
+            A list of RDKit molecules
+        y : NoneType, optional
+            Target values for scikit-learn compatibility, not used, by default None
+
+        Returns
+        -------
+        np.array
+            Fingerprints, shape (samples, fingerprint size)
+        """
         arr = np.zeros((len(X), self.nBits))
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
@@ -44,6 +59,9 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
 class MACCSTransformer(FpsTransformer):
     def __init__(self):
+        """MACCS keys fingerprinter
+        calculates the 167 fixed MACCS keys
+        """
         self.nBits = 167
         pass
 
@@ -57,6 +75,31 @@ class RDKitFPTransformer(FpsTransformer):
                  useBondOrder:bool = True, countSimulation:bool = False, countBounds = None,
                  fpSize:int  = 2048, numBitsPerFeature:int = 2, atomInvariantsGenerator = None
                  ):
+        """Calculates the RDKit fingerprints
+
+        Parameters
+        ----------
+        minPath : int, optional
+            the minimum path length (in bonds) to be included, by default 1
+        maxPath : int, optional
+            the maximum path length (in bonds) to be included, by default 7
+        useHs : bool, optional
+            toggles inclusion of Hs in paths (if the molecule has explicit Hs), by default True
+        branchedPaths : bool, optional
+            toggles generation of branched subgraphs, not just linear paths, by default True
+        useBondOrder : bool, optional
+            toggles inclusion of bond orders in the path hashes, by default True
+        countSimulation : bool, optional
+            if set, use count simulation while generating the fingerprint, by default False
+        countBounds : _type_, optional
+            boundaries for count simulation, corresponding bit will be set if the count is higher than the number provided for that spot, by default None
+        fpSize : int, optional
+            size of the generated fingerprint, does not affect the sparse versions, by default 2048
+        numBitsPerFeature : int, optional
+            the number of bits set per path/subgraph found, by default 2
+        atomInvariantsGenerator : _type_, optional
+            atom invariants to be used during fingerprint generation, by default None
+        """
         self.minPath = minPath
         self.maxPath = maxPath
         self.useHs = useHs
@@ -155,6 +198,23 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 
 class MorganTransformer(FpsTransformer):
     def __init__(self, nBits=2048, radius=2, useChirality=False, useBondTypes=True, useFeatures=False, useCounts=False):
+        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
+
+        Parameters
+        ----------
+        nBits : int, optional
+            Size of the hashed fingerprint, by default 2048
+        radius : int, optional
+            Radius of the fingerprint, by default 2
+        useChirality : bool, optional
+            Include chirality in calculation of the fingerprint keys, by default False
+        useBondTypes : bool, optional
+            Include bondtypes in calculation of the fingerprint keys, by default True
+        useFeatures : bool, optional
+            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
         self.nBits = nBits
         self.radius = radius
         self.useChirality = useChirality
@@ -180,10 +240,27 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         pass
 
     def fit(self, X=None, y=None):
-        #Nothing to do here
+        """Included for scikit-learn compatibility, does nothing"""
         return self
 
     def transform(self, X_smiles_list):
+        """Converts SMILES into RDKit mols
+
+        Parameters
+        ----------
+        X_smiles_list : list-like
+            A list of RDKit parsable strings
+
+        Returns
+        -------
+        List
+            List of RDKit mol objects
+
+        Raises
+        ------
+        ValueError
+            Raises ValueError of a SMILES string is unparsable by RDKit
+        """
         X_out = []
 
         for smiles in X_smiles_list:
