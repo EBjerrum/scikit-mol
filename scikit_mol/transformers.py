@@ -43,9 +43,9 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
 
 class MACCSTransformer(FpsTransformer):
-    def __init__(self):
-        self.nBits = 167
-        pass
+    def __init__(self, nBits=167):
+        self.nBits = nBits
+        # FIXME: nBits is not configurable here and only put for compatibility with FpsTransformer
 
     def _mol2fp(self, mol):
         return rdMolDescriptors.GetMACCSKeysFingerprint(
@@ -67,6 +67,7 @@ class RDKitFPTransformer(FpsTransformer):
         self.fpSize = fpSize
         self.numBitsPerFeature = numBitsPerFeature
         self.atomInvariantsGenerator = atomInvariantsGenerator
+        self.nBits = fpSize  # FIXME: the argument naming should be consistent and only use nBits
 
     def _mol2fp(self, mol):
         generator = rdFingerprintGenerator.GetRDKitFPGenerator(minPath=self.minPath, maxPath=self.maxPath,
@@ -97,7 +98,7 @@ class AtomPairFingerprintTransformer(FpsTransformer):
 
     def _mol2fp(self, mol):
         if self.useCounts:
-            return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=self,
+            return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=self.nBits,
                                                                  minLength=self.minLength,
                                                                  maxLength=self.maxLength,
                                                                  fromAtoms=self.fromAtoms,
@@ -184,6 +185,9 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X_smiles_list):
+        # Unfortunately, transform is only X to X in Scikit-learn, so can't filter at this level
+        # external class sanitizer, may be needed before entering the pipeline
+        # TODO: Return same type as put in (e.g. List to list, numpy to numpy, pandas Series to pandas series)
         X_out = []
 
         for smiles in X_smiles_list:
