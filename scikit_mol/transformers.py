@@ -111,6 +111,16 @@ class RDKitFPTransformer(FpsTransformer):
         self.numBitsPerFeature = numBitsPerFeature
         self.atomInvariantsGenerator = atomInvariantsGenerator
 
+
+    @property
+    def fpSize(self):
+        return self.nBits
+
+    #Scikit-Learn expects to be able to set fpSize directly on object via .set_params(), so this updates nBits used by the abstract class
+    @fpSize.setter
+    def fpSize(self, fpSize):
+        self.nBits = fpSize
+
     def _mol2fp(self, mol):
         generator = rdFingerprintGenerator.GetRDKitFPGenerator(minPath=self.minPath, maxPath=self.maxPath,
                                                                useHs=self.useHs, branchedPaths=self.branchedPaths,
@@ -140,7 +150,7 @@ class AtomPairFingerprintTransformer(FpsTransformer):
 
     def _mol2fp(self, mol):
         if self.useCounts:
-            return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=self,
+            return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=self.nBits,
                                                                  minLength=self.minLength,
                                                                  maxLength=self.maxLength,
                                                                  fromAtoms=self.fromAtoms,

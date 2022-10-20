@@ -74,7 +74,7 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
     #Test different types of input
     for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
         #Test the different transformers
-        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer]:
+        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer]:
             params   = t.get_params()
             fps = t.transform(mols)
             #Assert that the same length of input and output
