@@ -4,6 +4,7 @@ from rdkit import DataStructs
 #from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
 from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem import rdFingerprintGenerator
+from rdkit.Chem import rdMHFPFingerprint
 
 import numpy as np
 import pandas as pd
@@ -204,6 +205,31 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
                                                                                     includeChirality=self.includeChirality,
                                                                                     nBitsPerEntry=self.nBitsPerEntry
                                                                                     )
+
+class SECFingerprintTransformer(FpsTransformer):
+    # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
+    def __init__(self, radius:int=3, rings:bool=True, isomeric:bool=False, kekulize:bool=False,
+                 min_radius:int=1, length:int=2048, n_permutations:int=0, seed:int=0):
+        self.radius = radius
+        self.rings = rings
+        self.isomeric = isomeric
+        self.kekulize = kekulize
+        self.min_radius = min_radius
+        self.nBits = length
+        self.n_permutations = n_permutations
+        self.seed = seed
+        self.secfp_encoder = rdMHFPFingerprint.MHFPEncoder(self.n_permutations, self.seed)
+
+    def _mol2fp(self, mol):
+        return self.secfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.nBits) 
+
+    @property
+    def nBits(self):
+        return self.length
+
+    @nBits.setter
+    def nBits(self, nBits):
+        self.length = nBits
 
 
 class MorganTransformer(FpsTransformer):
