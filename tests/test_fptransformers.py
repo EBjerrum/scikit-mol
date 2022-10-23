@@ -4,7 +4,7 @@ import pandas as pd
 from rdkit import Chem
 from fixtures import mols_list, smiles_list, fingerprint
 from sklearn import clone
-from scikit_mol.transformers import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer
+from scikit_mol.transformers import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer
 
 
 @pytest.fixture
@@ -27,6 +27,10 @@ def topologicaltorsion_transformer():
 def maccs_transformer():
     return MACCSTransformer()
 
+@pytest.fixture
+def secfp_transformer():
+    return SECFingerprintTransformer()
+
 
 def test_fpstransformer_fp2array(morgan_transformer, fingerprint):
     fp = morgan_transformer._fp2array(fingerprint)
@@ -42,8 +46,8 @@ def test_fpstransformer_transform_mol(morgan_transformer, mols_list):
     assert(fp.shape == (2048,))
     assert(fp.sum() == 14)
 
-def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer):
-    for t in [maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer]:
+def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer):
+    for t in [maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer]:
         params   = t.get_params()
         t2 = clone(t)
         params_2 = t2.get_params()
@@ -52,7 +56,7 @@ def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, a
         #Cloned transformers should not be the same object
         assert t2 != t
 
-def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer):
+def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer):
     for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer]:
         params   = t.get_params()
         #change extracted dictionary
@@ -70,11 +74,18 @@ def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer,
         params_2 = t.get_params()
         assert all([ params[key] == params_2[key] for key in params.keys()])
 
-def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer):
+    for t in [secfp_transformer]:
+        params   = t.get_params()
+        params['length'] = 4242
+        t.set_params(length = 4242)
+        params_2 = t.get_params()
+        assert all([ params[key] == params_2[key] for key in params.keys()])
+
+def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer):
     #Test different types of input
     for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
         #Test the different transformers
-        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer]:
+        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer]:
             params   = t.get_params()
             fps = t.transform(mols)
             #Assert that the same length of input and output
@@ -85,6 +96,8 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
                 fpsize = t.nBits
             elif type(t) == type(rdkit_transformer):
                 fpsize = params['fpSize']
+            elif type(t) == type(secfp_transformer):
+                fpsize = t.nBits
             else:
                 fpsize = params['nBits']
             
