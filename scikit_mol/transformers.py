@@ -4,6 +4,7 @@ from rdkit import DataStructs
 #from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
 from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem import rdFingerprintGenerator
+from rdkit.Chem import rdMHFPFingerprint
 
 import numpy as np
 import pandas as pd
@@ -205,6 +206,63 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
                                                                                     nBitsPerEntry=self.nBitsPerEntry
                                                                                     )
 
+class SECFingerprintTransformer(FpsTransformer):
+    # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
+    def __init__(self, radius:int=3, rings:bool=True, isomeric:bool=False, kekulize:bool=False,
+                 min_radius:int=1, length:int=2048, n_permutations:int=0, seed:int=0):
+        """Transforms the RDKit mol into the SMILES extended connectivity fingerprint (SECFP)
+
+        Args:
+            radius (int, optional): The MHFP radius. Defaults to 3.
+            rings (bool, optional): Whether or not to include rings in the shingling. Defaults to True.
+            isomeric (bool, optional): Whether the isomeric SMILES to be considered. Defaults to False.
+            kekulize (bool, optional): Whether or not to kekulize the extracted SMILES. Defaults to False.
+            min_radius (int, optional): The minimum radius that is used to extract n-gram. Defaults to 1.
+            length (int, optional): The length of the folded fingerprint. Defaults to 2048.
+            n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
+            seed (int, optional): The value used to seed numpy.random. Defaults to 0.
+        """
+        self.radius = radius
+        self.rings = rings
+        self.isomeric = isomeric
+        self.kekulize = kekulize
+        self.min_radius = min_radius
+        self.length = length
+        self._n_permutations = n_permutations
+        self._seed = seed
+        # create the encoder instance
+        self._recreate_encoder()
+
+    def _mol2fp(self, mol):
+        return self.secfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.length) 
+
+    def _recreate_encoder(self):
+        self.secfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed)
+
+    @property
+    def seed(self):
+        return self._seed
+
+    @seed.setter
+    def seed(self, seed):
+        self._seed = seed
+        # each time the seed parameter is modified refresh an instace of the encoder
+        self._recreate_encoder()
+
+    @property
+    def n_permutations(self):
+        return self._n_permutations
+
+    @n_permutations.setter
+    def n_permutations(self, n_permutations):
+        self._n_permutations = n_permutations
+        # each time the n_permutations parameter is modified refresh an instace of the encoder
+        self._recreate_encoder()
+
+    @property
+    def nBits(self):
+        # to be compliant with the requirement of the base class
+        return self.length
 
 class MorganTransformer(FpsTransformer):
     def __init__(self, nBits=2048, radius=2, useChirality=False, useBondTypes=True, useFeatures=False, useCounts=False):
