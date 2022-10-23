@@ -138,3 +138,4 @@ tests/data/
 
 # setuptools_scm version
 scikit_mol/_version.py
+notebooks/sandbox.py
