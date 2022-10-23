@@ -2,6 +2,7 @@
 %load_ext autoreload 
 %autoreload 2
 from rdkit import Chem
+import numpy as np
 from scikit_mol.transformers import MorganTransformer, SmilesToMol
 
 
@@ -63,4 +64,55 @@ print(t.get_params(deep=True))
 from sklearn import clone
 t2 = clone(t)
 t2.get_params()
+# %% Draft  pytest
+
+tr = MorganTransformer()
+mols_list = [Chem.MolFromSmiles(smi) for smi in ['Cc1ccccc1', 'c1cccnc1']]
+
+
+def assert_transformer_set_params(tr_class, new_params):
+    tr = tr_class()
+    fps_default = tr.transform(mols_list)
+
+    tr.set_params(**new_params)
+    new_tr = MorganTransformer(**new_params)
+
+    fps_reset_params = tr.transform(mols_list)
+    fps_init_new_params = new_tr.transform(mols_list)
+    # Now fp_default should not be the same as fp_reset_params,
+    assert(~np.any([np.array_equal(fp_default, fp_reset_params) for fp_default, fp_reset_params in zip(fps_default, fps_reset_params)]))
+    # fp_reset_params and fp_init_new_params should be the same
+    assert(np.all([np.array_equal(fp_init_new_params, fp_reset_params) for fp_init_new_params, fp_reset_params in zip(fps_init_new_params, fps_reset_params)]))
+
+
+new_params = {'nBits': 1024,
+            'radius': 3,
+            'useBondTypes': False,
+            'useChirality': True,
+            'useCounts': True,
+            'useFeatures': True}
+
+
+
+assert_transformer_set_params(MorganTransformer, new_params)
+# %% But this wouldn't ca
+from scikit_mol.transformers import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer
+
+# %%
+MACCSTransformer().get_params()
+AtomPairFingerprintTransformer().get_params()# %%
+
+#%%
+TopologicalTorsionFingerprintTransformer().get_params()
+
+# %%
+chiral_smiles_list = [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  [
+                'N[C@@H](C)C(=O)O',
+                'C1C[C@H]2CCCC[C@H]2CC1']]
+# %%
+mols = [Chem.MolFromSmiles(smi) for smi in chiral_smiles_list]
+# %%
+tr = TopologicalTorsionFingerprintTransformer(includeChirality=True)
+# %%
+tr.transform(mols)
 # %%

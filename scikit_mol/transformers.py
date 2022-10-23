@@ -132,7 +132,7 @@ class RDKitFPTransformer(FpsTransformer):
                                                                )
         return generator.GetFingerprint(mol)
 
-class AtomPairFingerprintTransformer(FpsTransformer):
+class AtomPairFingerprintTransformer(FpsTransformer): #FIXME, some of the init arguments seems to be molecule specific, and should probably not be setable?
     def __init__(self, minLength:int = 1, maxLength:int = 30, fromAtoms = 0, ignoreAtoms = 0, atomInvariants = 0,
                  nBitsPerEntry:int = 4, includeChirality:bool = False, use2D:bool = True, confId:int = -1, nBits=2048,
                  useCounts:bool=False):
