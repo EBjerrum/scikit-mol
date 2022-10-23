@@ -116,7 +116,7 @@ def assert_transformer_set_params(tr_class, new_params, mols_list):
 
     # Now fp_default should not be the same as fp_reset_params
     assert(~np.any([np.array_equal(fp_default, fp_reset_params) for fp_default, fp_reset_params in zip(fps_default, fps_reset_params)]))
-    # fp_reset_params and fp_init_new_params should be the same
+    # fp_reset_params and fp_init_new_params should however be the same
     assert(np.all([np.array_equal(fp_init_new_params, fp_reset_params) for fp_init_new_params, fp_reset_params in zip(fps_init_new_params, fps_reset_params)]))            
 
 
@@ -131,7 +131,7 @@ def test_morgan_set_params(mols_list):
     assert_transformer_set_params(MorganTransformer, new_params, mols_list)
 
 
-def test_atompairs_set_params(mols_list):
+def test_atompairs_set_params(chiral_mols_list):
     new_params = {
         #'atomInvariants': 1,
         #'confId': -1,
@@ -145,7 +145,7 @@ def test_atompairs_set_params(mols_list):
         #'use2D': True, #TODO, understand why this can't be set different
         'useCounts': True}
             
-    assert_transformer_set_params(AtomPairFingerprintTransformer, new_params, mols_list)
+    assert_transformer_set_params(AtomPairFingerprintTransformer, new_params, chiral_mols_list)
 
 
 def test_topologicaltorsion_set_params(chiral_mols_list):
@@ -159,7 +159,3 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
                     'useCounts': True}
             
     assert_transformer_set_params(TopologicalTorsionFingerprintTransformer, new_params, chiral_mols_list)
-
-
-
-#RDKitFPTransformer
