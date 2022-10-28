@@ -11,11 +11,11 @@ def smiles_list():
                 'C[N+](C)C.O=C([O-])c1ccccc1']]
 
 @pytest.fixture
-def chiral_smiles_list():
+def chiral_smiles_list(): #Need to be a certain size, so the fingerprints reacts to different max_lenǵths and radii
     return [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  [
-                'N[C@@H](C)C(=O)O',
-                'C1C[C@H]2CCCC[C@H]2CC1',
-                'N[C@@H](C)C(=O)Oc1ccccc1[H]']]
+                'N[C@@H](C)C(=O)OCCCCCCCCCCCC',
+                'C1C[C@H]2CCCC[C@H]2CC1CCCCCCCCC',
+                'N[C@@H](C)C(=O)Oc1ccccc1CCCCCCCCCCCCCCCCCCN[H]']]
 
 @pytest.fixture
 def invalid_smiles_list(smiles_list):

@@ -294,12 +294,12 @@ class MorganTransformer(FpsTransformer):
         if self.useCounts:
             return rdMolDescriptors.GetHashedMorganFingerprint(
                 mol,self.radius,nBits=self.nBits, useFeatures=self.useFeatures,
-                useChirality=self.useChirality,
+                useChirality=self.useChirality, useBondTypes=self.useBondTypes
             )
         else:
             return rdMolDescriptors.GetMorganFingerprintAsBitVect(
                 mol,self.radius,nBits=self.nBits, useFeatures=self.useFeatures,
-                useChirality=self.useChirality,
+                useChirality=self.useChirality, useBondTypes=self.useBondTypes
             )
         
 
