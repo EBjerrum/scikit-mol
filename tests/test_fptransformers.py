@@ -137,7 +137,7 @@ def test_atompairs_set_params(chiral_mols_list):
         #'confId': -1,
         #'fromAtoms': 1,
         #'ignoreAtoms': 0,
-        'includeChirality': True,
+        'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
         'maxLength': 20,
         'minLength': 3,
         'nBits': 1024,
@@ -159,3 +159,17 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
                     'useCounts': True}
             
     assert_transformer_set_params(TopologicalTorsionFingerprintTransformer, new_params, chiral_mols_list)
+
+def test_RDKitFPTransformer(chiral_mols_list):
+    new_params = {'atomInvariantsGenerator': None,
+                #'branchedPaths': False,
+                #'countBounds': 0, #TODO: What does this do?
+                'countSimulation': True,
+                'fpSize': 1024,
+                'maxPath': 3,
+                'minPath': 2,
+                'numBitsPerFeature': 3,
+                #'useBondOrder': False, #TODO, why doesn't this change the FP?
+                #'useHs': False, #TODO, why doesn't this change the FP?
+                }
+    assert_transformer_set_params(RDKitFPTransformer, new_params, chiral_mols_list)

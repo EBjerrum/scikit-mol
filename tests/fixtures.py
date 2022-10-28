@@ -14,7 +14,8 @@ def smiles_list():
 def chiral_smiles_list():
     return [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  [
                 'N[C@@H](C)C(=O)O',
-                'C1C[C@H]2CCCC[C@H]2CC1']]
+                'C1C[C@H]2CCCC[C@H]2CC1',
+                'N[C@@H](C)C(=O)Oc1ccccc1[H]']]
 
 @pytest.fixture
 def invalid_smiles_list(smiles_list):
