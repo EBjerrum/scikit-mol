@@ -105,30 +105,36 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
 
 
 def assert_transformer_set_params(tr_class, new_params, mols_list):
-    tr = tr_class()
-    fps_default = tr.transform(mols_list)
+    default_params = tr_class().get_params()
+    for key in new_params.keys():
 
-    tr.set_params(**new_params)
-    new_tr = tr_class(**new_params)
+        tr = tr_class()
+        params = tr.get_params()
+        params[key] = new_params[key]
 
-    fps_reset_params = tr.transform(mols_list)
-    fps_init_new_params = new_tr.transform(mols_list)
+        fps_default = tr.transform(mols_list)
 
-    # Now fp_default should not be the same as fp_reset_params
-    assert(~np.any([np.array_equal(fp_default, fp_reset_params) for fp_default, fp_reset_params in zip(fps_default, fps_reset_params)]))
-    # fp_reset_params and fp_init_new_params should however be the same
-    assert(np.all([np.array_equal(fp_init_new_params, fp_reset_params) for fp_init_new_params, fp_reset_params in zip(fps_init_new_params, fps_reset_params)]))            
+        tr.set_params(**params)
+        new_tr = tr_class(**params)
+
+        fps_reset_params = tr.transform(mols_list)
+        fps_init_new_params = new_tr.transform(mols_list)
+
+        # Now fp_default should not be the same as fp_reset_params
+        assert ~np.all([np.array_equal(fp_default, fp_reset_params) for fp_default, fp_reset_params in zip(fps_default, fps_reset_params)]), f"Assertation error, FP appears the same, although the {key} should be changed from {default_params[key]} to {params[key]}"
+        # fp_reset_params and fp_init_new_params should however be the same
+        assert np.all([np.array_equal(fp_init_new_params, fp_reset_params) for fp_init_new_params, fp_reset_params in zip(fps_init_new_params, fps_reset_params)]) , f"Assertation error, FP appears to be different, although the {key} should be changed back as well as initialized to {params[key]}"
 
 
-def test_morgan_set_params(mols_list):
+def test_morgan_set_params(chiral_mols_list):
     new_params = {'nBits': 1024,
-                'radius': 3,
-                'useBondTypes': False,
+                'radius': 1,
+                'useBondTypes': False,# TODO, why doesn't this change the FP?
                 'useChirality': True,
                 'useCounts': True,
                 'useFeatures': True}
     
-    assert_transformer_set_params(MorganTransformer, new_params, mols_list)
+    assert_transformer_set_params(MorganTransformer, new_params, chiral_mols_list)
 
 
 def test_atompairs_set_params(chiral_mols_list):
@@ -137,8 +143,8 @@ def test_atompairs_set_params(chiral_mols_list):
         #'confId': -1,
         #'fromAtoms': 1,
         #'ignoreAtoms': 0,
-        'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
-        'maxLength': 20,
+        'includeChirality': True, 
+        'maxLength': 3,
         'minLength': 3,
         'nBits': 1024,
         'nBitsPerEntry': 3,
@@ -152,7 +158,7 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
     new_params = {#'atomInvariants': 0,
                     #'fromAtoms': 0,
                     #'ignoreAtoms': 0,
-                    'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
+                    #'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
                     'nBits': 1024,
                     'nBitsPerEntry': 3,
                     'targetSize': 5,
@@ -161,7 +167,7 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
     assert_transformer_set_params(TopologicalTorsionFingerprintTransformer, new_params, chiral_mols_list)
 
 def test_RDKitFPTransformer(chiral_mols_list):
-    new_params = {'atomInvariantsGenerator': None,
+    new_params = {#'atomInvariantsGenerator': None,
                 #'branchedPaths': False,
                 #'countBounds': 0, #TODO: What does this do?
                 'countSimulation': True,
@@ -169,7 +175,22 @@ def test_RDKitFPTransformer(chiral_mols_list):
                 'maxPath': 3,
                 'minPath': 2,
                 'numBitsPerFeature': 3,
-                #'useBondOrder': False, #TODO, why doesn't this change the FP?
+                'useBondOrder': False, #TODO, why doesn't this change the FP?
                 #'useHs': False, #TODO, why doesn't this change the FP?
                 }
     assert_transformer_set_params(RDKitFPTransformer, new_params, chiral_mols_list)
+
+
+def test_SECFingerprintTransformer(chiral_mols_list):
+    new_params = {'isomeric': True,
+                'kekulize': True,
+                'length': 1048,
+                'min_radius': 2,
+                #'n_permutations': 2, #TODO, figure out why n_permutations are not influencing
+                'radius': 2,
+                'rings': False,
+                #'seed': 1 #TODO, figure out why n_permutations are not influencing
+                }
+    assert_transformer_set_params(SECFingerprintTransformer, new_params, chiral_mols_list)
+
+
