@@ -29,6 +29,8 @@ class Standardizer(BaseEstimator, TransformerMixin):
             if self.neutralize:
                 uncharger = rdMolStandardize.Uncharger()
                 uncharged_parent_clean_mol = uncharger.uncharge(parent_clean_mol)
+            else:
+                uncharged_parent_clean_mol = parent_clean_mol
             # Add to final list
             arr.append(uncharged_parent_clean_mol)
         

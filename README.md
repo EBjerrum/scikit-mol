@@ -52,25 +52,22 @@ None yet, but there are some # %% delimted examples in the notebooks directory t
 ## BUGS
 Probably still
 
-
 ## TODO
+* Add rest of RDKit fingerprints
 * Integration tests
 * Docstrings for classes and methods
-* If possible return same type as input (e.g. List to list, numpy to numpy, pandas Series to pandas series)
+    * Numpy style
 * Make further example notebooks
     * Standalone usage (not in pipeline)
     * Advanced pipelining
     * Hyperparameter optimization via external optimizer e.g. https://scikit-optimize.github.io/stable/
 
-## Ideas
-* Avalon fingerprints
-* LINGOS transformer
-
 
 ## Contributers:
 * Esben Jannik Bjerrum, esben@cheminformania.com
-* Carmen Esposito https://github.com/cespos
+* Carmen Esposito [@cespos](https://github.com/cespos)
 * Son Ha, sonha@uni-mainz.de
 * Oh-hyeon Choung, ohhyeon.choung@gmail.com
-* Andreas Poehlmann, https://github.com/ap--
-* Ya Chen, https://github.com/anya-chen
+* Andreas Poehlmann, [@ap--](https://github.com/ap--)
+* Ya Chen, [@anya-chen](https://github.com/anya-chen)
+* Rafał Bachorz [@rafalbachorz](https://github.com/rafalbachorz)
