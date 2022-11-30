@@ -1,6 +1,6 @@
 # checking that the new transformers can work within a scikitlearn pipeline of the kind
 # Pipeline([("s2m", SmilesToMol()), ("FP", FPTransformer()), ("RF", RandomForestRegressor())])
-# using some test data stored in ./data/SLC6A4_active_excape_export.csv
+# using some test data stored in ./data/SLC6A4_active_excape_subset.csv
 
 # to run as
 # pytest tests/test_transformers.py --> tests/test_transformers.py::test_transformer PASSED
@@ -14,12 +14,13 @@ from scikit_mol.transformers import SmilesToMol
 from scikit_mol.transformers import MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganTransformer
 
-def test_transformer():
+from fixtures import SLC6A4_subset
+
+def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
-    data = pd.read_csv("./tests/data/SLC6A4_active_excape_export.csv")
-    X_smiles, Y = data.SMILES, data.pXC50
-    X_train, X_test = X_smiles[:128], X_smiles[128:256]
-    Y_train, Y_test = Y[:128], Y[128:256]
+    X_smiles, Y = SLC6A4_subset.SMILES, SLC6A4_subset.pXC50
+    X_train, X_test = X_smiles[:128], X_smiles[128:]
+    Y_train, Y_test = Y[:128], Y[128:]
 
     # run FP with default parameters except when useCounts can be given as an argument
     FP_dict = {"MACCSTransformer": [MACCSTransformer, None],
