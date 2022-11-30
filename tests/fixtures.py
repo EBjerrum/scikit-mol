@@ -1,6 +1,10 @@
+import os
 import pytest
+import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
+
+#TODO these should really go into the conftest.py, so that they are automatically imported in the tests
 
 @pytest.fixture
 def smiles_list():
@@ -34,3 +38,9 @@ def chiral_mols_list(chiral_smiles_list):
 @pytest.fixture
 def fingerprint(mols_list):
     return rdMolDescriptors.GetHashedMorganFingerprint(mols_list[0],2,nBits=1000)
+
+@pytest.fixture
+def SLC6A4_subset():
+    file_path = os.path.realpath(__file__)
+    data = pd.read_csv(f"{os.path.split(file_path)[0]}/data/SLC6A4_active_excapedb_subset.csv")
+    return data
