@@ -1,4 +1,23 @@
-#%%
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: title,-all
+#     formats: ipynb,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.14.1
+#   kernelspec:
+#     display_name: Python 3.9.4 ('rdkit')
+#     language: python
+#     name: python3
+# ---
+
+# %% [markdown]
+# # Full example: Hyperparameter tuning
+
+# %%
 import os
 import rdkit
 from rdkit import Chem
@@ -8,58 +27,30 @@ import matplotlib.pyplot as plt
 from time import time
 import numpy as np
 
-#%%
-!wget -c https://ndownloader.figshare.com/files/25747817 
+csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv" # Hmm, maybe better to download directly
+data = pd.read_csv(csv_file)
 
-#%%
-data = pd.read_csv('25747817')
-#%%
 PandasTools.AddMoleculeColumnToFrame(data, smilesCol="SMILES")
-# %% Any None mols?
-data.ROMol.isna().sum()
+print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion")
 
-# %%
-len(data)
-# %%
-from scikit_mol.transformers import MorganTransformer
-# %%
-t = MorganTransformer()
-# %%
-t.fit_transform(data.ROMol)
-# %%
-_ = plt.hist(data.pXC50, bins=100)
-#%%
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
-from scikit_mol.standardizer import Standardizer
+from scikit_mol.transformers import MorganTransformer, SmilesToMol
 
-
-#%%
 mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
 
-#%%
 pipe = Pipeline([('mol_transformer', MorganTransformer()), ('Regressor', Ridge())])
 
-# %%
-pipe.fit(mol_list_train, y_train)
-pipe.score(mol_list_train,y_train)
-#%%
-pipe.score(mol_list_test, y_test)
-
-#%%
-pipe.predict([Chem.MolFromSmiles('c1ccccc1C(=O)[OH]')])
-
-#%% Now hyperparameter tuning
+# %% Now hyperparameter tuning
 from sklearn.model_selection import RandomizedSearchCV
-
 from sklearn.utils.fixes import loguniform
 
-#%% Which keys do we have?
+# %% Which keys do we have?
 
 pipe.get_params().keys()
 
-#%%
+# %%
 
 param_dist = {'Regressor__alpha': loguniform(1e-2, 1e3),
             "mol_transformer__nBits": [256,512,1024,2048,4096],
@@ -90,11 +81,13 @@ def report(results, n_top=3):
 # Probably the recommended way would be to prestandardize the data if there's no changes to the transformer, 
 # and then add the standardizer in the inference pipeline.
 
+from scikit_mol.standardizer import Standardizer
+
 standardizer = Standardizer()
 mol_list_std_train = standardizer.transform(mol_list_train)
 
 
-#%%
+# %%
 n_iter_search = 25
 random_search = RandomizedSearchCV(
     pipe, param_distributions=param_dist, n_iter=n_iter_search
@@ -105,7 +98,7 @@ t1 = time()
 
 print(f'Runtime: {t1-t0} for {n_iter_search} iterations)')
 
-#%%
+# %%
 report(random_search.cv_results_)
 # %% Building an inference pipeline, it appears our test-data was pretty standard
 inference_pipe = Pipeline([('Standardizer', standardizer), ('best_estimator', random_search.best_estimator_)])
@@ -119,3 +112,5 @@ mols_list = [Chem.MolFromSmiles(smiles) for smiles in smiles_list]
 
 print(f'Predictions with no standardization: {random_search.best_estimator_.predict(mols_list)}')
 print(f'Predictions with standardization:    {inference_pipe.predict(mols_list)}')
+
+# %%
