@@ -45,14 +45,7 @@ print(f'Dataset contains {data.ROMol.isna().sum()} unparsable mols')
 from scikit_mol.sanitizer import CheckSmilesSanitazion
 smileschecker = CheckSmilesSanitazion()
 
-data_valid, data_unvalid = smileschecker.sanitize(data.SMILES)
-
-# %%
-data_unvalid
-
-# %%
-
-smiles_list_valid, y_valid, X_errors, y_errors = smileschecker.sanitize(smiles_list, y_values)
+smiles_list_valid, y_valid, smiles_errors, y_errors = smileschecker.sanitize(list(data.SMILES), list(data.pXC50))
 
 # %% [markdown]
 # Now the smiles_list_valid should be all valid and the y_values filtered as well. Errors are returned, but also accesible after the call to .sanitize() in the .errors property
@@ -64,7 +57,5 @@ smileschecker.errors
 # The checker can also be used only on X
 
 # %%
-smiles_list_valid, X_errors = smileschecker.sanitize(smiles_list)
+smiles_list_valid, X_errors = smileschecker.sanitize(list(data.SMILES))
 smileschecker.errors
-
-# %%
