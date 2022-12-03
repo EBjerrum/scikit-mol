@@ -26,7 +26,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import Ridge
 
 # %% [markdown]
-# For demonstration let's create some molecules with different protonation states.
+# For demonstration let's create some molecules with different protonation states. The two first molecules are Benzoic acid and Sodium benzoate.
 
 # %%
 smiles_strings = ('c1ccccc1C(=O)[OH]','c1ccccc1C(=O)[O-].[Na+]','CC[NH+](C)C','CC[N+](C)(C)C',
