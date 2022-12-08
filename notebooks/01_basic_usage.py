@@ -24,6 +24,9 @@
 # The transformer classes are easy to load, configure and use to process molecular information into vectorized formats using fingerprinters or collections of descriptors. For demonstration purposes, let's load a MorganTransformer, that can convert a list of RDKit molecular objects into a numpy array of morgan fingerprints. First create some molecules from SMILES strings.
 
 # %%
+from IPython.core.display import HTML
+
+# %%
 from rdkit import Chem
 
 smiles_strings = ["C12C([C@@H](OC(C=3C=CC(=CC3)F)C=4C=CC(=CC4)F)CC(N1CCCCCC5=CC=CC=C5)CC2)C(=O)OC", 
@@ -42,29 +45,30 @@ mols = [Chem.MolFromSmiles(smiles) for smiles in smiles_strings]
 from scikit_mol.transformers import MorganTransformer
 
 transformer = MorganTransformer(radius=3)
-transformer
-
-# %% [markdown]
-# It renders as a cute little block in the jupyter notebook and lists the options that are not the default values. If we print it, it also gives the information on the settings.
-
-# %%
 print(transformer)
 
 # %% [markdown]
-# If we want to get all the settings exlicitly, we can use the .get_params() method.
+# It actually renders as a cute little interactive block in the Jupyter notebook and lists the options that are not the default values. If we print it, it also gives the information on the settings. 
+#
+# ![An image of the interactive transformer widget](images/Transformer_Widget.jpg "Transformer object rendering in Jupyter")
+#
+# The graphical representation is probably nice when working with complex pipelines. However, the graphical representation doesn't work when previewing the notebook on GitHub or nbviewer.org, so for the rest of these scikit-mol notebook examples, we'll use the print() output.
+
+# %% [markdown]
+# If we want to get all the settings explicitly, we can use the .get_params() method.
 
 # %%
 parameters = transformer.get_params()
 parameters
 
 # %% [markdown]
-# The corresponding .set_params() method can be used to update the settings from options or from a dictionary (via ** unpackaging). The get_params and set_params methods are sometimes used by sklearn by e.g. hyperparameter search objects.
+# The corresponding .set_params() method can be used to update the settings from options or from a dictionary (via ** unpackaging). The get_params and set_params methods are sometimes used by sklearn, as example hyperparameter search objects.
 
 # %%
 parameters["radius"] = 2
 parameters["nBits"] = 256
 transformer.set_params(**parameters)
-transformer
+print(transformer)
 
 # %% [markdown]
 # Transformation is easy, simply use the .transform() method. For sklearn compatibility the scikit-learn transformers also have a .fit_transform() method, but it is usually not fitting anything.
@@ -86,7 +90,7 @@ transformer.transform(mols, y)
 # %%
 from scikit_mol.transformers import SmilesToMol
 smi2mol = SmilesToMol()
-smi2mol
+print(smi2mol)
 
 # %%
-smi2mol.transform(smiles_strings)
+print(smi2mol.transform(smiles_strings))
