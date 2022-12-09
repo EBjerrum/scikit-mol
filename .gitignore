@@ -140,3 +140,4 @@ tests/data/
 scikit_mol/_version.py
 notebooks/sandbox.py
 .vscode
+notebooks/SLC6A4_active_excape_export.csv

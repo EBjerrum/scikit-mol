@@ -1,0 +1,1 @@
+jupytext --sync 0*py

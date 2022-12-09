@@ -27,6 +27,7 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
     * AtomPairFingerprintTransformer
     * TopologicalTorsionFingerprintTransformer
     * MorganTransformer
+    * SECFingerprintTransformer
 <br>
 
 * Utilities
@@ -47,24 +48,22 @@ Developers
     pip install -e .
 
 ## Documentation
-None yet, but there are some # %% delimted examples in the notebooks directory that have some demonstrations
+
+There are a collection of notebooks in the notebooks directory which demonstrates some different aspects and use cases
+
+* [Basic Usage and fingerprint transformers](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/01_basic_usage.ipynb)
+* [Descriptor transformer](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/02_descriptor_transformer.ipynb)
+* [Pipelining with Scikit-Learn classes](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/03_example_pipeline.ipynb)
+* [Molecular standardization](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/04_standardizer.ipynb)
+* [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/05_smiles_sanitaztion.ipynb)
+* [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/06_hyperparameter_tuning.ipynb)
+
 
 ## BUGS
 Probably still
 
-## TODO
-* Add rest of RDKit fingerprints
-* Integration tests
-* Docstrings for classes and methods
-    * Numpy style
-* Make further example notebooks
-    * Standalone usage (not in pipeline)
-    * Advanced pipelining
-    * Hyperparameter optimization via external optimizer e.g. https://scikit-optimize.github.io/stable/
-
-
 ## Contributers:
-* Esben Jannik Bjerrum, esben@cheminformania.com
+* Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esben@cheminformania.com
 * Carmen Esposito [@cespos](https://github.com/cespos)
 * Son Ha, sonha@uni-mainz.de
 * Oh-hyeon Choung, ohhyeon.choung@gmail.com
