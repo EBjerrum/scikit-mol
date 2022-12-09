@@ -54,6 +54,9 @@ print(transformer)
 #
 # The graphical representation is probably nice when working with complex pipelines. However, the graphical representation doesn't work when previewing the notebook on GitHub or nbviewer.org, so for the rest of these scikit-mol notebook examples, we'll use the print() output.
 
+# %%
+transformer
+
 # %% [markdown]
 # If we want to get all the settings explicitly, we can use the .get_params() method.
 

@@ -8,6 +8,10 @@
 #       format_name: percent
 #       format_version: '1.3'
 #       jupytext_version: 1.14.1
+#   kernelspec:
+#     display_name: Python 3.9.4 ('rdkit')
+#     language: python
+#     name: python3
 # ---
 
 # %% [markdown]
@@ -51,4 +55,6 @@ features = some_descriptors.transform(mols)
 # If we want to update the selected descriptors on an already existing object, this can be done via the .set_params() method
 
 # %%
-some_descriptors.set_params(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount'])
+print(some_descriptors.set_params(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount']))
+
+# %%

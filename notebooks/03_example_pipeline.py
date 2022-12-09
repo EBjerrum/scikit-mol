@@ -58,7 +58,7 @@ mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, da
 
 # %%
 pipe = Pipeline([('mol_transformer', MorganTransformer()), ('Regressor', Ridge())])
-pipe
+print(pipe)
 
 # %% [markdown]
 # We can do the fit by simply providing the list of RDKit molecule objects
@@ -78,16 +78,13 @@ pipe.predict([Chem.MolFromSmiles('c1ccccc1C(=O)[OH]')])
 
 # %%
 smiles_pipe = Pipeline([('smiles_transformer', SmilesToMol()), ('pipe', pipe)])
-smiles_pipe
+print(smiles_pipe)
 
 # %%
 smiles_pipe.predict(['c1ccccc1C(=O)[OH]'])
 
 # %% [markdown]
 # From here, the pipelines could be pickled, and later loaded for easy prediction on RDKit molecule objects or SMILES in other scripts. The transformation with the MorganTransformer will be the same as during fitting, so no need to remember if radius 2 or 3 was used for this or that model, as it is already in the pipeline itself. If we need to see the parameters for a particular pipeline of model, we can always get the non default settings via print or all settings with .get_params().
-
-# %%
-print(smiles_pipe)
 
 # %%
 smiles_pipe.get_params()
