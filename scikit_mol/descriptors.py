@@ -107,5 +107,3 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
                 #    pool.close()
                 arr = np.concatenate(arrays)
             return arr
-        else:
-            raise ValueError(f"n_processes can't be below one, was {self.parallel}")
