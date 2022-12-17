@@ -1,4 +1,5 @@
 #%%
+from multiprocessing import Pool, get_context
 from rdkit import Chem
 from rdkit import DataStructs
 #from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
@@ -8,6 +9,7 @@ from rdkit.Chem import rdMHFPFingerprint
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import lil_matrix
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -24,7 +26,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         raise NotImplementedError("_mol2fp not implemented")
 
     def _fp2array(self, fp):
-        arr = np.zeros((self.nBits,))
+        arr = np.zeros((self.nBits,), dtype=np.int8)
         DataStructs.ConvertToNumpyArray(fp, arr)
         return arr
 
@@ -36,6 +38,19 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         """Included for scikit-learn compatibility, does nothing"""
         return self
+
+
+    def _transform(self, X):
+        arr = np.zeros((len(X), self.nBits), dtype=np.int8)
+        for i, mol in enumerate(X):
+            arr[i,:] = self._transform_mol(mol)
+        return arr
+
+    def _transform_sparse(self, X):
+        arr = lil_matrix((len(X), self.nBits), dtype=np.int8)
+        for i, mol in enumerate(X):
+            arr[i,:] = self._transform_mol(mol)
+        return arr
 
     def transform(self, X, y=None):
         """Transform a list of RDKit molecule objects into a fingerprint array
@@ -52,6 +67,21 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         np.array
             Fingerprints, shape (samples, fingerprint size)
         """
+        if not self.parallel:
+            return self._transform(X)
+        elif self.parallel:
+            n_processes = self.parallel if self.parallel > 1 else None #Pool(processes=None) autodetects
+            #with get_context("spawn").Pool(processes=n_processes) as pool:
+                #print(f"{n_processes=}")
+            pool = Pool(processes=n_processes)
+            x_chunks = np.array_split(X, 4)
+            #print(f"{x_chunks=}")
+            arrays = pool.map(self._transform, x_chunks)
+            # arrays = async_obj.get(20)
+            pool.close()
+            # print(f"{arrays=}")
+            arr = np.concatenate(arrays)
+            return arr
         arr = np.zeros((len(X), self.nBits))
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)

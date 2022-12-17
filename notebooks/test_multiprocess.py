@@ -25,7 +25,7 @@ import numpy as np
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
-#from scikit_mol.transformers import MorganTransformer, SmilesToMol
+from scikit_mol.transformers import MorganTransformer, RDKitFPTransformer, SmilesToMol, MACCSTransformer
 from scikit_mol.descriptors import Desc2DTransformer
 from multiprocessing import Pool
 import time
@@ -50,8 +50,52 @@ data = pd.read_csv(csv_file)
 PandasTools.AddMoleculeColumnToFrame(data, smilesCol="SMILES")
 print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion")
 
+#%%
+dataset_size = len(data)
+
+bigdata = list(data.ROMol)
+
+len(bigdata)
+#%%
+Transformer = MorganTransformer
+Transformer = MACCSTransformer
+Transformer = RDKitFPTransformer
+
+
+parallel=False
+transformer = Transformer()
+transformer.parallel = parallel
+
+t0 = time.time()
+transformer.transform(bigdata)
+t = time.time()-t0
+print(t)
+
 # %%
-import time
+parallel = 4
+transformer = Transformer()
+transformer.parallel = parallel
+
+t0 = time.time()
+transformer.transform(bigdata)
+t = time.time()-t0
+print(t)
+
+# %%
+parallel = 2 #Takes slightly longer than True
+transformer = MorganTransformer()
+transformer.parallel = parallel
+
+t0 = time.time()
+X = transformer.transform(data.ROMol.iloc[0:dataset_size])
+t = time.time()-t0
+print(t)
+
+# %%
+
+
+# %%
+
 dataset_size = 500
 
 parallel=False
@@ -112,3 +156,4 @@ sns.heatmap(results.loc[0]/results, annot=True, cmap = "PiYG",center=1)
 plt.title("Descriptor calculation parallelization speedup\n(SLC6A4 actives dataset)")
 plt.xlabel("Dataset size")
 plt.ylabel("Number of processes")
+
