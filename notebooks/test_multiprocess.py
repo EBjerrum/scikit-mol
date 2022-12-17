@@ -56,9 +56,27 @@ dataset_size = len(data)
 bigdata = list(data.ROMol)
 
 len(bigdata)
+
+#%%
+tr = MorganTransformer()
+X_sparse = tr._transform_sparse(data.ROMol)
+
+from scipy.sparse import vstack
+vstack([X_sparse]*2)
+
+
+#%%
+
+t0 = time.time()
+tr._transform_sparse(data.ROMol)
+t = time.time()-t0
+print(t)
+
+
+
 #%%
 Transformer = MorganTransformer
-Transformer = MACCSTransformer
+#Transformer = MACCSTransformer
 Transformer = RDKitFPTransformer
 
 
@@ -70,6 +88,8 @@ t0 = time.time()
 transformer.transform(bigdata)
 t = time.time()-t0
 print(t)
+#%%
+
 
 # %%
 parallel = 4

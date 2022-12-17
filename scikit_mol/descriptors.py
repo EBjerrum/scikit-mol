@@ -1,4 +1,5 @@
 from multiprocessing import Pool, get_context
+import multiprocessing
 import numpy as np
 from typing import List, Optional, Any, Union
 
@@ -99,9 +100,10 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
             return self._transform(x)
         elif self.parallel:
             n_processes = self.parallel if self.parallel > 1 else None #Pool(processes=None) autodetects
+            n_chunks = n_processes if n_processes is not None else multiprocessing.cpu_count()
             with get_context("spawn").Pool(processes=n_processes) as pool:
                 # pool = Pool(processes=self.n_processes)
-                x_chunks = np.array_split(x, self.parallel * 3)  # Is x3 the optimal?
+                x_chunks = np.array_split(x, n_chunks * 3)  #TODO fix, n_processes may not be int, but None# Is x3 the optimal?
                 arrays = pool.map(self._transform, x_chunks)
                 # arrays = async_obj.get(20)
                 #    pool.close()

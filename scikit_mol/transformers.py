@@ -10,6 +10,7 @@ from rdkit.Chem import rdMHFPFingerprint
 import numpy as np
 import pandas as pd
 from scipy.sparse import lil_matrix
+from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -47,10 +48,11 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         return arr
 
     def _transform_sparse(self, X):
-        arr = lil_matrix((len(X), self.nBits), dtype=np.int8)
+        arr = np.zeros((len(X), self.nBits), dtype=np.int8)
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
-        return arr
+        
+        return lil_matrix(arr)
 
     def transform(self, X, y=None):
         """Transform a list of RDKit molecule objects into a fingerprint array
@@ -76,12 +78,11 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
             pool = Pool(processes=n_processes)
             x_chunks = np.array_split(X, 4)
             #print(f"{x_chunks=}")
-            arrays = pool.map(self._transform, x_chunks)
+            arrays = pool.map(self._transform_sparse, x_chunks)
             # arrays = async_obj.get(20)
             pool.close()
             # print(f"{arrays=}")
-            arr = np.concatenate(arrays)
-            return arr
+            return vstack(arrays).toarray()
         arr = np.zeros((len(X), self.nBits))
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
