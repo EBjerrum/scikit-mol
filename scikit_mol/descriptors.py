@@ -14,7 +14,7 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
     
     Parameters
     ----------
-    desc_list : (List of selected descriptors)
+    desc_list : (List of descriptor names)
         A list of RDKit descriptors to include in the calculation
     parallel : boolean, int
         if True, multiprocessing will be used. If set to an int > 1, that specified number of processes
