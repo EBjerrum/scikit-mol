@@ -186,10 +186,10 @@ def test_SECFingerprintTransformer(chiral_mols_list):
                 'kekulize': True,
                 'length': 1048,
                 'min_radius': 2,
-                #'n_permutations': 2, #TODO, figure out why n_permutations are not influencing
+                #'n_permutations': 2, # The SECFp is not using this setting
                 'radius': 2,
                 'rings': False,
-                #'seed': 1 #TODO, figure out why n_permutations are not influencing
+                #'seed': 1 # The SECFp is not using this setting
                 }
     assert_transformer_set_params(SECFingerprintTransformer, new_params, chiral_mols_list)
 

@@ -311,7 +311,7 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         """Included for scikit-learn compatibility, does nothing"""
         return self
 
-    def transform(self, X_smiles_list):
+    def transform(self, X_smiles_list, y=None):
         """Converts SMILES into RDKit mols
 
         Parameters
@@ -339,3 +339,13 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
                 raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer on your dataset first')
 
         return X_out
+
+    def inverse_transform(self, X_mols_list, y=None): #TODO, maybe the inverse transform should be configurable e.g. isomericSmiles etc.?
+        X_out = []
+
+        for mol in X_mols_list:
+            smiles = Chem.MolToSmiles(mol)
+            X_out.append(smiles)
+
+        return X_out
+
