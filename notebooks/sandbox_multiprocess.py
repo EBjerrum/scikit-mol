@@ -57,6 +57,31 @@ bigdata = list(data.ROMol)
 
 len(bigdata)
 
+
+# %%
+dataset_size = 500
+parallel=False
+start_method = 'fork'
+transformer = Desc2DTransformer(parallel=parallel, start_method=start_method)
+
+t0 = time.time()
+X = transformer.transform(data.ROMol.iloc[0:dataset_size])
+t = time.time()-t0
+print(t)
+
+# %%
+dataset_size = 500
+parallel = True
+start_method = 'fork'
+transformer = Desc2DTransformer(parallel=parallel,  start_method=start_method)
+
+t0 = time.time()
+X = transformer.transform(data.ROMol.iloc[0:dataset_size])
+t = time.time()-t0
+print(t)
+
+
+
 #%%
 tr = MorganTransformer()
 X_sparse = tr._transform_sparse(data.ROMol)
@@ -114,26 +139,7 @@ print(t)
 # %%
 
 
-# %%
 
-dataset_size = 500
-
-parallel=False
-transformer = Desc2DTransformer(parallel=parallel)
-
-t0 = time.time()
-X = transformer.transform(data.ROMol.iloc[0:dataset_size])
-t = time.time()-t0
-print(t)
-
-# %%
-parallel = True
-transformer = Desc2DTransformer(parallel=parallel)
-
-t0 = time.time()
-X = transformer.transform(data.ROMol.iloc[0:dataset_size])
-t = time.time()-t0
-print(t)
 
 # %%
 parallel = 2 #Takes slightly longer than True

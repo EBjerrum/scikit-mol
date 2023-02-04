@@ -29,10 +29,13 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
 
     """
     def __init__(
-        self, desc_list: Optional[str] = None, parallel: Union[bool, int] = False
-    ):
+        self, desc_list: Optional[str] = None, 
+        parallel: Union[bool, int] = False,
+        start_method: str = "spawn"
+        ):
         self.desc_list = desc_list
         self.parallel = parallel
+        self.start_method = start_method
 
     def _get_desc_calculator(self) -> MolecularDescriptorCalculator:
         if self.desc_list:
@@ -68,6 +71,17 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
         """List of the names of the descriptors in the descriptor calculator"""
         return list(self.calculators.GetDescriptorNames())
 
+    @property
+    def start_method(self):
+        return self._start_method
+
+    @start_method.setter
+    def start_method(self, start_method):
+        """Allowed methods are spawn, fork and forkserver on MacOS and Linux, only spawn is possible on Windows"""
+        allowed_start_methods = ["spawn", "fork", "forkserver"]
+        assert start_method in allowed_start_methods, f"start_method not in allowed methods {allowed_start_methods}"
+        self._start_method = start_method
+
     def _transform_mol(self, mol: Mol) -> List[Any]:
         return list(self.calculators.CalcDescriptors(mol))
 
@@ -101,11 +115,16 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
         elif self.parallel:
             n_processes = self.parallel if self.parallel > 1 else None #Pool(processes=None) autodetects
             n_chunks = n_processes if n_processes is not None else multiprocessing.cpu_count()
-            with get_context("spawn").Pool(processes=n_processes) as pool:
+            with get_context(self.start_method).Pool(processes=n_processes) as pool:
                 # pool = Pool(processes=self.n_processes)
                 x_chunks = np.array_split(x, n_chunks * 3)  #TODO fix, n_processes may not be int, but None# Is x3 the optimal?
-                arrays = pool.map(self._transform, x_chunks)
+                arrays = pool.map(self._parallel_helper, [(self, x) for x in x_chunks]) #is the helper function a safer way of handling the picklind and child process communication
                 # arrays = async_obj.get(20)
                 #    pool.close()
                 arr = np.concatenate(arrays)
             return arr
+
+    @staticmethod
+    def _parallel_helper(args):
+        obj, x = args
+        return obj._transform(x)
