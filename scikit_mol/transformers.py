@@ -1,5 +1,7 @@
 #%%
 from multiprocessing import Pool, get_context
+import multiprocessing
+from typing import Union
 from rdkit import Chem
 from rdkit import DataStructs
 #from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
@@ -18,6 +20,11 @@ from abc import ABC, abstractmethod
 
 #%%
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
+
+    def __init__(self, parallel: Union[bool, int] = False, start_method: str = None):
+        self.parallel = parallel
+        self.start_method = start_method #TODO implement handling of start_method
+
     @abstractmethod
     def _mol2fp(self, mol):
         """Generate descriptor from mol
@@ -39,7 +46,6 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         """Included for scikit-learn compatibility, does nothing"""
         return self
-
 
     def _transform(self, X):
         arr = np.zeros((len(X), self.nBits), dtype=np.int8)
@@ -71,31 +77,29 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         """
         if not self.parallel:
             return self._transform(X)
+
         elif self.parallel:
-            n_processes = self.parallel if self.parallel > 1 else None #Pool(processes=None) autodetects
-            #with get_context("spawn").Pool(processes=n_processes) as pool:
-                #print(f"{n_processes=}")
-            pool = Pool(processes=n_processes)
-            x_chunks = np.array_split(X, 4)
-            #print(f"{x_chunks=}")
-            arrays = pool.map(self._transform_sparse, x_chunks)
-            # arrays = async_obj.get(20)
-            pool.close()
-            # print(f"{arrays=}")
-            return vstack(arrays).toarray()
-        arr = np.zeros((len(X), self.nBits))
-        for i, mol in enumerate(X):
-            arr[i,:] = self._transform_mol(mol)
-        return arr
+            n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
+            n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
+            
+            with get_context(self.start_method).Pool(processes=n_processes) as pool:
+                x_chunks = np.array_split(X, n_chunks)
+                #TODO check what is fastest, pickle or recreate and do this only for classes that need this
+                #arrays = pool.map(self._transform, x_chunks)
+                parameters = self.get_params()
+                arrays = pool.map(parallel_helper, [(self.__class__.__name__, parameters, x_chunk) for x_chunk in x_chunks]) 
+
+                arr = np.concatenate(arrays)
+            return arr
 
 
 class MACCSTransformer(FpsTransformer):
-    def __init__(self):
+    def __init__(self, parallel: Union[bool, int] = False):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
         """
+        super().__init__(parallel = parallel)
         self.nBits = 167
-        pass
 
     def _mol2fp(self, mol):
         return rdMolDescriptors.GetMACCSKeysFingerprint(
@@ -105,7 +109,8 @@ class MACCSTransformer(FpsTransformer):
 class RDKitFPTransformer(FpsTransformer):
     def __init__(self, minPath:int = 1, maxPath:int =7, useHs:bool = True, branchedPaths:bool = True,
                  useBondOrder:bool = True, countSimulation:bool = False, countBounds = None,
-                 fpSize:int  = 2048, numBitsPerFeature:int = 2, atomInvariantsGenerator = None
+                 fpSize:int  = 2048, numBitsPerFeature:int = 2, atomInvariantsGenerator = None,
+                 parallel: Union[bool, int] = False
                  ):
         """Calculates the RDKit fingerprints
 
@@ -132,6 +137,7 @@ class RDKitFPTransformer(FpsTransformer):
         atomInvariantsGenerator : _type_, optional
             atom invariants to be used during fingerprint generation, by default None
         """
+        super().__init__(parallel = parallel)
         self.minPath = minPath
         self.maxPath = maxPath
         self.useHs = useHs
@@ -142,7 +148,6 @@ class RDKitFPTransformer(FpsTransformer):
         self.fpSize = fpSize
         self.numBitsPerFeature = numBitsPerFeature
         self.atomInvariantsGenerator = atomInvariantsGenerator
-
 
     @property
     def fpSize(self):
@@ -167,7 +172,8 @@ class RDKitFPTransformer(FpsTransformer):
 class AtomPairFingerprintTransformer(FpsTransformer): #FIXME, some of the init arguments seems to be molecule specific, and should probably not be setable?
     def __init__(self, minLength:int = 1, maxLength:int = 30, fromAtoms = 0, ignoreAtoms = 0, atomInvariants = 0,
                  nBitsPerEntry:int = 4, includeChirality:bool = False, use2D:bool = True, confId:int = -1, nBits=2048,
-                 useCounts:bool=False):
+                 useCounts:bool=False, parallel: Union[bool, int] = False,):
+        super().__init__(parallel = parallel)
         self.minLength = minLength
         self.maxLength = maxLength
         self.fromAtoms = fromAtoms
@@ -208,7 +214,8 @@ class AtomPairFingerprintTransformer(FpsTransformer): #FIXME, some of the init a
 class TopologicalTorsionFingerprintTransformer(FpsTransformer):
     def __init__(self, targetSize:int = 4, fromAtoms = 0, ignoreAtoms = 0, atomInvariants = 0,
                  includeChirality:bool = False, nBitsPerEntry:int = 4, nBits=2048,
-                 useCounts:bool=False):
+                 useCounts:bool=False, parallel: Union[bool, int] = False):
+        super().__init__(parallel = parallel)
         self.targetSize = targetSize
         self.fromAtoms = fromAtoms
         self.ignoreAtoms = ignoreAtoms
@@ -240,7 +247,7 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 class SECFingerprintTransformer(FpsTransformer):
     # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
     def __init__(self, radius:int=3, rings:bool=True, isomeric:bool=False, kekulize:bool=False,
-                 min_radius:int=1, length:int=2048, n_permutations:int=0, seed:int=0):
+                 min_radius:int=1, length:int=2048, n_permutations:int=0, seed:int=0, parallel: Union[bool, int] = False,):
         """Transforms the RDKit mol into the SMILES extended connectivity fingerprint (SECFP)
 
         Args:
@@ -253,6 +260,7 @@ class SECFingerprintTransformer(FpsTransformer):
             n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
+        super().__init__(parallel = parallel)
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -264,11 +272,24 @@ class SECFingerprintTransformer(FpsTransformer):
         # create the encoder instance
         self._recreate_encoder()
 
+    def __getstate__(self):
+        # Get the state of the parent class
+        state = super().__getstate__()
+        # Remove the unpicklable property from the state
+        state.pop("secfp_encoder", None) # secfp_encoder is not picklable
+        return state
+
+    def __setstate__(self, state):
+        # Restore the state of the parent class
+        super().__setstate__(state)
+        # Re-create the unpicklable property
+        self._recreate_encoder()
+
     def _mol2fp(self, mol):
         return self.secfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.length) 
 
     def _recreate_encoder(self):
-        self.secfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed)
+        self.secfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed) #TODO, this seems unpicklable, need to delete property when pickling, and recreate it when unpickling!
 
     @property
     def seed(self):
@@ -296,7 +317,7 @@ class SECFingerprintTransformer(FpsTransformer):
         return self.length
 
 class MorganTransformer(FpsTransformer):
-    def __init__(self, nBits=2048, radius=2, useChirality=False, useBondTypes=True, useFeatures=False, useCounts=False):
+    def __init__(self, nBits=2048, radius=2, useChirality=False, useBondTypes=True, useFeatures=False, useCounts=False, parallel: Union[bool, int] = False,):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
         Parameters
@@ -314,6 +335,7 @@ class MorganTransformer(FpsTransformer):
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
         """
+        super().__init__(parallel = parallel)
         self.nBits = nBits
         self.radius = radius
         self.useChirality = useChirality
@@ -335,8 +357,10 @@ class MorganTransformer(FpsTransformer):
         
 
 class SmilesToMol(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        pass
+
+    def __init__(self, parallel: Union[bool, int] = False):
+        self.parallel = parallel
+        self.start_method = None  #TODO implement handling of start_method
 
     def fit(self, X=None, y=None):
         """Included for scikit-learn compatibility, does nothing"""
@@ -360,8 +384,22 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
         ValueError
             Raises ValueError if a SMILES string is unparsable by RDKit
         """
-        X_out = []
+        
 
+        if not self.parallel:
+            return self._transform(X_smiles_list)
+        elif self.parallel:
+            n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
+            n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
+            with get_context(self.start_method).Pool(processes=n_processes) as pool:
+                    x_chunks = np.array_split(X_smiles_list, n_chunks) 
+                    arrays = pool.map(self._transform, x_chunks) #is the helper function a safer way of handling the picklind and child process communication
+
+                    arr = np.concatenate(arrays)
+                    return arr
+
+    def _transform(self, X_smiles_list):
+        X_out = []
         for smiles in X_smiles_list:
             mol = Chem.MolFromSmiles(smiles)
             if mol:
@@ -379,4 +417,14 @@ class SmilesToMol(BaseEstimator, TransformerMixin):
             X_out.append(smiles)
 
         return X_out
+
+
+def parallel_helper(args):
+    """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
+    Then instantiates the class with the parameters and processes the mol.
+    Intention is to be able to do this in chilcprocesses as some classes can't be pickled"""
+    classname, parameters, X_mols = args
+    from scikit_mol import transformers
+    transformer = getattr(transformers, classname)(**parameters)
+    return transformer._transform(X_mols)
 

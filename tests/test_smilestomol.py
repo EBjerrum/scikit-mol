@@ -35,4 +35,10 @@ def test_smilestomol_unsanitzable(invalid_smiles_list, smilestomol_transformer):
     with pytest.raises(ValueError):
         smilestomol_transformer.transform(invalid_smiles_list)
 
+def test_descriptor_transformer_parallel(smiles_list, smilestomol_transformer):
+    smilestomol_transformer.set_params(parallel=True)
+    mol_list = smilestomol_transformer.transform(smiles_list)
+    assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
+    
+
     

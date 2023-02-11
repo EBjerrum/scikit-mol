@@ -9,7 +9,6 @@ from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculat
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.parallel import parallel_helper
 
 
 class Desc2DTransformer(BaseEstimator, TransformerMixin):
@@ -22,6 +21,9 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
     parallel : boolean, int
         if True, multiprocessing will be used. If set to an int > 1, that specified number of processes
         will be used, otherwise it's autodetected.
+    start_method : str 
+        The method to start child processes when parallel=True. can be 'fork', 'spawn' or 'forkserver'.
+        If None, the OS and Pythons default will be used.
 
     Returns
     -------
@@ -33,7 +35,7 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
     def __init__(
         self, desc_list: Optional[str] = None, 
         parallel: Union[bool, int] = False,
-        start_method: str = "fork"
+        start_method: str = None#"fork"
         ):
         self.desc_list = desc_list
         self.parallel = parallel
@@ -79,8 +81,9 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
 
     @start_method.setter
     def start_method(self, start_method):
-        """Allowed methods are spawn, fork and forkserver on MacOS and Linux, only spawn is possible on Windows"""
-        allowed_start_methods = ["spawn", "fork", "forkserver"]
+        """Allowed methods are spawn, fork and forkserver on MacOS and Linux, only spawn is possible on Windows.
+        None will choose the default for the OS and version of Python."""
+        allowed_start_methods = ["spawn", "fork", "forkserver", None]
         assert start_method in allowed_start_methods, f"start_method not in allowed methods {allowed_start_methods}"
         self._start_method = start_method
 
@@ -115,23 +118,26 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
         if not self.parallel:
             return self._transform(x)
         elif self.parallel:
-            n_processes = self.parallel if self.parallel > 1 else None #Pool(processes=None) autodetects
-            n_chunks = n_processes if n_processes is not None else multiprocessing.cpu_count()
+            n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
+            n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
             
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
-            #with Pool(processes=n_processes) as pool:
-                print("In pool", flush=True)
                 params = self.get_params()
-                x_chunks = np.array_split(x, n_chunks * 3)  #TODO fix, n_processes may not be int, but None# Is x3 the optimal?
-                print("Chunks defined", flush=True)
+                x_chunks = np.array_split(x, n_chunks) 
                 arrays = pool.map(parallel_helper, [(params, x) for x in x_chunks]) #is the helper function a safer way of handling the picklind and child process communication
-                #arrays = [np.zeros((10,10)) for x in x_chunks]
-                #arrays = pool.map(Desc2DTransformer(**params)._transform, x_chunks) # Also works
-                #arrays = pool.map(self._transform, x_chunks) # Also works now ??
-                # arrays = async_obj.get(20)
-                #    pool.close()
-                print("Arrays mapped", flush=True)
                 arr = np.concatenate(arrays)
             return arr
 
 
+# May be safer to instantiate the transformer object in the child process, and only transfer the parameters
+# There were issues with freezing when using RDKit 2022.3
+def parallel_helper(args):
+    """Will get a tuple with Desc2DTransformer parameters and mols to transform. 
+    Will then instantiate the transformer and transform the molecules"""
+    from scikit_mol.descriptors import Desc2DTransformer
+    
+    params, mols = args
+    transformer = Desc2DTransformer(**params)
+    y = transformer._transform(mols)
+    return y
+    
