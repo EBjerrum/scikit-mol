@@ -9,6 +9,8 @@ from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculat
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from scikit_mol.parallel import parallel_helper
+
 
 class Desc2DTransformer(BaseEstimator, TransformerMixin):
     """Descriptor calculation transformer
@@ -31,7 +33,7 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
     def __init__(
         self, desc_list: Optional[str] = None, 
         parallel: Union[bool, int] = False,
-        start_method: str = "spawn"
+        start_method: str = "fork"
         ):
         self.desc_list = desc_list
         self.parallel = parallel
@@ -115,16 +117,21 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
         elif self.parallel:
             n_processes = self.parallel if self.parallel > 1 else None #Pool(processes=None) autodetects
             n_chunks = n_processes if n_processes is not None else multiprocessing.cpu_count()
+            
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                # pool = Pool(processes=self.n_processes)
+            #with Pool(processes=n_processes) as pool:
+                print("In pool", flush=True)
+                params = self.get_params()
                 x_chunks = np.array_split(x, n_chunks * 3)  #TODO fix, n_processes may not be int, but None# Is x3 the optimal?
-                arrays = pool.map(self._parallel_helper, [(self, x) for x in x_chunks]) #is the helper function a safer way of handling the picklind and child process communication
+                print("Chunks defined", flush=True)
+                arrays = pool.map(parallel_helper, [(params, x) for x in x_chunks]) #is the helper function a safer way of handling the picklind and child process communication
+                #arrays = [np.zeros((10,10)) for x in x_chunks]
+                #arrays = pool.map(Desc2DTransformer(**params)._transform, x_chunks) # Also works
+                #arrays = pool.map(self._transform, x_chunks) # Also works now ??
                 # arrays = async_obj.get(20)
                 #    pool.close()
+                print("Arrays mapped", flush=True)
                 arr = np.concatenate(arrays)
             return arr
 
-    @staticmethod
-    def _parallel_helper(args):
-        obj, x = args
-        return obj._transform(x)
+
