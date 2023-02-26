@@ -80,7 +80,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
         elif self.parallel:
             n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
-            n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
+            n_chunks = n_processes if n_processes is not None else multiprocessing.cpu_count() 
             
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                 x_chunks = np.array_split(X, n_chunks)
