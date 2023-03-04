@@ -1,0 +1,1 @@
+jupytext --set-formats ipynb,py:percent $1

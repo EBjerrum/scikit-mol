@@ -1,3 +1,5 @@
+import pickle
+import tempfile
 import pytest
 import numpy as np
 import pandas as pd
@@ -103,6 +105,39 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
             
             assert len(fps[0]) == fpsize
 
+def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer):
+    #Test different types of input
+    for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
+        #Test the different transformers
+        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer]:
+            t.set_params(parallel=True)
+            params   = t.get_params()
+            fps = t.transform(mols)
+            #Assert that the same length of input and output
+            assert len(fps) == len(mols_list)
+
+            # assert that the size of the fingerprint is the expected size
+            if type(t) == type(maccs_transformer):
+                fpsize = t.nBits
+            elif type(t) == type(rdkit_transformer):
+                fpsize = params['fpSize']
+            elif type(t) == type(secfp_transformer):
+                fpsize = t.nBits
+            else:
+                fpsize = params['nBits']
+            
+            assert len(fps[0]) == fpsize
+
+
+def test_picklable(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer):
+    #Test the different transformers
+    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer]:
+        with tempfile.NamedTemporaryFile() as f:
+            pickle.dump(t, f)
+            f.seek(0)
+            t2 = pickle.load(f)
+            assert(t.get_params() == t2.get_params())
+        
 
 def assert_transformer_set_params(tr_class, new_params, mols_list):
     default_params = tr_class().get_params()
