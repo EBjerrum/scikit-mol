@@ -247,7 +247,7 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 class MHFingerprintTransformer(FpsTransformer):
     # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
     def __init__(self, radius:int=3, rings:bool=True, isomeric:bool=False, kekulize:bool=False,
-                 min_radius:int=1, n_permutations:int=2048, seed:int=42):
+                 min_radius:int=1, n_permutations:int=2048, seed:int=42, parallel: Union[bool, int] = False,):
         """Transforms the RDKit mol into the MinHash fingerprint (MHFP)
 
         Args:
@@ -260,6 +260,7 @@ class MHFingerprintTransformer(FpsTransformer):
             this is effectively the length of the FP
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
+        super().__init__(parallel = parallel)
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -268,6 +269,19 @@ class MHFingerprintTransformer(FpsTransformer):
         self._n_permutations = n_permutations
         self._seed = seed
         # create the encoder instance
+        self._recreate_encoder()
+
+    def __getstate__(self):
+        # Get the state of the parent class
+        state = super().__getstate__()
+        # Remove the unpicklable property from the state
+        state.pop("mhfp_encoder", None) # mhfp_encoder is not picklable
+        return state
+
+    def __setstate__(self, state):
+        # Restore the state of the parent class
+        super().__setstate__(state)
+        # Re-create the unpicklable property
         self._recreate_encoder()
 
     def _mol2fp(self, mol):
@@ -337,7 +351,7 @@ class SECFingerprintTransformer(FpsTransformer):
         # Get the state of the parent class
         state = super().__getstate__()
         # Remove the unpicklable property from the state
-        state.pop("secfp_encoder", None) # secfp_encoder is not picklable
+        state.pop("mhfp_encoder", None) # mhfp_encoder is not picklable
         return state
 
     def __setstate__(self, state):
@@ -347,10 +361,10 @@ class SECFingerprintTransformer(FpsTransformer):
         self._recreate_encoder()
 
     def _mol2fp(self, mol):
-        return self.secfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.length) 
+        return self.mhfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.length) 
 
     def _recreate_encoder(self):
-        self.secfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed) #TODO, this seems unpicklable, need to delete property when pickling, and recreate it when unpickling!
+        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed)
 
     @property
     def seed(self):
