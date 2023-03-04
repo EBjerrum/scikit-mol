@@ -57,10 +57,11 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 * [Molecular standardization](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/04_standardizer.ipynb)
 * [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/05_smiles_sanitaztion.ipynb)
 * [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/06_hyperparameter_tuning.ipynb)
+* [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/07_parallel_transforms.ipynb)
 
 
 ## BUGS
-Probably still
+Probably still, please check issues at GitHub and report there
 
 ## Contributers:
 * Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esben@cheminformania.com
