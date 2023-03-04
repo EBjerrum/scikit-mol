@@ -295,10 +295,10 @@ class SECFingerprintTransformer(FpsTransformer):
         self._recreate_encoder()
 
     def _mol2fp(self, mol):
-        return self.secfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.length) 
+        return self.mhfp_encoder.EncodeSECFPMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius, self.length) 
 
     def _recreate_encoder(self):
-        self.secfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed)
+        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(self._n_permutations, self._seed)
 
     @property
     def seed(self):
