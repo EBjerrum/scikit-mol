@@ -127,12 +127,10 @@ def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, at
             assert len(fps) == len(mols_list)
 
             # assert that the size of the fingerprint is the expected size
-            if type(t) == type(maccs_transformer):
+            if type(t) == type(maccs_transformer) or type(t) == type(secfp_transformer) or type(t) == type(mhfp_transformer):
                 fpsize = t.nBits
             elif type(t) == type(rdkit_transformer):
                 fpsize = params['fpSize']
-            elif type(t) == type(secfp_transformer):
-                fpsize = t.nBits
             else:
                 fpsize = params['nBits']
             
