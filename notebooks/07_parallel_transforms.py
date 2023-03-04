@@ -99,23 +99,23 @@ test_transformer(transformer)
 # %% [markdown]
 # Interestingly, we observed that parallelism actually took longer to calculate the fingerprints in some cases, which is a perfect illustration of the overhead issue associated with parallelism. Generally, the faster the fingerprint calculation in itself, the larger the dataset needs to be for parallelism to be worthwhile. For example, the Descriptor transformer, which is one of the slowest, can benefit even for smaller datasets, while for faster fingerprint types like Morgan, Atompairs, and Topological Torsion fingerprints, the dataset needs to be larger.
 #
-# ![ Relation ship between throughput and parallel speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/max_speedup_vs_throughput.png "Not all fingerprints are equally fast and benefit the same from parallelism")
+# ![ Relation ship between throughput and parallel speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/max_speedup_vs_throughput.png "Not all fingerprints are equally fast and benefit the same from parallelism")
 #
 # We've also included a series of plots below, showing the speedup over serial for different numbers of cores used for different dataset sizes. These timings were taken on a 16 core machine (32 Hyperthreads). Only the largest datasets (>10,000 samples) would make it worthwhile to parallelize Morgan, Atompairs, and Topological Torsions. SECfingerprint, MACCS keys, and RDKitFP are intermediate and would benefit from parallelism when the dataset size is larger, say >500. Descriptors, on the other hand, benefit almost immediately even for the smallest datasets (>100 samples).
 #
-# ![Atompairs fingerprint](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/AtomPairFingerprintTransformer_par.png "Atompairs fingerprint speedup")
+# ![Atompairs fingerprint](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/AtomPairFingerprintTransformer_par.png "Atompairs fingerprint speedup")
 #
-# ![Descriptors calculation speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/Desc2DTransformer_par.png "Descriptors calculation speedup")
+# ![Descriptors calculation speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/Desc2DTransformer_par.png "Descriptors calculation speedup")
 #
-# ![MACCS keys speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/MACCSTransformer_par.png "MACCS keys speedup")
+# ![MACCS keys speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/MACCSTransformer_par.png "MACCS keys speedup")
 #
-# ![Morgan fingerprint speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/MorganTransformer_par.png "Morgan fingerprint speedup")
+# ![Morgan fingerprint speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/MorganTransformer_par.png "Morgan fingerprint speedup")
 #
-# ![RDKit fingerprint speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/RDKitFPTransformer_par.png "RDKit fingerprint speedup")
+# ![RDKit fingerprint speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/RDKitFPTransformer_par.png "RDKit fingerprint speedup")
 #
-# ![SEC fingerprint speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/SECFingerprintTransformer_par.png "SEC fingerprint speedup")
+# ![SEC fingerprint speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/SECFingerprintTransformer_par.png "SEC fingerprint speedup")
 #
-# ![TopologicalTorsion fingerprint speedup](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/images/TopologicalTorsionFingerprintTransformer_par.png "TopologicalTorsion fingerprint speedup")
+# ![TopologicalTorsion fingerprint speedup](https://github.com/EBjerrum/scikit-mol/raw/main/notebooks/images/TopologicalTorsionFingerprintTransformer_par.png "TopologicalTorsion fingerprint speedup")
 #
 #
 #

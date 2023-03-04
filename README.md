@@ -51,13 +51,13 @@ Developers
 
 There are a collection of notebooks in the notebooks directory which demonstrates some different aspects and use cases
 
-* [Basic Usage and fingerprint transformers](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/01_basic_usage.ipynb)
-* [Descriptor transformer](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/02_descriptor_transformer.ipynb)
-* [Pipelining with Scikit-Learn classes](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/03_example_pipeline.ipynb)
-* [Molecular standardization](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/04_standardizer.ipynb)
-* [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/05_smiles_sanitaztion.ipynb)
-* [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/06_hyperparameter_tuning.ipynb)
-* [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/documentation/notebooks/07_parallel_transforms.ipynb)
+* [Basic Usage and fingerprint transformers](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/01_basic_usage.ipynb)
+* [Descriptor transformer](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/02_descriptor_transformer.ipynb)
+* [Pipelining with Scikit-Learn classes](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/03_example_pipeline.ipynb)
+* [Molecular standardization](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/04_standardizer.ipynb)
+* [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/05_smiles_sanitaztion.ipynb)
+* [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/06_hyperparameter_tuning.ipynb)
+* [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/07_parallel_transforms.ipynb)
 
 
 ## BUGS
