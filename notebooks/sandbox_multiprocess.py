@@ -152,16 +152,17 @@ print(t)
 
 # %%
 from itertools import product
+import math
 
 
-dataset_sizes = [10,100,250,500,1000, 2500, 5000]
-n_processes = [0, 2, 3, 4]
-
-
+dataset_sizes = [10,25,100,250,500,1000, 2500, 5000, len(data)]
+n_processes = [0] + [int(2**i) for i in range(1, int(math.log(8)/math.log(2))+1)]
+Transformer = Desc2DTransformer
+Transformer = MorganTransformer
 results = pd.DataFrame()
 
 for dataset_size, n_proc in product(dataset_sizes, n_processes):
-    transformer = Desc2DTransformer(parallel=n_proc)
+    transformer = Transformer(parallel=n_proc)
     t0 = time.time()
     X = transformer.transform(data.ROMol.iloc[0:dataset_size])
     t = time.time()-t0
@@ -170,16 +171,16 @@ for dataset_size, n_proc in product(dataset_sizes, n_processes):
     
 
 
-# %%
-results
+display(results)
 
-# %%
+
 import seaborn as sns
 
-# %%
 from matplotlib import pyplot as plt
 sns.heatmap(results.loc[0]/results, annot=True, cmap = "PiYG",center=1)
-plt.title("Descriptor calculation parallelization speedup\n(SLC6A4 actives dataset)")
+plt.title(f"Descriptor calculation parallelization speedup\n{Transformer.__name__}\n(SLC6A4 actives dataset)")
 plt.xlabel("Dataset size")
 plt.ylabel("Number of processes")
 
+
+# %%
