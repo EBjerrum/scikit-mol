@@ -34,8 +34,8 @@ max_bits = 4096
 morgan_space = [
     Categorical([True, False], name='morgantransformer__useCounts'),
     Categorical([True, False], name='morgantransformer__useFeatures'),
-    Integer(512,max_bits, name='morgantransformer__nBits', dtype=int),
-    Integer(1,3, name='morgantransformer__radius', dtype=int)
+    Integer(512,max_bits, name='morgantransformer__nBits'),
+    Integer(1,3, name='morgantransformer__radius')
 ]
 
 
@@ -45,6 +45,8 @@ search_space = morgan_space + regressor_space
 # %%
 @use_named_args(search_space)
 def objective(**params):
+    for key, value in params.items():
+        print(f"{key}:{value} - {type(value)}")
     pipe.set_params(**params)
 
     return -np.mean(cross_val_score(pipe, data.ROMol, data.pXC50, cv=2, n_jobs=-1,
@@ -60,4 +62,4 @@ print({param.name:value for param,value in zip(pipe_gp.space, pipe_gp.x) })
 #%%
 from skopt.plots import plot_convergence
 plot_convergence(pipe_gp)
-# %%
+
