@@ -1,7 +1,6 @@
 #%% Needs scikit-optimize
 #!mamba install scikit-optimize -c conda-forge
 
-
 #%%
 import numpy as np
 import pandas as pd
@@ -19,7 +18,18 @@ from skopt.utils import use_named_args
 
 from skopt import gp_minimize
 # %%
-data = pd.read_csv("/home/esben/git/scikit-mol/notebooks/SLC6A4_active_excape_export.csv")
+full_set = False
+
+if full_set:
+    csv_file = "SLC6A4_active_excape_export.csv"
+    if not os.path.exists(csv_file):
+        import urllib.request
+        url = "https://ndownloader.figshare.com/files/25747817"
+        urllib.request.urlretrieve(url, csv_file)
+else:
+    csv_file = '../tests/data/SLC6A4_active_excapedb_subset.csv'
+
+data = pd.read_csv(csv_file)
 data['ROMol'] = SmilesToMol().transform(data.SMILES)
  
 #%%
@@ -54,7 +64,6 @@ def objective(**params):
 # %% THIS takes forever on my machine with a GradientBoostingRegressor
 
 pipe_gp = gp_minimize(objective, search_space, n_calls=10, random_state=0)
-
 "Best score=%.4f" % pipe_gp.fun
 # %%
 print("""Best parameters:""")
@@ -62,4 +71,3 @@ print({param.name:value for param,value in zip(pipe_gp.space, pipe_gp.x) })
 #%%
 from skopt.plots import plot_convergence
 plot_convergence(pipe_gp)
-
