@@ -101,6 +101,16 @@ class MACCSTransformer(FpsTransformer):
         super().__init__(parallel = parallel)
         self.nBits = 167
 
+    @property
+    def nBits(self):
+        return self._nBits
+
+    @nBits.setter
+    def nBits(self, nBits):
+        if nBits != 167:
+            raise ValueError("nBits can only be 167, matching the number of defined MACCS keys!")
+        self._nBits = nBits
+
     def _mol2fp(self, mol):
         return rdMolDescriptors.GetMACCSKeysFingerprint(
             mol
@@ -159,12 +169,12 @@ class RDKitFPTransformer(FpsTransformer):
         self.nBits = fpSize
 
     def _mol2fp(self, mol):
-        generator = rdFingerprintGenerator.GetRDKitFPGenerator(minPath=self.minPath, maxPath=self.maxPath,
-                                                               useHs=self.useHs, branchedPaths=self.branchedPaths,
-                                                               useBondOrder=self.useBondOrder,
-                                                               countSimulation=self.countSimulation,
-                                                               countBounds=self.countBounds, fpSize=self.fpSize,
-                                                               numBitsPerFeature=self.numBitsPerFeature,
+        generator = rdFingerprintGenerator.GetRDKitFPGenerator(minPath=int(self.minPath), maxPath=int(self.maxPath),
+                                                               useHs=bool(self.useHs), branchedPaths=bool(self.branchedPaths),
+                                                               useBondOrder=bool(self.useBondOrder),
+                                                               countSimulation=bool(self.countSimulation),
+                                                               countBounds=bool(self.countBounds), fpSize=int(self.fpSize),
+                                                               numBitsPerFeature=int(self.numBitsPerFeature),
                                                                atomInvariantsGenerator=self.atomInvariantsGenerator
                                                                )
         return generator.GetFingerprint(mol)
@@ -188,27 +198,27 @@ class AtomPairFingerprintTransformer(FpsTransformer): #FIXME, some of the init a
 
     def _mol2fp(self, mol):
         if self.useCounts:
-            return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=self.nBits,
-                                                                 minLength=self.minLength,
-                                                                 maxLength=self.maxLength,
+            return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=int(self.nBits),
+                                                                 minLength=int(self.minLength),
+                                                                 maxLength=int(self.maxLength),
                                                                  fromAtoms=self.fromAtoms,
                                                                  ignoreAtoms=self.ignoreAtoms,
                                                                  atomInvariants=self.atomInvariants,
-                                                                 includeChirality=self.includeChirality,
-                                                                 use2D=self.use2D,
-                                                                 confId=self.confId
+                                                                 includeChirality=bool(self.includeChirality),
+                                                                 use2D=bool(self.use2D),
+                                                                 confId=int(self.confId)
                                                            )
         else:
-            return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(mol, nBits=self.nBits,
-                                                                          minLength=self.minLength,
-                                                                          maxLength=self.maxLength,
+            return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(mol, nBits=int(self.nBits),
+                                                                          minLength=int(self.minLength),
+                                                                          maxLength=int(self.maxLength),
                                                                           fromAtoms=self.fromAtoms,
                                                                           ignoreAtoms=self.ignoreAtoms,
                                                                           atomInvariants=self.atomInvariants,
-                                                                          nBitsPerEntry=self.nBitsPerEntry,
-                                                                          includeChirality=self.includeChirality,
-                                                                          use2D=self.use2D,
-                                                                          confId=self.confId
+                                                                          nBitsPerEntry=int(self.nBitsPerEntry),
+                                                                          includeChirality=bool(self.includeChirality),
+                                                                          use2D=bool(self.use2D),
+                                                                          confId=int(self.confId)
                                                        )
 
 class TopologicalTorsionFingerprintTransformer(FpsTransformer):
@@ -227,21 +237,21 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 
     def _mol2fp(self, mol):
         if self.useCounts:
-            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprint(mol, nBits=self.nBits,
-                                                                           targetSize=self.targetSize,
+            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprint(mol, nBits=int(self.nBits),
+                                                                           targetSize=int(self.targetSize),
                                                                            fromAtoms=self.fromAtoms,
                                                                            ignoreAtoms=self.ignoreAtoms,
                                                                            atomInvariants=self.atomInvariants,
-                                                                           includeChirality=self.includeChirality,
+                                                                           includeChirality=bool(self.includeChirality),
                                                            )
         else:
-            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprintAsBitVect(mol, nBits=self.nBits,
-                                                                                    targetSize=self.targetSize,
+            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprintAsBitVect(mol, nBits=int(self.nBits),
+                                                                                    targetSize=int(self.targetSize),
                                                                                     fromAtoms=self.fromAtoms,
                                                                                     ignoreAtoms=self.ignoreAtoms,
                                                                                     atomInvariants=self.atomInvariants,
-                                                                                    includeChirality=self.includeChirality,
-                                                                                    nBitsPerEntry=self.nBitsPerEntry
+                                                                                    includeChirality=bool(self.includeChirality),
+                                                                                    nBitsPerEntry=int(self.nBitsPerEntry)
                                                                                     )
 
 class SECFingerprintTransformer(FpsTransformer):
@@ -346,13 +356,13 @@ class MorganTransformer(FpsTransformer):
     def _mol2fp(self, mol):
         if self.useCounts:
             return rdMolDescriptors.GetHashedMorganFingerprint(
-                mol,self.radius,nBits=self.nBits, useFeatures=self.useFeatures,
-                useChirality=self.useChirality, useBondTypes=self.useBondTypes
+                mol,int(self.radius),nBits=int(self.nBits), useFeatures=bool(self.useFeatures),
+                useChirality=bool(self.useChirality), useBondTypes=bool(self.useBondTypes)
             )
         else:
             return rdMolDescriptors.GetMorganFingerprintAsBitVect(
-                mol,self.radius,nBits=self.nBits, useFeatures=self.useFeatures,
-                useChirality=self.useChirality, useBondTypes=self.useBondTypes
+                mol,int(self.radius),nBits=int(self.nBits), useFeatures=bool(self.useFeatures),
+                useChirality=bool(self.useChirality), useBondTypes=bool(self.useBondTypes)
             )
         
 
