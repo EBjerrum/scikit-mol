@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: rdkit2
 #     language: python
@@ -28,7 +28,8 @@ import time
 
 
 from scikit_mol.descriptors import Desc2DTransformer
-from scikit_mol.transformers import MorganTransformer, SmilesToMol
+from scikit_mol.fingerprints import MorganTransformer
+from scikit_mol.conversions import SmilesToMol
 
 # %% [markdown]
 # ## Obtaining the Data

@@ -6,7 +6,7 @@ import pandas as pd
 from rdkit import Chem
 from fixtures import mols_list, smiles_list, fingerprint, chiral_smiles_list, chiral_mols_list
 from sklearn import clone
-from scikit_mol.transformers import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer
+from scikit_mol.fingerprints import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer
 
 
 @pytest.fixture

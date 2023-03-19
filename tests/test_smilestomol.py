@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn import clone
 from rdkit import Chem
-from scikit_mol.transformers import SmilesToMol
+from scikit_mol.conversions import SmilesToMol
 from fixtures import smiles_list, invalid_smiles_list
 
 

@@ -10,8 +10,8 @@ import pytest
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
-from scikit_mol.transformers import SmilesToMol
-from scikit_mol.transformers import MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, \
+from scikit_mol.conversions import SmilesToMol
+from scikit_mol.fingerprints import MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganTransformer
 
 from fixtures import SLC6A4_subset

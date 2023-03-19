@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python 3.9.4 ('rdkit')
 #     language: python
@@ -21,7 +21,8 @@
 # %%
 from rdkit import Chem
 from scikit_mol.standardizer import Standardizer
-from scikit_mol.transformers import MorganTransformer, SmilesToMol
+from scikit_mol.fingerprints import MorganTransformer
+from scikit_mol.conversions import SmilesToMol
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import Ridge
 

@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python 3.9.4 ('rdkit')
 #     language: python
@@ -49,7 +49,8 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
-from scikit_mol.transformers import MorganTransformer, SmilesToMol
+from scikit_mol.fingerprints import MorganTransformer
+from scikit_mol.conversions import SmilesToMol
 # %%
 mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
 

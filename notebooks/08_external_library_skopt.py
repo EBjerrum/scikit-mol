@@ -8,7 +8,8 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score
 
-from scikit_mol.transformers import MorganTransformer, SmilesToMol
+from scikit_mol.fingerprints import MorganTransformer
+from scikit_mol.conversions import SmilesToMol
 
 from sklearn.pipeline import make_pipeline
 
