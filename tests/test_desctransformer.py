@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from rdkit.Chem import Descriptors
-from scikit_mol.descriptors import Desc2DTransformer
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 from fixtures import mols_list, smiles_list
 from sklearn import clone
 import joblib
@@ -12,11 +12,11 @@ import joblib
 
 @pytest.fixture
 def default_descriptor_transformer():
-    return Desc2DTransformer()
+    return MolecularDescriptorTransformer()
 
 @pytest.fixture
 def selected_descriptor_transformer():
-    return Desc2DTransformer(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
+    return MolecularDescriptorTransformer(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
 
 def test_descriptor_transformer_clonability( default_descriptor_transformer):
     for t in [ default_descriptor_transformer]:
@@ -57,7 +57,7 @@ def test_descriptor_transformer_transform(mols_list, default_descriptor_transfor
         
 def test_descriptor_transformer_wrong_descriptors():
     with pytest.raises(AssertionError):
-        Desc2DTransformer(desc_list=['Color', 'Icecream content', 'ChokolateDarkness', 'Content42', 'MolWt'])
+        MolecularDescriptorTransformer(desc_list=['Color', 'Icecream content', 'ChokolateDarkness', 'Content42', 'MolWt'])
 
 
 
@@ -67,7 +67,7 @@ def test_descriptor_transformer_parallel(mols_list, default_descriptor_transform
     assert(len(features) == len(mols_list))
     assert(len(features[0]) == len(Descriptors._descList))
     #Now with Rdkit 2022.3 creating a second transformer and running it, froze the process
-    transformer2 = Desc2DTransformer(**default_descriptor_transformer.get_params())
+    transformer2 = MolecularDescriptorTransformer(**default_descriptor_transformer.get_params())
     features2 = transformer2.transform(mols_list)
     assert(len(features2) == len(mols_list))
     assert(len(features2[0]) == len(Descriptors._descList))

@@ -3,13 +3,13 @@ import numpy as np
 import pandas as pd
 from sklearn import clone
 from rdkit import Chem
-from scikit_mol.conversions import SmilesToMol
+from scikit_mol.conversions import SmilesToMolTransformer
 from fixtures import smiles_list, invalid_smiles_list
 
 
 @pytest.fixture
 def smilestomol_transformer():
-    return SmilesToMol()
+    return SmilesToMolTransformer()
 
 def test_smilestomol(smiles_list, smilestomol_transformer):
     mol_list = smilestomol_transformer.transform(smiles_list)

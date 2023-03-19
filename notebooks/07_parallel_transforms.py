@@ -27,9 +27,9 @@ import pandas as pd
 import time
 
 
-from scikit_mol.descriptors import Desc2DTransformer
-from scikit_mol.fingerprints import MorganTransformer
-from scikit_mol.conversions import SmilesToMol
+from scikit_mol.descriptors import MolecularDescriptorTransformer
+from scikit_mol.fingerprints import MorganFingerprintTransformer
+from scikit_mol.conversions import SmilesToMolTransformer
 
 # %% [markdown]
 # ## Obtaining the Data
@@ -63,7 +63,7 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 # Let's start by creating a baseline for our calculations without using parallelism.
 
 # %% A demonstration of the speedup that can be had for the descriptor transformer
-transformer = Desc2DTransformer(parallel=False)
+transformer = MolecularDescriptorTransformer(parallel=False)
 
 
 # %%
@@ -80,7 +80,7 @@ test_transformer(transformer)
 
 # %%
 
-transformer = Desc2DTransformer(parallel=True)
+transformer = MolecularDescriptorTransformer(parallel=True)
 test_transformer(transformer)
 
 # %% [markdown]
@@ -91,7 +91,7 @@ test_transformer(transformer)
 # Now, let's see how parallelism impacts another type of transformer.
 
 # %% Some of the benchmarking plots
-transformer = MorganTransformer(parallel=False)
+transformer = MorganFingerprintTransformer(parallel=False)
 test_transformer(transformer)
 transformer.parallel = True
 test_transformer(transformer)

@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-class SmilesToMol(BaseEstimator, TransformerMixin):
+class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
 
     def __init__(self, parallel: Union[bool, int] = False):
         self.parallel = parallel

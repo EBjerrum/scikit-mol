@@ -31,8 +31,8 @@ import numpy as np
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
-from scikit_mol.fingerprints import MorganTransformer
-from scikit_mol.conversions import SmilesToMol
+from scikit_mol.fingerprints import MorganFingerprintTransformer
+from scikit_mol.conversions import SmilesToMolTransformer
 
 # %% [markdown]
 # We will need some data. There is a dataset with the SLC6A4 active compounds from ExcapeDB on Zenodo. The scikit-mol project uses a subset of this for testing, and the samples there has been specially selected to give good results in testing (it should therefore be used for any production modelling). If full_set is false, the fast subset will be used, and otherwise the full dataset will be downloaded if needed.
@@ -84,7 +84,7 @@ mol_list_std_train = standardizer.transform(mol_list_train)
 
 # %%
 
-moltransformer = MorganTransformer()
+moltransformer = MorganFingerprintTransformer()
 regressor = Ridge()
 
 optimization_pipe = make_pipeline(moltransformer, regressor)

@@ -6,16 +6,16 @@ import pandas as pd
 from rdkit import Chem
 from fixtures import mols_list, smiles_list, fingerprint, chiral_smiles_list, chiral_mols_list
 from sklearn import clone
-from scikit_mol.fingerprints import MorganTransformer, MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer
+from scikit_mol.fingerprints import MorganFingerprintTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer
 
 
 @pytest.fixture
 def morgan_transformer():
-    return MorganTransformer()
+    return MorganFingerprintTransformer()
 
 @pytest.fixture
 def rdkit_transformer():
-    return RDKitFPTransformer()
+    return RDKitFingerprintTransformer()
 
 @pytest.fixture
 def atompair_transformer():
@@ -27,7 +27,7 @@ def topologicaltorsion_transformer():
 
 @pytest.fixture
 def maccs_transformer():
-    return MACCSTransformer()
+    return MACCSKeysFingerprintTransformer()
 
 @pytest.fixture
 def secfp_transformer():
@@ -169,7 +169,7 @@ def test_morgan_set_params(chiral_mols_list):
                 'useCounts': True,
                 'useFeatures': True}
     
-    assert_transformer_set_params(MorganTransformer, new_params, chiral_mols_list)
+    assert_transformer_set_params(MorganFingerprintTransformer, new_params, chiral_mols_list)
 
 
 def test_atompairs_set_params(chiral_mols_list):
@@ -213,7 +213,7 @@ def test_RDKitFPTransformer(chiral_mols_list):
                 'useBondOrder': False, #TODO, why doesn't this change the FP?
                 #'useHs': False, #TODO, why doesn't this change the FP?
                 }
-    assert_transformer_set_params(RDKitFPTransformer, new_params, chiral_mols_list)
+    assert_transformer_set_params(RDKitFingerprintTransformer, new_params, chiral_mols_list)
 
 
 def test_SECFingerprintTransformer(chiral_mols_list):

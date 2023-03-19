@@ -49,8 +49,8 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
-from scikit_mol.fingerprints import MorganTransformer
-from scikit_mol.conversions import SmilesToMol
+from scikit_mol.fingerprints import MorganFingerprintTransformer
+from scikit_mol.conversions import SmilesToMolTransformer
 # %%
 mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
 
@@ -58,7 +58,7 @@ mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, da
 # After a split into train and test, we'll build the first pipeline
 
 # %%
-pipe = Pipeline([('mol_transformer', MorganTransformer()), ('Regressor', Ridge())])
+pipe = Pipeline([('mol_transformer', MorganFingerprintTransformer()), ('Regressor', Ridge())])
 print(pipe)
 
 # %% [markdown]
@@ -78,7 +78,7 @@ pipe.predict([Chem.MolFromSmiles('c1ccccc1C(=O)[OH]')])
 # We can also expand the already fitted pipeline, how about creating a pipeline that can predict directly from SMILES? With scikit-mol that is easy!
 
 # %%
-smiles_pipe = Pipeline([('smiles_transformer', SmilesToMol()), ('pipe', pipe)])
+smiles_pipe = Pipeline([('smiles_transformer', SmilesToMolTransformer()), ('pipe', pipe)])
 print(smiles_pipe)
 
 # %%

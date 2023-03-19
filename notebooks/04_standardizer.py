@@ -21,8 +21,8 @@
 # %%
 from rdkit import Chem
 from scikit_mol.standardizer import Standardizer
-from scikit_mol.fingerprints import MorganTransformer
-from scikit_mol.conversions import SmilesToMol
+from scikit_mol.fingerprints import MorganFingerprintTransformer
+from scikit_mol.conversions import SmilesToMolTransformer
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import Ridge
 
@@ -33,7 +33,7 @@ from sklearn.linear_model import Ridge
 smiles_strings = ('c1ccccc1C(=O)[OH]','c1ccccc1C(=O)[O-].[Na+]','CC[NH+](C)C','CC[N+](C)(C)C',
        '[O-]CC(C(=O)[O-])C[NH+](C)C','[O-]CC(C(=O)[O-])C[N+](C)(C)C')
 
-smi2mol = SmilesToMol()
+smi2mol = SmilesToMolTransformer()
 
 mols  = smi2mol.transform(smiles_strings)
 for mol in mols[0:2]:
@@ -58,8 +58,8 @@ standard_smiles
 # Typical use case is to use it in an sklearn pipeline, like below 
 predictor = Ridge()
 
-std_pipe = make_pipeline(SmilesToMol(), Standardizer(), MorganTransformer(useCounts=True), predictor)
-nonstd_pipe = make_pipeline(SmilesToMol(), MorganTransformer(useCounts=True), predictor)
+std_pipe = make_pipeline(SmilesToMolTransformer(), Standardizer(), MorganFingerprintTransformer(useCounts=True), predictor)
+nonstd_pipe = make_pipeline(SmilesToMolTransformer(), MorganFingerprintTransformer(useCounts=True), predictor)
 
 fake_y = range(len(smiles_strings))
 

@@ -11,7 +11,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 
-class Desc2DTransformer(BaseEstimator, TransformerMixin):
+class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     """Descriptor calculation transformer
     
     Parameters
@@ -134,10 +134,10 @@ class Desc2DTransformer(BaseEstimator, TransformerMixin):
 def parallel_helper(args):
     """Will get a tuple with Desc2DTransformer parameters and mols to transform. 
     Will then instantiate the transformer and transform the molecules"""
-    from scikit_mol.descriptors import Desc2DTransformer
+    from scikit_mol.descriptors import MolecularDescriptorTransformer
     
     params, mols = args
-    transformer = Desc2DTransformer(**params)
+    transformer = MolecularDescriptorTransformer(**params)
     y = transformer._transform(mols)
     return y
     

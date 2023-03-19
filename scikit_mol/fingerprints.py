@@ -93,7 +93,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
             return arr
 
 
-class MACCSTransformer(FpsTransformer):
+class MACCSKeysFingerprintTransformer(FpsTransformer):
     def __init__(self, parallel: Union[bool, int] = False):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
@@ -116,7 +116,7 @@ class MACCSTransformer(FpsTransformer):
             mol
         )
 
-class RDKitFPTransformer(FpsTransformer):
+class RDKitFingerprintTransformer(FpsTransformer):
     def __init__(self, minPath:int = 1, maxPath:int =7, useHs:bool = True, branchedPaths:bool = True,
                  useBondOrder:bool = True, countSimulation:bool = False, countBounds = None,
                  fpSize:int  = 2048, numBitsPerFeature:int = 2, atomInvariantsGenerator = None,
@@ -326,7 +326,7 @@ class SECFingerprintTransformer(FpsTransformer):
         # to be compliant with the requirement of the base class
         return self.length
 
-class MorganTransformer(FpsTransformer):
+class MorganFingerprintTransformer(FpsTransformer):
     def __init__(self, nBits=2048, radius=2, useChirality=False, useBondTypes=True, useFeatures=False, useCounts=False, parallel: Union[bool, int] = False,):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
