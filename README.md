@@ -71,3 +71,4 @@ Probably still, please check issues at GitHub and report there
 * Andreas Poehlmann, [@ap--](https://github.com/ap--)
 * Ya Chen, [@anya-chen](https://github.com/anya-chen)
 * Rafał Bachorz [@rafalbachorz](https://github.com/rafalbachorz)
+* Adrien Chaton [@adrienchaton](https://github.com/adrienchaton)
