@@ -284,6 +284,12 @@ class MHFingerprintTransformer(FpsTransformer):
         # Re-create the unpicklable property
         self._recreate_encoder()
 
+    def _transform(self, X):
+        arr = np.zeros((len(X), self.nBits), dtype=np.int32)
+        for i, mol in enumerate(X):
+            arr[i,:] = self._transform_mol(mol)
+        return arr
+
     def _mol2fp(self, mol):
         fp = self.mhfp_encoder.EncodeMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius)
         return fp
@@ -301,7 +307,7 @@ class MHFingerprintTransformer(FpsTransformer):
     @seed.setter
     def seed(self, seed):
         self._seed = seed
-        # each time the seed parameter is modified refresh an instace of the encoder
+        # each time the seed parameter is modified refresh an instance of the encoder
         self._recreate_encoder()
 
     @property
@@ -311,7 +317,7 @@ class MHFingerprintTransformer(FpsTransformer):
     @n_permutations.setter
     def n_permutations(self, n_permutations):
         self._n_permutations = n_permutations
-        # each time the n_permutations parameter is modified refresh an instace of the encoder
+        # each time the n_permutations parameter is modified refresh an instance of the encoder
         self._recreate_encoder()
 
     @property
