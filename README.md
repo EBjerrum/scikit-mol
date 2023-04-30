@@ -1,6 +1,7 @@
 # scikit-mol
-
-Scikit-Learn classes for molecular vectorization using RDKit
+![Fancy logo](./ressources/logo/ScikitMol_Logo_DarkBG_300px.png#gh-dark-mode-only)
+![Fancy logo](./ressources/logo/ScikitMol_Logo_LightBG_300px.png#gh-light-mode-only)
+## Scikit-Learn classes for molecular vectorization using RDKit
 
 The intended usage is to be able to add molecular vectorization directly into scikit-learn pipelines, so that the final model directly predict on RDKit molecules or SMILES strings
 
