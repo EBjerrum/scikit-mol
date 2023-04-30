@@ -276,6 +276,7 @@ class MHFingerprintTransformer(FpsTransformer):
         self.isomeric = isomeric
         self.kekulize = kekulize
         self.min_radius = min_radius
+        #Set the .n_permutations and .seed without creating the encoder twice
         self._n_permutations = n_permutations
         self._seed = seed
         # create the encoder instance
@@ -358,6 +359,7 @@ class SECFingerprintTransformer(FpsTransformer):
         self.kekulize = kekulize
         self.min_radius = min_radius
         self.length = length
+        #Set the .n_permutations and seed without creating the encoder twice
         self._n_permutations = n_permutations
         self._seed = seed
         # create the encoder instance
