@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python 3.9.4 ('rdkit')
 #     language: python
@@ -23,12 +23,12 @@
 from rdkit import Chem
 import numpy as np
 import matplotlib.pyplot as plt
-from scikit_mol.descriptors import Desc2DTransformer
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 # %% [markdown]
 # After instantiation of the descriptor transformer, we can query which descriptors it found available in the RDKit framework.
 
 # %%
-descriptor = Desc2DTransformer()
+descriptor = MolecularDescriptorTransformer()
 available_descriptors = descriptor.available_descriptors
 print(f"There are {len(available_descriptors)} available descriptors")
 print(f"The first five descriptor names: {available_descriptors[:5]}")
@@ -47,7 +47,7 @@ _ = plt.plot(np.array(features).T)
 # If we only want some of them, this can be specified at object instantiation.
 
 # %%
-some_descriptors = Desc2DTransformer(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
+some_descriptors = MolecularDescriptorTransformer(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
 print(f"Selected descriptors are {some_descriptors.selected_descriptors}")
 features = some_descriptors.transform(mols)
 

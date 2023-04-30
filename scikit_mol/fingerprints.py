@@ -93,7 +93,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
             return arr
 
 
-class MACCSTransformer(FpsTransformer):
+class MACCSKeysFingerprintTransformer(FpsTransformer):
     def __init__(self, parallel: Union[bool, int] = False):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
@@ -116,7 +116,7 @@ class MACCSTransformer(FpsTransformer):
             mol
         )
 
-class RDKitFPTransformer(FpsTransformer):
+class RDKitFingerprintTransformer(FpsTransformer):
     def __init__(self, minPath:int = 1, maxPath:int =7, useHs:bool = True, branchedPaths:bool = True,
                  useBondOrder:bool = True, countSimulation:bool = False, countBounds = None,
                  fpSize:int  = 2048, numBitsPerFeature:int = 2, atomInvariantsGenerator = None,
@@ -276,6 +276,7 @@ class MHFingerprintTransformer(FpsTransformer):
         self.isomeric = isomeric
         self.kekulize = kekulize
         self.min_radius = min_radius
+        #Set the .n_permutations and .seed without creating the encoder twice
         self._n_permutations = n_permutations
         self._seed = seed
         # create the encoder instance
@@ -358,6 +359,7 @@ class SECFingerprintTransformer(FpsTransformer):
         self.kekulize = kekulize
         self.min_radius = min_radius
         self.length = length
+        #Set the .n_permutations and seed without creating the encoder twice
         self._n_permutations = n_permutations
         self._seed = seed
         # create the encoder instance
@@ -407,7 +409,7 @@ class SECFingerprintTransformer(FpsTransformer):
         # to be compliant with the requirement of the base class
         return self.length
 
-class MorganTransformer(FpsTransformer):
+class MorganFingerprintTransformer(FpsTransformer):
     def __init__(self, nBits=2048, radius=2, useChirality=False, useBondTypes=True, useFeatures=False, useCounts=False, parallel: Union[bool, int] = False,):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
@@ -447,67 +449,6 @@ class MorganTransformer(FpsTransformer):
             )
         
 
-class SmilesToMol(BaseEstimator, TransformerMixin):
-
-    def __init__(self, parallel: Union[bool, int] = False):
-        self.parallel = parallel
-        self.start_method = None  #TODO implement handling of start_method
-
-    def fit(self, X=None, y=None):
-        """Included for scikit-learn compatibility, does nothing"""
-        return self
-
-    def transform(self, X_smiles_list, y=None):
-        """Converts SMILES into RDKit mols
-
-        Parameters
-        ----------
-        X_smiles_list : list-like
-            A list of RDKit parsable strings
-
-        Returns
-        -------
-        List
-            List of RDKit mol objects
-
-        Raises
-        ------
-        ValueError
-            Raises ValueError if a SMILES string is unparsable by RDKit
-        """
-        
-
-        if not self.parallel:
-            return self._transform(X_smiles_list)
-        elif self.parallel:
-            n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
-            n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
-            with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                    x_chunks = np.array_split(X_smiles_list, n_chunks) 
-                    arrays = pool.map(self._transform, x_chunks) #is the helper function a safer way of handling the picklind and child process communication
-
-                    arr = np.concatenate(arrays)
-                    return arr
-
-    def _transform(self, X_smiles_list):
-        X_out = []
-        for smiles in X_smiles_list:
-            mol = Chem.MolFromSmiles(smiles)
-            if mol:
-                X_out.append(mol)
-            else:
-                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer on your dataset first')
-
-        return X_out
-
-    def inverse_transform(self, X_mols_list, y=None): #TODO, maybe the inverse transform should be configurable e.g. isomericSmiles etc.?
-        X_out = []
-
-        for mol in X_mols_list:
-            smiles = Chem.MolToSmiles(mol)
-            X_out.append(smiles)
-
-        return X_out
 
 
 def parallel_helper(args):
@@ -515,7 +456,7 @@ def parallel_helper(args):
     Then instantiates the class with the parameters and processes the mol.
     Intention is to be able to do this in chilcprocesses as some classes can't be pickled"""
     classname, parameters, X_mols = args
-    from scikit_mol import transformers
-    transformer = getattr(transformers, classname)(**parameters)
+    from scikit_mol import fingerprints
+    transformer = getattr(fingerprints, classname)(**parameters)
     return transformer._transform(X_mols)
 

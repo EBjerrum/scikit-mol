@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python 3.9.4 ('rdkit')
 #     language: python
@@ -42,9 +42,9 @@ mols = [Chem.MolFromSmiles(smiles) for smiles in smiles_strings]
 # Next we import the Morgan fingerprint transformer
 
 # %%
-from scikit_mol.transformers import MorganTransformer
+from scikit_mol.fingerprints import MorganFingerprintTransformer
 
-transformer = MorganTransformer(radius=3)
+transformer = MorganFingerprintTransformer(radius=3)
 print(transformer)
 
 # %% [markdown]
@@ -91,8 +91,8 @@ transformer.transform(mols, y)
 # Sometimes we may want to transform SMILES into molecules, and scikit-mol also has a transformer for that. It simply takes a list of SMILES and produces a list of RDKit molecules, this may come in handy when building pipelines for machine learning models, as we will demo in another notebook.
 
 # %%
-from scikit_mol.transformers import SmilesToMol
-smi2mol = SmilesToMol()
+from scikit_mol.conversions import SmilesToMolTransformer
+smi2mol = SmilesToMolTransformer()
 print(smi2mol)
 
 # %%

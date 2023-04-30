@@ -8,7 +8,8 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score
 
-from scikit_mol.transformers import MorganTransformer, SmilesToMol
+from scikit_mol.fingerprints import MorganFingerprintTransformer
+from scikit_mol.conversions import SmilesToMolTransformer
 
 from sklearn.pipeline import make_pipeline
 
@@ -30,10 +31,10 @@ else:
     csv_file = '../tests/data/SLC6A4_active_excapedb_subset.csv'
 
 data = pd.read_csv(csv_file)
-data['ROMol'] = SmilesToMol().transform(data.SMILES)
+data['ROMol'] = SmilesToMolTransformer().transform(data.SMILES)
  
 #%%
-pipe = make_pipeline(MorganTransformer(), Ridge())
+pipe = make_pipeline(MorganFingerprintTransformer(), Ridge())
 pipe
 # %%
 print(pipe.get_params())

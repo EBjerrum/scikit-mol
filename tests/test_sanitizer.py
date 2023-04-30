@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from rdkit import Chem
 from fixtures import smiles_list, invalid_smiles_list
-from scikit_mol.sanitizer import CheckSmilesSanitazion
+from scikit_mol.utilities import CheckSmilesSanitazion
 
 @pytest.fixture
 def sanitizer():

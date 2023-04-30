@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python 3.9.4 ('rdkit')
 #     language: python
@@ -42,7 +42,7 @@ print(f'Dataset contains {data.ROMol.isna().sum()} unparsable mols')
 # If we use these SMILES for the scikit-learn pipeline, we would face an error, so we need to check and clean the dataset first. The CheckSmilesSanitation can help us with that.
 
 # %%
-from scikit_mol.sanitizer import CheckSmilesSanitazion
+from scikit_mol.utilities import CheckSmilesSanitazion
 smileschecker = CheckSmilesSanitazion()
 
 smiles_list_valid, y_valid, smiles_errors, y_errors = smileschecker.sanitize(list(data.SMILES), list(data.pXC50))

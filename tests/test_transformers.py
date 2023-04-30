@@ -10,10 +10,11 @@ import pytest
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
-from scikit_mol.transformers import SmilesToMol
-from scikit_mol.transformers import MACCSTransformer, RDKitFPTransformer, AtomPairFingerprintTransformer, \
-                                    TopologicalTorsionFingerprintTransformer, MorganTransformer, SECFingerprintTransformer, \
+from scikit_mol.conversions import SmilesToMolTransformer
+from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
+                                    TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
                                     MHFingerprintTransformer
+
 
 from fixtures import SLC6A4_subset
 
@@ -24,14 +25,14 @@ def test_transformer(SLC6A4_subset):
     Y_train, Y_test = Y[:128], Y[128:]
 
     # run FP with default parameters except when useCounts can be given as an argument
-    FP_dict = {"MACCSTransformer": [MACCSTransformer, None],
-               "RDKitFPTransformer": [RDKitFPTransformer, None],
+    FP_dict = {"MACCSTransformer": [MACCSKeysFingerprintTransformer, None],
+               "RDKitFPTransformer": [RDKitFingerprintTransformer, None],
                "AtomPairFingerprintTransformer": [AtomPairFingerprintTransformer, False],
                "AtomPairFingerprintTransformer useCounts": [AtomPairFingerprintTransformer, True],
                "TopologicalTorsionFingerprintTransformer": [TopologicalTorsionFingerprintTransformer, False],
                "TopologicalTorsionFingerprintTransformer useCounts": [TopologicalTorsionFingerprintTransformer, True],
-               "MorganTransformer": [MorganTransformer, False],
-               "MorganTransformer useCounts": [MorganTransformer, True],
+               "MorganTransformer": [MorganFingerprintTransformer, False],
+               "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
                "SECFingerprintTransformer": [SECFingerprintTransformer, None],
                "MHFingerprintTransformer": [MHFingerprintTransformer, None]}
 
@@ -41,9 +42,9 @@ def test_transformer(SLC6A4_subset):
         try:
             print(f"\nrunning pipeline fitting and scoring for {FP_name} with useCounts={useCounts}")
             if useCounts is None:
-                pipeline = Pipeline([("s2m", SmilesToMol()), ("FP", FP()), ("RF", RandomForestRegressor())])
+                pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("FP", FP()), ("RF", RandomForestRegressor())])
             else:
-                pipeline = Pipeline([("s2m", SmilesToMol()), ("FP", FP(useCounts=useCounts)), ("RF", RandomForestRegressor())])
+                pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("FP", FP(useCounts=useCounts)), ("RF", RandomForestRegressor())])
             pipeline.fit(X_train, Y_train)
             train_score = pipeline.score(X_train, Y_train)
             test_score = pipeline.score(X_test, Y_test)
