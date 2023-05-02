@@ -2,11 +2,11 @@ import pytest
 import numpy as np
 from rdkit import Chem
 from fixtures import mols_list, smiles_list
-from test_fptransformers import morgan_transformer, atompair_transformer, topologicaltorsion_transformer, rdkit_transformer
+from test_fptransformers import morgan_transformer, atompair_transformer, topologicaltorsion_transformer, rdkit_transformer, avalon_transformer
 
 
-def test_Transformer_exotic_types(mols_list, morgan_transformer,atompair_transformer, topologicaltorsion_transformer):
-    for transformer in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer]:
+def test_Transformer_exotic_types(mols_list, morgan_transformer,atompair_transformer, topologicaltorsion_transformer, avalon_transformer):
+    for transformer in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, avalon_transformer]:
         params = transformer.get_params()
 
         for useCounts in [np.bool_(True), np.bool_(False)]:
