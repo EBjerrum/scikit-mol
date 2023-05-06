@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
-                                    MHFingerprintTransformer
+                                    MHFingerprintTransformer, AvalonFingerprintTransformer
 
 
 from fixtures import SLC6A4_subset
@@ -34,7 +34,8 @@ def test_transformer(SLC6A4_subset):
                "MorganTransformer": [MorganFingerprintTransformer, False],
                "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
                "SECFingerprintTransformer": [SECFingerprintTransformer, None],
-               "MHFingerprintTransformer": [MHFingerprintTransformer, None]}
+               "MHFingerprintTransformer": [MHFingerprintTransformer, None],
+               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None]}
 
     # fit on toy data and print train/test score if successful or collect the failed FP
     failed_FP = []

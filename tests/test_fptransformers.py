@@ -7,7 +7,7 @@ from rdkit import Chem
 from fixtures import mols_list, smiles_list, fingerprint, chiral_smiles_list, chiral_mols_list
 from sklearn import clone
 
-from scikit_mol.fingerprints import MorganFingerprintTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer, MHFingerprintTransformer
+from scikit_mol.fingerprints import MorganFingerprintTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer, MHFingerprintTransformer, AvalonFingerprintTransformer
 
 
 
@@ -39,6 +39,9 @@ def secfp_transformer():
 def mhfp_transformer():
     return MHFingerprintTransformer()
 
+@pytest.fixture
+def avalon_transformer():
+    return AvalonFingerprintTransformer()
 
 def test_fpstransformer_fp2array(morgan_transformer, fingerprint):
     fp = morgan_transformer._fp2array(fingerprint)
@@ -54,8 +57,8 @@ def test_fpstransformer_transform_mol(morgan_transformer, mols_list):
     assert(fp.shape == (2048,))
     assert(fp.sum() == 14)
 
-def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer, mhfp_transformer):
-    for t in [maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer, mhfp_transformer]:
+def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
+    for t in [maccs_transformer, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
         params   = t.get_params()
         t2 = clone(t)
         params_2 = t2.get_params()
@@ -64,8 +67,8 @@ def test_clonability(maccs_transformer, morgan_transformer, rdkit_transformer, a
         #Cloned transformers should not be the same object
         assert t2 != t
 
-def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer, mhfp_transformer):
-    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer]:
+def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
+    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, avalon_transformer]:
         params   = t.get_params()
         #change extracted dictionary
         params['nBits'] = 4242
@@ -96,11 +99,11 @@ def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer,
         params_2 = t.get_params()
         assert all([ params[key] == params_2[key] for key in params.keys()])
 
-def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer):
+def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
     #Test different types of input
     for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
         #Test the different transformers
-        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer]:
+        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
             params   = t.get_params()
             fps = t.transform(mols)
             #Assert that the same length of input and output
@@ -116,11 +119,11 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
             
             assert len(fps[0]) == fpsize
 
-def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer):
+def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
     #Test different types of input
     for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
         #Test the different transformers
-        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer]:
+        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
             t.set_params(parallel=True)
             params   = t.get_params()
             fps = t.transform(mols)
@@ -138,9 +141,9 @@ def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, at
             assert len(fps[0]) == fpsize
 
 
-def test_picklable(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer):
+def test_picklable(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, avalon_transformer):
     #Test the different transformers
-    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer]:
+    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, avalon_transformer]:
         with tempfile.NamedTemporaryFile() as f:
             pickle.dump(t, f)
             f.seek(0)
@@ -248,4 +251,10 @@ def test_MHFingerprintTransformer(chiral_mols_list):
                 }
     assert_transformer_set_params(MHFingerprintTransformer, new_params, chiral_mols_list)
 
-
+def test_AvalonFingerprintTransformer(chiral_mols_list):
+    new_params = {'nBits': 1024,
+                'isQuery': True,
+                # 'resetVect': True, #TODO: this doesn't change the FP
+                'bitFlags': 32767
+                }
+    assert_transformer_set_params(AvalonFingerprintTransformer, new_params, chiral_mols_list)

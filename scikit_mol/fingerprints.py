@@ -8,6 +8,7 @@ from rdkit import DataStructs
 from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem import rdFingerprintGenerator
 from rdkit.Chem import rdMHFPFingerprint
+from rdkit.Avalon import pyAvalonTools
 
 import numpy as np
 import pandas as pd
@@ -448,7 +449,45 @@ class MorganFingerprintTransformer(FpsTransformer):
                 useChirality=bool(self.useChirality), useBondTypes=bool(self.useBondTypes)
             )
         
+class AvalonFingerprintTransformer(FpsTransformer):
+    # Fingerprint from the Avalon toolkeit, https://doi.org/10.1021/ci050413p
+    def __init__(self, nBits:int = 512, isQuery:bool = False, resetVect:bool = False, bitFlags:int = 15761407, useCounts:bool = False, parallel: Union[bool, int] = False,):
+        """ Transform RDKit mols into Count or bit-based Avalon Fingerprints
 
+        Parameters
+        ----------
+        nBits : int, optional
+            Size of the fingerprint, by default 512
+        isQuery : bool, optional
+            use the fingerprint for a query structure, by default False
+        resetVect : bool, optional
+            reset vector, by default False      NB: only used in GetAvalonFP (not for GetAvalonCountFP)
+        bitFlags : int, optional
+            Substructure fingerprint (32767) or similarity fingerprint (15761407) by default 15761407
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
+        super().__init__(parallel = parallel)
+        self.nBits = nBits
+        self.isQuery = isQuery
+        self.resetVect = resetVect
+        self.bitFlags = bitFlags
+        self.useCounts = useCounts
+        
+    def _mol2fp(self, mol):
+        if self.useCounts:
+            return pyAvalonTools.GetAvalonCountFP(mol,
+                                                  nBits=int(self.nBits),
+                                                  isQuery=bool(self.isQuery),
+                                                  bitFlags=int(self.bitFlags)
+            )
+        else:
+            return pyAvalonTools.GetAvalonFP(mol,
+                                             nBits=int(self.nBits),
+                                             isQuery=bool(self.isQuery),
+                                             resetVect=bool(self.resetVect),
+                                             bitFlags=int(self.bitFlags)                      
+            )
 
 
 def parallel_helper(args):
