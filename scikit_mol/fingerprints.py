@@ -461,9 +461,9 @@ class AvalonFingerprintTransformer(FpsTransformer):
         isQuery : bool, optional
             use the fingerprint for a query structure, by default False
         resetVect : bool, optional
-            reset vector, by default False      #TODO: only used in GetAvalonFP (not for GetAvalonCountFP) and seems doesn't make difference
+            reset vector, by default False      NB: only used in GetAvalonFP (not for GetAvalonCountFP)
         bitFlags : int, optional
-            Substructure fingerprint (32767) or similarity fingerpirnt (15761407) by default 15761407   #TODO: don't understand this parameter, it can also be other integers and result in different fingerprints.
+            Substructure fingerprint (32767) or similarity fingerprint (15761407) by default 15761407
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
         """

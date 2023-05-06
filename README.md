@@ -20,19 +20,28 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
 
 
 ## Implemented
-* Transformer Classes
-    * SmilesToMol
-    * Desc2DTransformer
-    * MACCSTransformer
-    * RDKitFPTransformer
+* descriptors
+    * MolecularDescriptorTransformer
+<br>
+* fingerprints
+    * MorganFingerprintTransformer
+    * MACCSKeysFingerprintTransformer
+    * RDKitFingerprintTransformer
     * AtomPairFingerprintTransformer
     * TopologicalTorsionFingerprintTransformer
-    * MorganTransformer
+    * MHFingerprintTransformer
     * SECFingerprintTransformer
+    * AvalonFingerprintTransformer
 <br>
-
-* Utilities
+* conversions
+    * SmilesToMol
+<br>
+* standardizer
+    * Standardizer
+<br>
+* utilities
     * CheckSmilesSanitazion
+
 
 ## Installation
 Users can install latest tagged release from pip
