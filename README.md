@@ -20,10 +20,12 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
 
 
 ## Implemented
-* descriptors
+* Descriptors
     * MolecularDescriptorTransformer
+
 <br>
-* fingerprints
+
+* Fingerprints
     * MorganFingerprintTransformer
     * MACCSKeysFingerprintTransformer
     * RDKitFingerprintTransformer
@@ -32,16 +34,21 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
     * MHFingerprintTransformer
     * SECFingerprintTransformer
     * AvalonFingerprintTransformer
-<br>
-* conversions
-    * SmilesToMol
-<br>
-* standardizer
-    * Standardizer
-<br>
-* utilities
-    * CheckSmilesSanitazion
 
+<br>
+
+* Conversions
+    * SmilesToMol
+
+<br>
+
+* Standardizer
+    * Standardizer
+
+<br>
+
+* Utilities
+    * CheckSmilesSanitazion
 
 ## Installation
 Users can install latest tagged release from pip
