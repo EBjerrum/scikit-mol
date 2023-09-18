@@ -81,7 +81,7 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 Probably still, please check issues at GitHub and report there
 
 ## Contributers:
-* Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esben@cheminformania.com
+* Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esbenbjerrum+cheminformania@gmail.com
 * Carmen Esposito [@cespos](https://github.com/cespos)
 * Son Ha, sonha@uni-mainz.de
 * Oh-hyeon Choung, ohhyeon.choung@gmail.com
