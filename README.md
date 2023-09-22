@@ -70,6 +70,7 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 * [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/05_smiles_sanitaztion.ipynb)
 * [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/06_hyperparameter_tuning.ipynb)
 * [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/07_parallel_transforms.ipynb)
+* [Testing different fingerprints as part of the hyperparameter optimization](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers.ipynb)
 
 ## Contributing
 
@@ -79,7 +80,7 @@ There are more information about how to contribute to the project in [CONTRIBUTI
 Probably still, please check issues at GitHub and report there
 
 ## Contributers:
-* Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esbenbjerrum+cheminformania@gmail.com
+* Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esbenbjerrum+scikit_mol@gmail.com
 * Carmen Esposito [@cespos](https://github.com/cespos)
 * Son Ha, sonha@uni-mainz.de
 * Oh-hyeon Choung, ohhyeon.choung@gmail.com
@@ -87,3 +88,6 @@ Probably still, please check issues at GitHub and report there
 * Ya Chen, [@anya-chen](https://github.com/anya-chen)
 * Rafał Bachorz [@rafalbachorz](https://github.com/rafalbachorz)
 * Adrien Chaton [@adrienchaton](https://github.com/adrienchaton)
+* @VincentAlexanderScholz
+* @RiesBen
+
