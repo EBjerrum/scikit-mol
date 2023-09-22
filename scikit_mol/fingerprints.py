@@ -16,7 +16,7 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from scikit_mol._invalid import ArrayWithInvalidInstances, rdkit_error_handling
+from scikit_mol._invalid import NumpyArrayWithInvalidInstances, rdkit_error_handling
 
 from abc import ABC, abstractmethod
 
@@ -54,7 +54,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         arr_list = []
         for i, mol in enumerate(X):
             arr_list.append(self._transform_mol(mol))
-        return ArrayWithInvalidInstances(arr_list)
+        return NumpyArrayWithInvalidInstances(arr_list)
 
     def _transform_sparse(self, X):
         arr = np.zeros((len(X), self.nBits), dtype=np.int8)
