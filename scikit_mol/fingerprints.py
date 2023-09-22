@@ -16,8 +16,10 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from scikit_mol._invalid import ArrayWithInvalidInstances, rdkit_error_handling
 
 from abc import ABC, abstractmethod
+
 
 #%%
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
@@ -49,10 +51,10 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         return self
 
     def _transform(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=np.int8)
+        arr_list = []
         for i, mol in enumerate(X):
-            arr[i,:] = self._transform_mol(mol)
-        return arr
+            arr_list.append(self._transform_mol(mol))
+        return ArrayWithInvalidInstances(arr_list)
 
     def _transform_sparse(self, X):
         arr = np.zeros((len(X), self.nBits), dtype=np.int8)
@@ -61,6 +63,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         
         return lil_matrix(arr)
 
+    @rdkit_error_handling
     def transform(self, X, y=None):
         """Transform a list of RDKit molecule objects into a fingerprint array
 
@@ -89,9 +92,9 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
                 #arrays = pool.map(self._transform, x_chunks)
                 parameters = self.get_params()
                 arrays = pool.map(parallel_helper, [(self.__class__.__name__, parameters, x_chunk) for x_chunk in x_chunks]) 
-
-                arr = np.concatenate(arrays)
-            return arr
+                arr_list = []
+                arr_list.extend(arrays)
+            return arr_list
 
 
 class MACCSKeysFingerprintTransformer(FpsTransformer):

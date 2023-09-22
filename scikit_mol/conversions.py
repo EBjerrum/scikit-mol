@@ -6,6 +6,8 @@ from rdkit import Chem
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from scikit_mol._invalid import InvalidInstance
+
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
 
@@ -56,8 +58,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             if mol:
                 X_out.append(mol)
             else:
-                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer on your dataset first')
-
+                X_out.append(InvalidInstance(str(self), "Invalid Smiles."))
         return X_out
 
     def inverse_transform(self, X_mols_list, y=None): #TODO, maybe the inverse transform should be configurable e.g. isomericSmiles etc.?

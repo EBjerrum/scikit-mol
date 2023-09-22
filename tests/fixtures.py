@@ -8,7 +8,7 @@ from rdkit.Chem import rdMolDescriptors
 
 @pytest.fixture
 def smiles_list():
-    return [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  ['O=C(O)c1ccccc1',
+    return [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in ['O=C(O)c1ccccc1',
                 'O=C([O-])c1ccccc1',
                 'O=C([O-])c1ccccc1.[Na+]',
                 'O=C(O[Na])c1ccccc1',
