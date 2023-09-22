@@ -59,11 +59,6 @@ Bleeding edge
 
     pip install git+https://github.com:EBjerrum/scikit-mol.git
 
-Developers 
-
-    git clone git@github.com:EBjerrum/scikit-mol.git
-    pip install -e .
-
 ## Documentation
 
 There are a collection of notebooks in the notebooks directory which demonstrates some different aspects and use cases
@@ -76,6 +71,9 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 * [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/06_hyperparameter_tuning.ipynb)
 * [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/07_parallel_transforms.ipynb)
 
+## Contributing
+
+There are more information about how to contribute to the project in [CONTRIBUTION.md](https://github.com/EBjerrum/scikit-mol/CONTRIBUTION.md)
 
 ## BUGS
 Probably still, please check issues at GitHub and report there
