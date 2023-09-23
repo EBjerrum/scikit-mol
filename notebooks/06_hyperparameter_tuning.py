@@ -64,7 +64,7 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 
 # %%
 
-mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
+mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=42)
 
 
 # %% [markdown]
@@ -111,10 +111,10 @@ optimization_pipe.get_params().keys()
 # %%
 
 param_dist = {'ridge__alpha': loguniform(1e-2, 1e3),
-            "morgantransformer__nBits": [256,512,1024,2048,4096],
-            'morgantransformer__radius':[1,2,3,4],
-            'morgantransformer__useCounts': [True,False],
-            'morgantransformer__useFeatures':[True,False]}
+            "morganfingerprinttransformer__nBits": [256,512,1024,2048,4096],
+            'morganfingerprinttransformer__radius':[1,2,3,4],
+            'morganfingerprinttransformer__useCounts': [True,False],
+            'morganfingerprinttransformer__useFeatures':[True,False]}
 
 # %% [markdown]
 # The report function was taken from [this example](https://scikit-learn.org/stable/auto_examples/model_selection/plot_randomized_search.html#sphx-glr-auto-examples-model-selection-plot-randomized-search-py) from the scikit learn documentation.
