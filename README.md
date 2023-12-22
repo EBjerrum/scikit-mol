@@ -72,6 +72,9 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 * [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/07_parallel_transforms.ipynb)
 * [Testing different fingerprints as part of the hyperparameter optimization](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers.ipynb)
 
+
+  We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd) 
+
 ## Contributing
 
 There are more information about how to contribute to the project in [CONTRIBUTION.md](https://github.com/EBjerrum/scikit-mol/CONTRIBUTION.md)
@@ -88,6 +91,6 @@ Probably still, please check issues at GitHub and report there
 * Ya Chen, [@anya-chen](https://github.com/anya-chen)
 * Rafał Bachorz [@rafalbachorz](https://github.com/rafalbachorz)
 * Adrien Chaton [@adrienchaton](https://github.com/adrienchaton)
-* @VincentAlexanderScholz
-* @RiesBen
+* [@VincentAlexanderScholz](https://github.com/VincentAlexanderScholz)
+* [@RiesBen](https://github.com/RiesBen)
 
