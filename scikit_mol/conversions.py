@@ -13,6 +13,13 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
         self.parallel = parallel
         self.start_method = None  #TODO implement handling of start_method
 
+    def get_feature_names_out(self, input_features=None):
+        prefix = "molecule"
+        if input_features is not None:
+            return np.array([f'{prefix}_{name}' for name in input_features])
+        else:
+            return np.array([prefix])
+
     def fit(self, X=None, y=None):
         """Included for scikit-learn compatibility, does nothing"""
         return self

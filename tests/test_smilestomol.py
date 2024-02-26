@@ -41,4 +41,8 @@ def test_descriptor_transformer_parallel(smiles_list, smilestomol_transformer):
     assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
     
 
-    
+def test_pandas_output(smiles_list, smilestomol_transformer, pandas_output):
+    for to_convert in [smiles_list, pd.Series(smiles_list), pd.Series(smiles_list, name="hello")]:
+        mols = smilestomol_transformer.transform(to_convert)
+        assert isinstance(mols, pd.DataFrame)
+        assert mols.columns.tolist() == ["molecule"]
