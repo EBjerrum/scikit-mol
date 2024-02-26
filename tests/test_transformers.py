@@ -8,6 +8,7 @@
 
 import pytest
 import pandas as pd
+import sklearn
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
@@ -17,6 +18,12 @@ from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFinger
 
 
 from fixtures import SLC6A4_subset
+
+@pytest.fixture
+def pandas_output():
+    sklearn.set_config(transform_output="pandas")
+    yield
+    sklearn.set_config(transform_output="default")
 
 def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
@@ -59,6 +66,45 @@ def test_transformer(SLC6A4_subset):
     assert len(failed_FP) == 0, f"the following FP have failed {failed_FP}"
 
 
+def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
+    # load some toy data for quick testing on a small number of samples
+    X_smiles = SLC6A4_subset.SMILES
+
+    # run FP with default parameters except when useCounts can be given as an argument
+    FP_dict = {"MACCSTransformer": [MACCSKeysFingerprintTransformer, None],
+               "RDKitFPTransformer": [RDKitFingerprintTransformer, None],
+               "AtomPairFingerprintTransformer": [AtomPairFingerprintTransformer, False],
+               "AtomPairFingerprintTransformer useCounts": [AtomPairFingerprintTransformer, True],
+               "TopologicalTorsionFingerprintTransformer": [TopologicalTorsionFingerprintTransformer, False],
+               "TopologicalTorsionFingerprintTransformer useCounts": [TopologicalTorsionFingerprintTransformer, True],
+               "MorganTransformer": [MorganFingerprintTransformer, False],
+               "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
+               "SECFingerprintTransformer": [SECFingerprintTransformer, None],
+               "MHFingerprintTransformer": [MHFingerprintTransformer, None],
+               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None]}
+
+    # fit on toy data and check that the output is a pandas dataframe
+    failed_FP = []
+    for FP_name, (FP, useCounts) in FP_dict.items():
+        try:
+            print(f"\nrunning pipeline fitting and scoring for {FP_name} with useCounts={useCounts}")
+            if useCounts is None:
+                pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("FP", FP())])
+            else:
+                pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("FP", FP(useCounts=useCounts))])
+            pipeline.fit(X_smiles)
+            X_transformed = pipeline.transform(X_smiles)
+            assert isinstance(X_transformed, pd.DataFrame), f"the output of {FP_name} is not a pandas dataframe"
+            assert len(X_transformed.columns) == pipeline.named_steps["FP"].nBits, f"the number of columns in the output of {FP_name} is not equal to the number of bits"
+            print(f"\nfitting and transforming completed")
+
+        except:
+            print(f"\n!!!! FAILED pipeline fitting and transforming for {FP_name} with useCounts={useCounts}")
+            failed_FP.append(FP_name)
+            pass
+
+    # overall result
+    assert len(failed_FP) == 0, f"the following FP have failed pandas transformation {failed_FP}"
 
 
 

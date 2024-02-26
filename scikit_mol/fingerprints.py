@@ -1,6 +1,7 @@
 #%%
 from multiprocessing import Pool, get_context
 import multiprocessing
+import re
 from typing import Union
 from rdkit import Chem
 from rdkit import DataStructs
@@ -19,12 +20,30 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 from abc import ABC, abstractmethod
 
+_PATTERN_FINGERPRINT_TRANSFORMER = re.compile(r"^(?P<fingerprint_name>\w+)FingerprintTransformer$")
+
 #%%
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
     def __init__(self, parallel: Union[bool, int] = False, start_method: str = None):
         self.parallel = parallel
         self.start_method = start_method #TODO implement handling of start_method
+    
+    def _get_column_prefix(self) -> str:
+        matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
+        if matched:
+            fingerprint_name = matched.group("fingerprint_name")
+            return f"fp_{fingerprint_name.lower()}"
+        else:
+            return "fp"
+
+    def _get_n_digits_column_suffix(self) -> int:
+        return len(str(self.nBits))
+
+    def get_feature_names_out(self, input_features=None):
+        prefix = self._get_column_prefix()
+        n_digits = self._get_n_digits_column_suffix()
+        return np.array([f"{prefix}_{str(i).zfill(n_digits)}" for i in range(1, self.nBits + 1)])
 
     @abstractmethod
     def _mol2fp(self, mol):
@@ -45,7 +64,11 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         return arr
 
     def fit(self, X, y=None):
-        """Included for scikit-learn compatibility, does nothing"""
+        """Included for scikit-learn compatibility
+
+        Also sets the column prefix for use by the transform method with dataframe output.
+        """
+        self._get_column_prefix()
         return self
 
     def _transform(self, X):
