@@ -19,12 +19,6 @@ from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFinger
 
 from fixtures import SLC6A4_subset
 
-@pytest.fixture
-def pandas_output():
-    sklearn.set_config(transform_output="pandas")
-    yield
-    sklearn.set_config(transform_output="default")
-
 def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
     X_smiles, Y = SLC6A4_subset.SMILES, SLC6A4_subset.pXC50
