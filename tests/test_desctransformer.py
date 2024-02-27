@@ -3,9 +3,11 @@ import pytest
 import numpy as np
 import pandas as pd
 from rdkit.Chem import Descriptors
+from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.descriptors import MolecularDescriptorTransformer
 from fixtures import mols_list, smiles_list
 from sklearn import clone
+from sklearn.pipeline import Pipeline
 import joblib
 
 
@@ -77,7 +79,16 @@ def test_descriptor_transformer_pandas_output(mols_list, default_descriptor_tran
         for transformer in [default_descriptor_transformer, selected_descriptor_transformer]:
             features = transformer.transform(mols)
             assert isinstance(features, pd.DataFrame)
+            assert features.shape[0] == len(mols_list)
             assert features.columns.tolist() == transformer.selected_descriptors
+
+def test_descriptor_transformer_pandas_output_pipeline(smiles_list, default_descriptor_transformer, pandas_output):
+    for to_convert in [smiles_list, pd.Series(smiles_list), pd.Series(smiles_list, name="hello")]:
+        pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("desc", default_descriptor_transformer)])
+        features = pipeline.fit_transform(to_convert)
+        assert isinstance(features, pd.DataFrame)
+        assert features.shape[0] == len(smiles_list)
+        assert features.columns.tolist() == default_descriptor_transformer.selected_descriptors
 
 # This test may fail on windows and mac (due to spawn rather than fork?)
 # def test_descriptor_transformer_parallel_speedup(mols_list, default_descriptor_transformer):

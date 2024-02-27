@@ -9,6 +9,8 @@ from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculat
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from scikit_mol.utilities import get_mols_from_X
+
 
 
 class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
@@ -99,7 +101,8 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
 
     def _transform(self, x: List[Mol]) -> np.ndarray:
         arr = np.zeros((len(x), len(self.desc_list)))
-        for i, mol in enumerate(x):
+        mols = get_mols_from_X(x)
+        for i, mol in enumerate(mols):
             arr[i, :] = self._transform_mol(mol)
         return arr
 

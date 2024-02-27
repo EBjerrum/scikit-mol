@@ -53,3 +53,18 @@ class CheckSmilesSanitazion:
             self.errors = pd.DataFrame({'SMILES':X_errors})
 
             return X_out, X_errors
+
+
+def get_mols_from_X(X):
+        """Get the molecules iterable from the input X"""
+        if isinstance(X, pd.DataFrame):
+            try:
+                # TODO: possibly handle the case in which a DataFrame
+                # contains multiple molecule columns (as if from a column selector transformer).
+                # In that case, the resulting array should be a concatenation of the fingerprint arrays
+                # for each molecule column.
+                return X.loc[:, "molecule"]
+            except KeyError:
+                return X.iloc[:, 0]
+        else:
+            return X

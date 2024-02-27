@@ -17,6 +17,7 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from scikit_mol.utilities import get_mols_from_X
 
 from abc import ABC, abstractmethod
 
@@ -79,23 +80,9 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         self._get_column_prefix()
         return self
 
-    def _get_mols_from_X(self, X):
-        """Get the molecules iterable from the input X"""
-        if isinstance(X, pd.DataFrame):
-            try:
-                # TODO: possibly handle the case in which a DataFrame
-                # contains multiple molecule columns (as if from a column selector transformer).
-                # In that case, the resulting array should be a concatenation of the fingerprint arrays
-                # for each molecule column.
-                return X.loc[:, "molecule"]
-            except KeyError:
-                return X.iloc[:, 0]
-        else:
-            return X
-
     def _transform(self, X):
         arr = np.zeros((len(X), self.nBits), dtype=self._dtype_fingerprint)
-        mols = self._get_mols_from_X(X)
+        mols = get_mols_from_X(X)
         for i, mol in enumerate(mols):
             arr[i,:] = self._transform_mol(mol)
         return arr
