@@ -60,6 +60,9 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         """Descriptor names of currently selected descriptors"""
         return self._desc_list
 
+    def get_feature_names_out(self, input_features=None):
+        return np.array(self.selected_descriptors)
+
     @desc_list.setter
     def desc_list(self, desc_list):
         self._desc_list = desc_list

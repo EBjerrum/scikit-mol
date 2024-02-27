@@ -72,6 +72,13 @@ def test_descriptor_transformer_parallel(mols_list, default_descriptor_transform
     assert(len(features2) == len(mols_list))
     assert(len(features2[0]) == len(Descriptors._descList))
 
+def test_descriptor_transformer_pandas_output(mols_list, default_descriptor_transformer, selected_descriptor_transformer, pandas_output):
+    for mols in  [mols_list, pd.Series(mols_list), pd.Series(mols_list, name="hello")]:
+        for transformer in [default_descriptor_transformer, selected_descriptor_transformer]:
+            features = transformer.transform(mols)
+            assert isinstance(features, pd.DataFrame)
+            assert features.columns.tolist() == transformer.selected_descriptors
+
 # This test may fail on windows and mac (due to spawn rather than fork?)
 # def test_descriptor_transformer_parallel_speedup(mols_list, default_descriptor_transformer):
 #     n_phys_cpus = joblib.cpu_count(only_physical_cores=True)
