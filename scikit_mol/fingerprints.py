@@ -28,7 +28,15 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def __init__(self, parallel: Union[bool, int] = False, start_method: str = None):
         self.parallel = parallel
         self.start_method = start_method #TODO implement handling of start_method
-    
+
+    @property
+    def _dtype_fingerprint(self):
+        """The dtype of the fingerprint array computed by the transformer
+
+        If needed this property can be overwritten in the child class.
+        """
+        return np.int8
+
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
         if matched:
@@ -54,7 +62,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         raise NotImplementedError("_mol2fp not implemented")
 
     def _fp2array(self, fp):
-        arr = np.zeros((self.nBits,), dtype=np.int8)
+        arr = np.zeros((self.nBits,), dtype=self._dtype_fingerprint)
         DataStructs.ConvertToNumpyArray(fp, arr)
         return arr
 
@@ -86,14 +94,14 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
             return X
 
     def _transform(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=np.int8)
+        arr = np.zeros((len(X), self.nBits), dtype=self._dtype_fingerprint)
         mols = self._get_mols_from_X(X)
         for i, mol in enumerate(mols):
             arr[i,:] = self._transform_mol(mol)
         return arr
 
     def _transform_sparse(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=np.int8)
+        arr = np.zeros((len(X), self.nBits), dtype=self._dtype_fingerprint)
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
         
@@ -333,13 +341,11 @@ class MHFingerprintTransformer(FpsTransformer):
         super().__setstate__(state)
         # Re-create the unpicklable property
         self._recreate_encoder()
-
-    def _transform(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=np.int32)
-        mols = self._get_mols_from_X(X)
-        for i, mol in enumerate(mols):
-            arr[i,:] = self._transform_mol(mol)
-        return arr
+    
+    @property
+    def _dtype_fingerprint(self):
+        """The dtype of the fingerprint array computed by the transformer"""
+        return np.int32
 
     def _mol2fp(self, mol):
         fp = self.mhfp_encoder.EncodeMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius)
