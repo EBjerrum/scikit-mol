@@ -89,6 +89,7 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
             pipeline.fit(X_smiles)
             X_transformed = pipeline.transform(X_smiles)
             assert isinstance(X_transformed, pd.DataFrame), f"the output of {FP_name} is not a pandas dataframe"
+            assert X_transformed.shape[0] == len(X_smiles), f"the number of rows in the output of {FP_name} is not equal to the number of samples"
             assert len(X_transformed.columns) == pipeline.named_steps["FP"].nBits, f"the number of columns in the output of {FP_name} is not equal to the number of bits"
             print(f"\nfitting and transforming completed")
 
