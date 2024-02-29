@@ -46,4 +46,4 @@ def test_pandas_output(smiles_list, smilestomol_transformer, pandas_output):
         mols = smilestomol_transformer.transform(to_convert)
         assert isinstance(mols, pd.DataFrame)
         assert mols.shape[0] == len(smiles_list)
-        assert mols.columns.tolist() == ["molecule"]
+        assert mols.columns.tolist() == ["ROMol"]

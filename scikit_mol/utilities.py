@@ -63,7 +63,10 @@ def get_mols_from_X(X):
                 # contains multiple molecule columns (as if from a column selector transformer).
                 # In that case, the resulting array should be a concatenation of the fingerprint arrays
                 # for each molecule column.
-                return X.loc[:, "molecule"]
+                # TODO: Change core logic of how scikit-mol transformers handle input:
+                # make them only accept 2D arrays with a single column (and possibly flat lists).
+                # See GitHub discussion.
+                return X.loc[:, "ROMol"]
             except KeyError:
                 return X.iloc[:, 0]
         else:
