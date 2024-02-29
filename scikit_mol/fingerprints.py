@@ -73,7 +73,6 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
         Also sets the column prefix for use by the transform method with dataframe output.
         """
-        self._get_column_prefix()
         return self
 
     def _transform(self, X):
