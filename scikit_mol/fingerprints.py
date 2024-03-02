@@ -17,7 +17,7 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from scikit_mol.core import get_mols_from_X
+from scikit_mol.core import check_transform_input
 
 from abc import ABC, abstractmethod
 
@@ -75,10 +75,10 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         """
         return self
 
+    @check_transform_input
     def _transform(self, X):
         arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
-        mols = get_mols_from_X(X)
-        for i, mol in enumerate(mols):
+        for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
         return arr
 

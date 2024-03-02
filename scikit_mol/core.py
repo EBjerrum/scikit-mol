@@ -5,9 +5,11 @@ Users of scikit-mol should not need to use this module directly.
 Users who want to create their own transformers should use this module.
 """
 
+import functools
+
 import pandas as pd
 
-def get_mols_from_X(X):
+def _get_mols_from_X(X):
         """Get the molecules iterable from the input X"""
         if isinstance(X, pd.DataFrame):
             try:
@@ -19,3 +21,18 @@ def get_mols_from_X(X):
                 return X.iloc[:, 0]
         else:
             return X
+
+def check_transform_input(method):
+    """
+    Decorator to check the input of the _transform method
+    and make it compatible with the scikit-learn API and with downstream methods.
+    """
+    @functools.wraps(method)
+    def wrapper(obj, X):
+        X = _get_mols_from_X(X)
+        result =  method(obj, X)
+        # If the output of the _transform method
+        # must be changed depending on the initial type of X, do it here.
+        return result
+
+    return wrapper
