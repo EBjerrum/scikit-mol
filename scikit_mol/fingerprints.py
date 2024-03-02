@@ -17,7 +17,7 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from scikit_mol.utilities import get_mols_from_X
+from scikit_mol.core import get_mols_from_X
 
 from abc import ABC, abstractmethod
 

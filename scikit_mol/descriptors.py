@@ -9,7 +9,7 @@ from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculat
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.utilities import get_mols_from_X
+from scikit_mol.core import get_mols_from_X
 
 
 
