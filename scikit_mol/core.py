@@ -9,8 +9,8 @@ import functools
 
 import pandas as pd
 
-def _get_mols_from_X(X):
-        """Get the molecules iterable from the input X"""
+def _validate_transform_input(X):
+        """Validate and adapt the input of the _transform method"""
         if isinstance(X, pd.DataFrame):
             try:
                 # TODO: Change core logic of how scikit-mol transformers handle input:
@@ -29,7 +29,7 @@ def check_transform_input(method):
     """
     @functools.wraps(method)
     def wrapper(obj, X):
-        X = _get_mols_from_X(X)
+        X = _validate_transform_input(X)
         result =  method(obj, X)
         # If the output of the _transform method
         # must be changed depending on the initial type of X, do it here.
