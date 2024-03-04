@@ -1,18 +1,35 @@
 import os
 import pytest
+import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
 #TODO these should really go into the conftest.py, so that they are automatically imported in the tests
 
+_SMILES_LIST = [
+    'O=C(O)c1ccccc1',
+    'O=C([O-])c1ccccc1',
+    'O=C([O-])c1ccccc1.[Na+]',
+    'O=C(O[Na])c1ccccc1',
+    'C[N+](C)C.O=C([O-])c1ccccc1',
+]
+_CANONICAL_SMILES_LIST = [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  _SMILES_LIST]
+
 @pytest.fixture
 def smiles_list():
-    return [Chem.MolToSmiles(Chem.MolFromSmiles(smiles)) for smiles in  ['O=C(O)c1ccccc1',
-                'O=C([O-])c1ccccc1',
-                'O=C([O-])c1ccccc1.[Na+]',
-                'O=C(O[Na])c1ccccc1',
-                'C[N+](C)C.O=C([O-])c1ccccc1']]
+    return _CANONICAL_SMILES_LIST.copy()
+
+_CONTAINER_CREATORS = [
+    lambda x: x,
+    lambda x: np.array(x).reshape(-1, 1),
+    lambda x: pd.DataFrame({"hello": x}),
+]
+
+@pytest.fixture(params=[container(_CANONICAL_SMILES_LIST) for container in _CONTAINER_CREATORS]
+)
+def smiles_container(request, ):
+    return request.param.copy()
 
 @pytest.fixture
 def chiral_smiles_list(): #Need to be a certain size, so the fingerprints reacts to different max_lenǵths and radii
@@ -26,9 +43,15 @@ def invalid_smiles_list(smiles_list):
     smiles_list.append('Invalid')
     return smiles_list
 
+_MOLS_LIST = [Chem.MolFromSmiles(smiles) for smiles in _SMILES_LIST]
+
 @pytest.fixture
-def mols_list(smiles_list):
-    return [Chem.MolFromSmiles(smiles) for smiles in smiles_list]
+def mols_list():
+    return _MOLS_LIST.copy()
+
+@pytest.fixture(params=[container(_MOLS_LIST) for container in _CONTAINER_CREATORS])
+def mols_container(request):
+    return request.param.copy()
 
 @pytest.fixture
 def chiral_mols_list(chiral_smiles_list):
