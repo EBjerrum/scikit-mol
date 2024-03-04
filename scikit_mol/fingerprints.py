@@ -116,6 +116,9 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
                 #TODO check what is fastest, pickle or recreate and do this only for classes that need this
                 #arrays = pool.map(self._transform, x_chunks)
                 parameters = self.get_params()
+                # TODO: create "transform_parallel" function in the core module,
+                # and use it here and in the descriptors transformer
+                x_chunks = [np.array(x).reshape(-1, 1) for x in x_chunks]
                 arrays = pool.map(parallel_helper, [(self.__class__.__name__, parameters, x_chunk) for x_chunk in x_chunks]) 
 
                 arr = np.concatenate(arrays)

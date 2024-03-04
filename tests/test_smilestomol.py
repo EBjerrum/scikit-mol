@@ -16,14 +16,14 @@ def test_smilestomol(smiles_list, smilestomol_transformer):
     assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
 
 def test_smilestomol_numpy(smiles_list, smilestomol_transformer):
-    mol_list = smilestomol_transformer.transform(np.array(smiles_list))
+    mol_list = smilestomol_transformer.transform(np.array(smiles_list).reshape(-1, 1))
 
     assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
 
+# TODO: make the three tests a single test with parametrized smiles_container fixture
 def test_smilestomol_pandas(smiles_list, smilestomol_transformer):
-    mol_list = smilestomol_transformer.transform(pd.Series(smiles_list))
-
-    assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
+        mol_list = smilestomol_transformer.transform(pd.DataFrame({"smiles": smiles_list}))
+        assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
 
 def test_smilestomol_clone(smilestomol_transformer):
     t2 = clone(smilestomol_transformer)
@@ -42,7 +42,7 @@ def test_descriptor_transformer_parallel(smiles_list, smilestomol_transformer):
     
 
 def test_pandas_output(smiles_list, smilestomol_transformer, pandas_output):
-    for to_convert in [smiles_list, pd.Series(smiles_list), pd.Series(smiles_list, name="hello")]:
+    for to_convert in [smiles_list, np.array(smiles_list).reshape(-1, 1), pd.DataFrame({"smiles": smiles_list})]:
         mols = smilestomol_transformer.transform(to_convert)
         assert isinstance(mols, pd.DataFrame)
         assert mols.shape[0] == len(smiles_list)

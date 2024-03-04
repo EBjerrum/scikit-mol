@@ -22,6 +22,7 @@ from fixtures import SLC6A4_subset
 def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
     X_smiles, Y = SLC6A4_subset.SMILES, SLC6A4_subset.pXC50
+    X_smiles = X_smiles.to_frame()
     X_train, X_test = X_smiles[:128], X_smiles[128:]
     Y_train, Y_test = Y[:128], Y[128:]
 
@@ -63,6 +64,7 @@ def test_transformer(SLC6A4_subset):
 def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
     # load some toy data for quick testing on a small number of samples
     X_smiles = SLC6A4_subset.SMILES
+    X_smiles = X_smiles.to_frame()
 
     # run FP with default parameters except when useCounts can be given as an argument
     FP_dict = {"MACCSTransformer": [MACCSKeysFingerprintTransformer, None],

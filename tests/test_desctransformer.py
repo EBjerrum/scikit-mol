@@ -52,7 +52,7 @@ def test_descriptor_transformer_available_descriptors(default_descriptor_transfo
     
 
 def test_descriptor_transformer_transform(mols_list, default_descriptor_transformer):
-    for mols in  [mols_list, np.array(mols_list), pd.Series(mols_list)]:
+    for mols in  [mols_list, np.array(mols_list).reshape(-1, 1), pd.DataFrame({"mol": mols_list})]:
         features = default_descriptor_transformer.transform(mols)
         assert(len(features) == len(mols))
         assert(len(features[0]) == len(Descriptors._descList))
@@ -75,7 +75,7 @@ def test_descriptor_transformer_parallel(mols_list, default_descriptor_transform
     assert(len(features2[0]) == len(Descriptors._descList))
 
 def test_descriptor_transformer_pandas_output(mols_list, default_descriptor_transformer, selected_descriptor_transformer, pandas_output):
-    for mols in  [mols_list, pd.Series(mols_list), pd.Series(mols_list, name="hello")]:
+    for mols in  [mols_list, np.array(mols_list).reshape(-1, 1), pd.DataFrame({"mol": mols_list})]:
         for transformer in [default_descriptor_transformer, selected_descriptor_transformer]:
             features = transformer.transform(mols)
             assert isinstance(features, pd.DataFrame)
@@ -83,7 +83,7 @@ def test_descriptor_transformer_pandas_output(mols_list, default_descriptor_tran
             assert features.columns.tolist() == transformer.selected_descriptors
 
 def test_descriptor_transformer_pandas_output_pipeline(smiles_list, default_descriptor_transformer, pandas_output):
-    for to_convert in [smiles_list, pd.Series(smiles_list), pd.Series(smiles_list, name="hello")]:
+    for to_convert in [smiles_list, np.array(smiles_list).reshape(-1, 1), pd.DataFrame({"smiles": smiles_list})]:
         pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("desc", default_descriptor_transformer)])
         features = pipeline.fit_transform(to_convert)
         assert isinstance(features, pd.DataFrame)

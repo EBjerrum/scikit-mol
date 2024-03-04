@@ -101,7 +101,9 @@ def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer,
 
 def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
     #Test different types of input
-    for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
+    # TODO: define a parametrized "mols_container" fixture
+    # with all possible input types for mols and smis.
+    for mols in [mols_list, np.array(mols_list).reshape(-1, 1), pd.DataFrame({"mol": mols_list})]:
         #Test the different transformers
         for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
             params   = t.get_params()
@@ -121,7 +123,7 @@ def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_tr
 
 def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
     #Test different types of input
-    for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
+    for mols in [mols_list, np.array(mols_list).reshape(-1, 1), pd.DataFrame({"mol": mols_list})]:
         #Test the different transformers
         for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
             t.set_params(parallel=True)

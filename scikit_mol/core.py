@@ -7,20 +7,25 @@ Users who want to create their own transformers should use this module.
 
 import functools
 
+import numpy as np
 import pandas as pd
 
 def _validate_transform_input(X):
         """Validate and adapt the input of the _transform method"""
-        if isinstance(X, pd.DataFrame):
-            try:
-                # TODO: Change core logic of how scikit-mol transformers handle input:
-                # make them only accept 2D arrays with a single column (and possibly flat lists).
-                # See GitHub discussion.
-                return X.loc[:, "ROMol"]
-            except KeyError:
-                return X.iloc[:, 0]
-        else:
+        try:
+            shape = X.shape
+        except AttributeError:
+            # If X is not array-like or dataframe-like,
+            # we just return it as is, so users can use simple lists and sequences.
             return X
+        # If X is an array-like or dataframe-like, we make sure it is compatible with
+        # the scikit-learn API, and that it contains a single column:
+        # scikit-mol transformers need a single column with smiles or mols.
+        if len(shape) == 1:
+            raise ValueError("X must be 2D")
+        if shape[1] != 1:
+            raise ValueError("X must have only one column")
+        return np.array(X).flatten()
 
 def check_transform_input(method):
     """

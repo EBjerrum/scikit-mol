@@ -6,6 +6,8 @@ from rdkit import Chem
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from scikit_mol.core import check_transform_input
+
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
 
@@ -50,15 +52,17 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
             n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                    x_chunks = np.array_split(X_smiles_list, n_chunks) 
+                    x_chunks = np.array_split(X_smiles_list, n_chunks)
+                    x_chunks = [x.reshape(-1, 1) for x in x_chunks]
                     arrays = pool.map(self._transform, x_chunks) #is the helper function a safer way of handling the picklind and child process communication
 
                     arr = np.concatenate(arrays)
                     return arr
 
-    def _transform(self, X_smiles_list):
+    @check_transform_input
+    def _transform(self, X):
         X_out = []
-        for smiles in X_smiles_list:
+        for smiles in X:
             mol = Chem.MolFromSmiles(smiles)
             if mol:
                 X_out.append(mol)
