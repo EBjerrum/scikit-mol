@@ -22,9 +22,9 @@ def _validate_transform_input(X):
         # the scikit-learn API, and that it contains a single column:
         # scikit-mol transformers need a single column with smiles or mols.
         if len(shape) == 1:
-            raise ValueError("X must be 2D")
+            return X # Flatt Arrays and list-like data are also supported #TODO, add a warning about non-2D data if logging is implemented
         if shape[1] != 1:
-            raise ValueError("X must have only one column")
+            raise ValueError("Only one column supported. You may want to use a ColumnTransformer https://scikit-learn.org/stable/modules/generated/sklearn.compose.ColumnTransformer.html ")
         return np.array(X).flatten()
 
 def check_transform_input(method):

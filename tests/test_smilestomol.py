@@ -13,7 +13,7 @@ def smilestomol_transformer():
 
 def test_smilestomol(smiles_container, smilestomol_transformer):
         result_mols = smilestomol_transformer.transform(smiles_container)
-        result_smiles = [Chem.MolToSmiles(mol) for mol in result_mols]
+        result_smiles = [Chem.MolToSmiles(mol) for mol in result_mols.flatten()]
         if isinstance(smiles_container, pd.DataFrame):
             expected_smiles = smiles_container.iloc[:, 0].tolist()
         else:
@@ -30,10 +30,14 @@ def test_smilestomol_unsanitzable(invalid_smiles_list, smilestomol_transformer):
     with pytest.raises(ValueError):
         smilestomol_transformer.transform(invalid_smiles_list)
 
-def test_descriptor_transformer_parallel(smiles_list, smilestomol_transformer):
+def test_descriptor_transformer_parallel(smiles_container, smilestomol_transformer):
     smilestomol_transformer.set_params(parallel=True)
-    mol_list = smilestomol_transformer.transform(smiles_list)
-    assert all([ a == b for a, b in zip(smiles_list, [Chem.MolToSmiles(mol) for mol in mol_list])])
+    mol_list = smilestomol_transformer.transform(smiles_container)
+    if isinstance(smiles_container, pd.DataFrame):
+        expected_smiles = smiles_container.iloc[:, 0].tolist()
+    else:
+        expected_smiles = smiles_container
+    assert all([ a == b for a, b in zip(expected_smiles, [Chem.MolToSmiles(mol) for mol in mol_list.flatten()])])
 
 def test_pandas_output(smiles_container, smilestomol_transformer, pandas_output):
         mols = smilestomol_transformer.transform(smiles_container)
