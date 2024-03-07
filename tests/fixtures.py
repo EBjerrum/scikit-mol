@@ -22,7 +22,9 @@ def smiles_list():
 
 _CONTAINER_CREATORS = [
     lambda x: x,
+    lambda x: np.array(x),
     lambda x: np.array(x).reshape(-1, 1),
+    lambda x: pd.Series(x),
     lambda x: pd.DataFrame({"hello": x}),
 ]
 
