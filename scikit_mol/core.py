@@ -6,9 +6,37 @@ Users who want to create their own transformers should use this module.
 """
 
 import functools
+from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+
+@dataclass
+class PythonVersion:
+    """
+    Simple class to represent a Python version.
+    """
+    major: int
+    minor: int
+    patch: Optional[int] = None
+
+    def __str__(self):
+        """The string representation of the Python version."""
+        if self.patch is not None:
+            return f"{self.major}.{self.minor}.{self.patch}"
+        else:
+            return f"{self.major}.{self.minor}"
+
+    def as_tuple(self):
+        """The Python version as a tuple."""
+        if self.patch is not None:
+            return (self.major, self.minor, self.patch)
+        else:
+            return (self.major, self.minor)
+
+MIN_PYTHON_FOR_PANDAS_OUT = PythonVersion(3, 8)
+
 
 def _validate_transform_input(X):
         """Validate and adapt the input of the _transform method"""
