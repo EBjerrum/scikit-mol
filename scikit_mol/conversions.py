@@ -53,9 +53,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                     x_chunks = np.array_split(X_smiles_list, n_chunks)
-                    #x_chunks = [x.reshape(-1, 1) for x in x_chunks] Why the reshape? it doesn't exist on things like e.g. Pandas Arrays or Series
                     arrays = pool.map(self._transform, x_chunks) #is the helper function a safer way of handling the picklind and child process communication
-
                     arr = np.concatenate(arrays)
                     return arr
 
