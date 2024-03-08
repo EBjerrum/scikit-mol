@@ -43,7 +43,7 @@ def test_descriptor_transformer_parallel(smiles_container, smilestomol_transform
 
 # TODO: see if it is possible to define this skipif condition
 # as its own decorator / fixture, to avoid duplication, even though it is simple.
-@pytest.mark.skipif(sys.version_info < MIN_PYTHON_FOR_PANDAS_OUT.as_tuple(), reason="requires Python 3.8 or higher")
+@pytest.mark.skipif(sys.version_info < MIN_PYTHON_FOR_PANDAS_OUT.release, reason="requires Python 3.8 or higher")
 def test_pandas_output(smiles_container, smilestomol_transformer, pandas_output):
         mols = smilestomol_transformer.transform(smiles_container)
         assert isinstance(mols, pd.DataFrame)

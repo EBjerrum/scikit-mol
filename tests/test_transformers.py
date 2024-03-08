@@ -63,7 +63,7 @@ def test_transformer(SLC6A4_subset):
     assert len(failed_FP) == 0, f"the following FP have failed {failed_FP}"
 
 
-@pytest.mark.skipif(sys.version_info < MIN_PYTHON_FOR_PANDAS_OUT.as_tuple(), reason="requires Python 3.6 or higher")
+@pytest.mark.skipif(sys.version_info < MIN_PYTHON_FOR_PANDAS_OUT.release, reason="requires Python 3.6 or higher")
 def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
     # load some toy data for quick testing on a small number of samples
     X_smiles = SLC6A4_subset.SMILES
