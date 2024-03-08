@@ -24,9 +24,18 @@ _CONTAINER_CREATORS = [
     lambda x: x,
     lambda x: np.array(x),
     lambda x: np.array(x).reshape(-1, 1),
-    lambda x: pd.Series(x),
-    lambda x: pd.DataFrame({"hello": x}),
 ]
+_names_to_test = [
+    "molecule",
+    "mol",
+    "smiles",
+    "ROMol",
+    "hello",
+    None,
+]
+for name in _names_to_test:
+    _CONTAINER_CREATORS.append(lambda x: pd.Series(x, name=name))
+    _CONTAINER_CREATORS.append(lambda x: pd.DataFrame({name: x}) if name else pd.DataFrame(x))
 
 @pytest.fixture(params=[container(_CANONICAL_SMILES_LIST) for container in _CONTAINER_CREATORS]
 )
