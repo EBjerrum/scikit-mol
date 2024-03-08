@@ -7,7 +7,7 @@ from rdkit import Chem
 import sklearn
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
-from fixtures import smiles_list, invalid_smiles_list, smiles_container
+from fixtures import smiles_list, invalid_smiles_list, smiles_container, skip_pandas_output_test
 
 
 @pytest.fixture
@@ -42,9 +42,7 @@ def test_descriptor_transformer_parallel(smiles_container, smilestomol_transform
         expected_smiles = smiles_container
     assert all([ a == b for a, b in zip(expected_smiles, [Chem.MolToSmiles(mol) for mol in mol_list.flatten()])])
 
-# TODO: see if it is possible to define this skipif condition
-# as its own decorator / fixture, to avoid duplication, even though it is simple.
-@pytest.mark.skipif(Version(sklearn.__version__) < SKLEARN_VERSION_PANDAS_OUT, reason="requires Python 3.8 or higher")
+@skip_pandas_output_test
 def test_pandas_output(smiles_container, smilestomol_transformer, pandas_output):
         mols = smilestomol_transformer.transform(smiles_container)
         assert isinstance(mols, pd.DataFrame)

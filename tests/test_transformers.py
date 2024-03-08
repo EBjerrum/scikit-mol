@@ -19,7 +19,7 @@ from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFinger
                                     MHFingerprintTransformer, AvalonFingerprintTransformer
 
 
-from fixtures import SLC6A4_subset
+from fixtures import SLC6A4_subset, skip_pandas_output_test
 
 def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
@@ -63,7 +63,7 @@ def test_transformer(SLC6A4_subset):
     assert len(failed_FP) == 0, f"the following FP have failed {failed_FP}"
 
 
-@pytest.mark.skipif(Version(sklearn.__version__) < SKLEARN_VERSION_PANDAS_OUT, reason="requires Python 3.6 or higher")
+@skip_pandas_output_test
 def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
     # load some toy data for quick testing on a small number of samples
     X_smiles = SLC6A4_subset.SMILES

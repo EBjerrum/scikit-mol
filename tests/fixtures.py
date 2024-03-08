@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
+from packaging.version import Version
+import sklearn
+
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 
 #TODO these should really go into the conftest.py, so that they are automatically imported in the tests
 
@@ -78,3 +82,5 @@ def SLC6A4_subset():
     file_path = os.path.realpath(__file__)
     data = pd.read_csv(f"{os.path.split(file_path)[0]}/data/SLC6A4_active_excapedb_subset.csv")
     return data
+
+skip_pandas_output_test = pytest.mark.skipif(Version(sklearn.__version__) < SKLEARN_VERSION_PANDAS_OUT, reason=f"requires scikit-learn {SKLEARN_VERSION_PANDAS_OUT} or higher")
