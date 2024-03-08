@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from packaging.version import Version
 
-MIN_PYTHON_FOR_PANDAS_OUT = Version("3.8")
+SKLEARN_VERSION_PANDAS_OUT = Version("1.2")
 
 
 def _validate_transform_input(X):

@@ -6,14 +6,14 @@
 # pytest tests/test_transformers.py --> tests/test_transformers.py::test_transformer PASSED
 
 
-import sys
 import pytest
 import pandas as pd
+from packaging.version import Version
 import sklearn
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.core import MIN_PYTHON_FOR_PANDAS_OUT
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
                                     MHFingerprintTransformer, AvalonFingerprintTransformer
@@ -63,7 +63,7 @@ def test_transformer(SLC6A4_subset):
     assert len(failed_FP) == 0, f"the following FP have failed {failed_FP}"
 
 
-@pytest.mark.skipif(sys.version_info < MIN_PYTHON_FOR_PANDAS_OUT.release, reason="requires Python 3.6 or higher")
+@pytest.mark.skipif(Version(sklearn.__version__) < SKLEARN_VERSION_PANDAS_OUT, reason="requires Python 3.6 or higher")
 def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
     # load some toy data for quick testing on a small number of samples
     X_smiles = SLC6A4_subset.SMILES
