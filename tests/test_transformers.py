@@ -10,6 +10,7 @@ import pytest
 import pandas as pd
 from packaging.version import Version
 import sklearn
+import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
@@ -17,9 +18,9 @@ from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
                                     MHFingerprintTransformer, AvalonFingerprintTransformer
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 
-
-from fixtures import SLC6A4_subset, skip_pandas_output_test
+from fixtures import SLC6A4_subset, skip_pandas_output_test, mols_container, featurizer
 
 def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
@@ -106,6 +107,25 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
     # overall result
     assert len(failed_FP) == 0, f"the following FP have failed pandas transformation {failed_FP}"
 
+@skip_pandas_output_test
+def test_pandas_out_same_values(featurizer, mols_container):
+    featurizer_default = sklearn.base.clone(featurizer)
+    featurizer_default.set_output(transform="default")
+    featurizer_pandas = sklearn.base.clone(featurizer)
+    featurizer_pandas.set_output(transform="pandas")
+    result_default = featurizer_default.fit_transform(mols_container)
+    result_pandas = featurizer_pandas.fit_transform(mols_container)
+    assert isinstance(result_default, np.ndarray)
+    assert isinstance(result_pandas, pd.DataFrame)
+    assert result_default.shape == result_pandas.shape
+    featurizer_class_with_nan = MolecularDescriptorTransformer
+    if isinstance(featurizer, featurizer_class_with_nan):
+        assert (pd.isna(result_default) == pd.isna(result_pandas.values)).all(), "NaN values are not in the same positions in the default and pandas output"
+        nan_replacement = 0.
+        result_default = np.nan_to_num(result_default, nan=nan_replacement)
+        result_pandas = result_pandas.fillna(nan_replacement)
+    else:
+        assert (result_default == result_pandas.values).all()
 
 
 

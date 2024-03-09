@@ -6,6 +6,10 @@ from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from packaging.version import Version
 import sklearn
+from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
+                                    TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
+                                    MHFingerprintTransformer, AvalonFingerprintTransformer
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT, DEFAULT_MOL_COLUMN_NAME
 
@@ -84,3 +88,18 @@ def SLC6A4_subset():
     return data
 
 skip_pandas_output_test = pytest.mark.skipif(Version(sklearn.__version__) < SKLEARN_VERSION_PANDAS_OUT, reason=f"requires scikit-learn {SKLEARN_VERSION_PANDAS_OUT} or higher")
+
+_FEATURIZER_CLASSES = [
+        MACCSKeysFingerprintTransformer,
+        RDKitFingerprintTransformer,
+        AtomPairFingerprintTransformer,
+        TopologicalTorsionFingerprintTransformer,
+        MorganFingerprintTransformer,
+        SECFingerprintTransformer,
+        MHFingerprintTransformer,
+        AvalonFingerprintTransformer,
+        MolecularDescriptorTransformer,
+    ]
+@pytest.fixture(params=_FEATURIZER_CLASSES)
+def featurizer(request):
+    return request.param()
