@@ -7,7 +7,7 @@ from rdkit.Chem import rdMolDescriptors
 from packaging.version import Version
 import sklearn
 
-from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT, DEFAULT_MOL_COLUMN_NAME
 
 #TODO these should really go into the conftest.py, so that they are automatically imported in the tests
 
@@ -33,7 +33,7 @@ _names_to_test = [
     "molecule",
     "mol",
     "smiles",
-    "ROMol",
+    DEFAULT_MOL_COLUMN_NAME,
     "hello",
     None,
 ]

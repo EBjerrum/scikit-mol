@@ -6,7 +6,7 @@ from sklearn import clone
 from rdkit import Chem
 import sklearn
 from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT, DEFAULT_MOL_COLUMN_NAME
 from fixtures import smiles_list, invalid_smiles_list, smiles_container, skip_pandas_output_test
 
 
@@ -47,4 +47,4 @@ def test_pandas_output(smiles_container, smilestomol_transformer, pandas_output)
         mols = smilestomol_transformer.transform(smiles_container)
         assert isinstance(mols, pd.DataFrame)
         assert mols.shape[0] == len(smiles_container)
-        assert mols.columns.tolist() == ["ROMol"]
+        assert mols.columns.tolist() == [DEFAULT_MOL_COLUMN_NAME]

@@ -13,6 +13,8 @@ from packaging.version import Version
 
 SKLEARN_VERSION_PANDAS_OUT = Version("1.2")
 
+DEFAULT_MOL_COLUMN_NAME = "ROMol"
+
 
 def _validate_transform_input(X):
         """Validate and adapt the input of the _transform method"""
