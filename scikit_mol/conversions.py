@@ -6,7 +6,7 @@ from rdkit import Chem
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input, DEFAULT_MOL_COLUMN_NAME
+from scikit_mol.core import check_transform_input, feature_names_default_mol ,DEFAULT_MOL_COLUMN_NAME
 
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
@@ -15,12 +15,9 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
         self.parallel = parallel
         self.start_method = None  #TODO implement handling of start_method
 
+    @feature_names_default_mol
     def get_feature_names_out(self, input_features=None):
-        prefix = DEFAULT_MOL_COLUMN_NAME
-        if input_features is not None:
-            return np.array([f'{prefix}_{name}' for name in input_features])
-        else:
-            return np.array([prefix])
+        return input_features
 
     def fit(self, X=None, y=None):
         """Included for scikit-learn compatibility, does nothing"""

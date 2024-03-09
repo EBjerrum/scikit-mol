@@ -47,3 +47,17 @@ def check_transform_input(method):
         return result
 
     return wrapper
+
+def feature_names_default_mol(method):
+    """
+    Decorator that returns the default feature names for the mol object
+    """
+    @functools.wraps(method)
+    def wrapper(obj, input_features=None):
+        prefix = DEFAULT_MOL_COLUMN_NAME
+        if input_features is not None:
+            return np.array([f'{prefix}_{name}' for name in input_features])
+        else:
+            return np.array([prefix])
+
+    return wrapper
