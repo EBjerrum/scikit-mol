@@ -38,8 +38,8 @@ _names_to_test = [
     None,
 ]
 for name in _names_to_test:
-    _CONTAINER_CREATORS.append(lambda x: pd.Series(x, name=name))
-    _CONTAINER_CREATORS.append(lambda x: pd.DataFrame({name: x}) if name else pd.DataFrame(x))
+    _CONTAINER_CREATORS.append(lambda x, name=name: pd.Series(x, name=name))
+    _CONTAINER_CREATORS.append(lambda x, name=name: pd.DataFrame({name: x}) if name else pd.DataFrame(x))
 
 @pytest.fixture(params=[container(_CANONICAL_SMILES_LIST) for container in _CONTAINER_CREATORS]
 )
