@@ -8,7 +8,7 @@ from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.rdBase import BlockLogs
 import numpy as np
 
-from scikit_mol.core import check_transform_input
+from scikit_mol.core import check_transform_input, feature_names_default_mol
 
 
 class Standardizer(BaseEstimator, TransformerMixin):
@@ -42,7 +42,11 @@ class Standardizer(BaseEstimator, TransformerMixin):
         
         del block # Release logging block to previous state
         return np.array(arr).reshape(-1,1)
-    
+
+    @feature_names_default_mol
+    def get_feature_names_out(self, input_features=None):
+        return input_features
+
     @check_transform_input
     def transform(self, X, y=None):
         if not self.parallel:
