@@ -15,12 +15,12 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
-from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
+from scikit_mol.fingerprints import FpsTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
                                     MHFingerprintTransformer, AvalonFingerprintTransformer
 from scikit_mol.descriptors import MolecularDescriptorTransformer
 
-from fixtures import SLC6A4_subset, skip_pandas_output_test, mols_container, featurizer
+from fixtures import SLC6A4_subset, SLC6A4_subset_with_cddd, skip_pandas_output_test, mols_container, featurizer, combined_transformer
 
 def test_transformer(SLC6A4_subset):
     # load some toy data for quick testing on a small number of samples
@@ -127,7 +127,22 @@ def test_pandas_out_same_values(featurizer, mols_container):
     else:
         assert (result_default == result_pandas.values).all()
 
-
+@skip_pandas_output_test
+def test_combined_transformer_pandas_out(combined_transformer, SLC6A4_subset_with_cddd, pandas_output):
+    result = combined_transformer.fit_transform(SLC6A4_subset_with_cddd)
+    assert isinstance(result, pd.DataFrame)
+    assert result.shape[0] == SLC6A4_subset_with_cddd.shape[0]
+    n_cddd_features = SLC6A4_subset_with_cddd.columns.str.match(r"^cddd_\d+$").sum()
+    pipeline_skmol = combined_transformer.named_transformers_["pipeline-1"]
+    featurizer_skmol = pipeline_skmol[-1]
+    if isinstance(featurizer_skmol, FpsTransformer):
+        n_skmol_features = featurizer_skmol.nBits
+    elif isinstance(featurizer_skmol, MolecularDescriptorTransformer):
+        n_skmol_features = len(featurizer_skmol.desc_list)
+    else:
+        raise ValueError(f"Unexpected featurizer type {type(featurizer_skmol)}")
+    expected_n_features = n_cddd_features + n_skmol_features
+    assert result.shape[1] == expected_n_features
 
 
 

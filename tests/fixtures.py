@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import pytest
 import numpy as np
 import pandas as pd
@@ -6,11 +7,15 @@ from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from packaging.version import Version
 import sklearn
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.pipeline import make_pipeline
+from sklearn.compose import make_column_selector, make_column_transformer
 from scikit_mol.fingerprints import MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
                                     TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
                                     MHFingerprintTransformer, AvalonFingerprintTransformer
 from scikit_mol.descriptors import MolecularDescriptorTransformer
-
+from scikit_mol.conversions import SmilesToMolTransformer
+from scikit_mol.standardizer import Standardizer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT, DEFAULT_MOL_COLUMN_NAME
 
 #TODO these should really go into the conftest.py, so that they are automatically imported in the tests
@@ -81,10 +86,20 @@ def chiral_mols_list(chiral_smiles_list):
 def fingerprint(mols_list):
     return rdMolDescriptors.GetHashedMorganFingerprint(mols_list[0],2,nBits=1000)
 
+_DIR_DATA = Path(__file__).parent / "data"
+_FILE_SLC6A4 = _DIR_DATA / "SLC6A4_active_excapedb_subset.csv"
+_FILE_SLC6A4_WITH_CDDD = _DIR_DATA / "CDDD_SLC6A4_active_excapedb_subset.csv.gz"
+
 @pytest.fixture
 def SLC6A4_subset():
-    file_path = os.path.realpath(__file__)
-    data = pd.read_csv(f"{os.path.split(file_path)[0]}/data/SLC6A4_active_excapedb_subset.csv")
+    data = pd.read_csv(_FILE_SLC6A4)
+    return data
+
+@pytest.fixture
+def SLC6A4_subset_with_cddd(SLC6A4_subset):
+    data = SLC6A4_subset.copy().drop_duplicates(subset="Ambit_InchiKey")
+    cddd = pd.read_csv(_FILE_SLC6A4_WITH_CDDD, index_col="Ambit_InchiKey")
+    data = data.merge(cddd, left_on="Ambit_InchiKey", right_index=True, how="inner", validate="one_to_one")
     return data
 
 skip_pandas_output_test = pytest.mark.skipif(Version(sklearn.__version__) < SKLEARN_VERSION_PANDAS_OUT, reason=f"requires scikit-learn {SKLEARN_VERSION_PANDAS_OUT} or higher")
@@ -103,3 +118,22 @@ _FEATURIZER_CLASSES = [
 @pytest.fixture(params=_FEATURIZER_CLASSES)
 def featurizer(request):
     return request.param()
+
+@pytest.fixture
+def combined_transformer(featurizer):
+    descriptors_pipeline = make_pipeline(
+        SmilesToMolTransformer(),
+        Standardizer(),
+        featurizer,
+    )
+    # A pipeline that just passes the input data.
+    # We will use it to preserve the CDDD features and pass them to downstream steps.
+    identity_pipeline = make_pipeline(
+        FunctionTransformer(),
+    )
+    transformer = make_column_transformer(
+        (descriptors_pipeline, make_column_selector(pattern="SMILES")),
+        (identity_pipeline, make_column_selector(pattern=r"^cddd_\d+$")),
+        remainder="drop",
+    )
+    return transformer
