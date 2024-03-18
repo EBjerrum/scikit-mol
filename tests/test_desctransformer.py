@@ -3,13 +3,15 @@ import pytest
 import numpy as np
 import pandas as pd
 from rdkit.Chem import Descriptors
+import sklearn
+from packaging.version import Version
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.descriptors import MolecularDescriptorTransformer
-from fixtures import mols_list, smiles_list, mols_container, smiles_container
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from fixtures import mols_list, smiles_list, mols_container, smiles_container, skip_pandas_output_test
 from sklearn import clone
 from sklearn.pipeline import Pipeline
 import joblib
-
 
 
 @pytest.fixture
@@ -74,6 +76,7 @@ def test_descriptor_transformer_parallel(mols_list, default_descriptor_transform
     assert(len(features2[0]) == len(Descriptors._descList))
 
 
+@skip_pandas_output_test
 def test_descriptor_transformer_pandas_output(mols_container, default_descriptor_transformer, selected_descriptor_transformer, pandas_output):
     for transformer in [default_descriptor_transformer, selected_descriptor_transformer]:
         features = transformer.transform(mols_container)
@@ -81,6 +84,7 @@ def test_descriptor_transformer_pandas_output(mols_container, default_descriptor
         assert features.shape[0] == len(mols_container)
         assert features.columns.tolist() == transformer.selected_descriptors
 
+@skip_pandas_output_test
 def test_descriptor_transformer_pandas_output_pipeline(smiles_container, default_descriptor_transformer, pandas_output):
     pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("desc", default_descriptor_transformer)])
     features = pipeline.fit_transform(smiles_container)

@@ -45,10 +45,25 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def _get_n_digits_column_suffix(self) -> int:
         return len(str(self.nBits))
 
-    def get_feature_names_out(self, input_features=None):
+    def get_display_feature_names_out(self, input_features=None):
+        """Get feature names for display purposes
+
+        All feature names will have the same length,
+        since the different elements will be prefixed with zeros
+        depending on the number of bits.
+        """
         prefix = self._get_column_prefix()
         n_digits = self._get_n_digits_column_suffix()
         return np.array([f"{prefix}_{str(i).zfill(n_digits)}" for i in range(1, self.nBits + 1)])
+
+    def get_feature_names_out(self, input_features=None):
+        """Get feature names for fingerprint transformers
+
+        This method is used by the scikit-learn set_output API
+        to get the column names of the transformed dataframe.
+        """
+        prefix = self._get_column_prefix()
+        return np.array([f"{prefix}_{i}" for i in range(1, self.nBits + 1)])
 
     @abstractmethod
     def _mol2fp(self, mol):

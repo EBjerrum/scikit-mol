@@ -6,7 +6,7 @@ from rdkit import Chem
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input
+from scikit_mol.core import check_transform_input, feature_names_default_mol ,DEFAULT_MOL_COLUMN_NAME
 
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
@@ -15,12 +15,9 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
         self.parallel = parallel
         self.start_method = None  #TODO implement handling of start_method
 
+    @feature_names_default_mol
     def get_feature_names_out(self, input_features=None):
-        prefix = "ROMol"
-        if input_features is not None:
-            return np.array([f'{prefix}_{name}' for name in input_features])
-        else:
-            return np.array([prefix])
+        return input_features
 
     def fit(self, X=None, y=None):
         """Included for scikit-learn compatibility, does nothing"""
@@ -53,9 +50,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             n_chunks = n_processes*2 if n_processes is not None else multiprocessing.cpu_count()*2 #TODO, tune the number of chunks per child process
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                     x_chunks = np.array_split(X_smiles_list, n_chunks)
-                    #x_chunks = [x.reshape(-1, 1) for x in x_chunks] Why the reshape? it doesn't exist on things like e.g. Pandas Arrays or Series
                     arrays = pool.map(self._transform, x_chunks) #is the helper function a safer way of handling the picklind and child process communication
-
                     arr = np.concatenate(arrays)
                     return arr
 

@@ -9,6 +9,12 @@ import functools
 
 import numpy as np
 import pandas as pd
+from packaging.version import Version
+
+SKLEARN_VERSION_PANDAS_OUT = Version("1.2")
+
+DEFAULT_MOL_COLUMN_NAME = "ROMol"
+
 
 def _validate_transform_input(X):
         """Validate and adapt the input of the _transform method"""
@@ -39,5 +45,19 @@ def check_transform_input(method):
         # If the output of the _transform method
         # must be changed depending on the initial type of X, do it here.
         return result
+
+    return wrapper
+
+def feature_names_default_mol(method):
+    """
+    Decorator that returns the default feature names for the mol object
+    """
+    @functools.wraps(method)
+    def wrapper(obj, input_features=None):
+        prefix = DEFAULT_MOL_COLUMN_NAME
+        if input_features is not None:
+            return np.array([f'{prefix}_{name}' for name in input_features])
+        else:
+            return np.array([prefix])
 
     return wrapper
