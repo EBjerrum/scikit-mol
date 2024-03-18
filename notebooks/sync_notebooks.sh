@@ -1,1 +1,1 @@
-jupytext --sync 0*py
+jupytext --sync [0-9]*.py
