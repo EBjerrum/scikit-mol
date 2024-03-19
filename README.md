@@ -71,6 +71,7 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 * [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/06_hyperparameter_tuning.ipynb)
 * [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/07_parallel_transforms.ipynb)
 * [Testing different fingerprints as part of the hyperparameter optimization](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers.ipynb)
+* [Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/10_pipeline_pandas_output.ipynb)
 
 
   We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd) 
@@ -93,4 +94,4 @@ Probably still, please check issues at GitHub and report there
 * Adrien Chaton [@adrienchaton](https://github.com/adrienchaton)
 * [@VincentAlexanderScholz](https://github.com/VincentAlexanderScholz)
 * [@RiesBen](https://github.com/RiesBen)
-
+* [@enricogandini](https://github.com/enricogandini)
