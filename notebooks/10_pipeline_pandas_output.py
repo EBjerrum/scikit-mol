@@ -193,13 +193,18 @@ def combine_datasets(data, cddd):
         left=data,
         right=cddd,
         on="Ambit_InchiKey",
-        how="left",
+        how="inner",
         validate="one_to_one",
     )
     return data_combined
 
-data_combined_train = combine_datasets(data_train, df_cddd).dropna() #Some CDDD values are missing (NaN)
-data_combined_test = combine_datasets(data_test, df_cddd).dropna()
+data_combined_train = combine_datasets(data_train, df_cddd)
+data_combined_test = combine_datasets(data_test, df_cddd)
+
+# %%
+# The CDDD descriptors couldn't be computed for few molecules and can be removed as outcommented below. The Datafile is now prefiltered
+# target_train = data_train.loc[data_train["Ambit_InchiKey"].isin(data_combined_train["Ambit_InchiKey"]), column_target]
+# target_test = data_test.loc[data_test["Ambit_InchiKey"].isin(data_combined_test["Ambit_InchiKey"]), column_target]
 
 target_train = data_combined_train.loc[:, column_target]
 target_test = data_combined_test.loc[:, column_target]
