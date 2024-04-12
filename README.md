@@ -7,7 +7,7 @@ The intended usage is to be able to add molecular vectorization directly into sc
 
 As example with the needed scikit-learn and -mol imports and RDKit mol objects in the mol_list_train and _test lists:
 
-    pipe = Pipeline([('mol_transformer', MorganTransformer()), ('Regressor', Ridge())])
+    pipe = Pipeline([('mol_transformer', MorganFingerprintTransformer()), ('Regressor', Ridge())])
     pipe.fit(mol_list_train, y_train)
     pipe.score(mol_list_test, y_test)
     pipe.predict([Chem.MolFromSmiles('c1ccccc1C(=O)C')])
