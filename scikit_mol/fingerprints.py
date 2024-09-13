@@ -11,6 +11,11 @@ from rdkit.Chem import rdFingerprintGenerator
 from rdkit.Chem import rdMHFPFingerprint
 from rdkit.Avalon import pyAvalonTools
 
+from rdkit.Chem.rdFingerprintGenerator import (GetMorganGenerator, GetMorganFeatureAtomInvGen,
+                                               GetTopologicalTorsionGenerator,
+                                               GetAtomPairGenerator,
+                                               GetRDKitFPGenerator)
+
 import numpy as np
 import pandas as pd
 from scipy.sparse import lil_matrix
@@ -243,6 +248,9 @@ class AtomPairFingerprintTransformer(FpsTransformer): #FIXME, some of the init a
         self.nBitsPerEntry = nBitsPerEntry
         self.useCounts = useCounts
 
+        raise DeprecationWarning("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFingerprintGeneratorTransformer, due to changes in RDKit!")
+
+
     def _mol2fp(self, mol):
         if self.useCounts:
             return rdMolDescriptors.GetHashedAtomPairFingerprint(mol, nBits=int(self.nBits),
@@ -281,6 +289,8 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         self.nBitsPerEntry = nBitsPerEntry
         self.nBits = nBits
         self.useCounts = useCounts
+        raise DeprecationWarning("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFingerprintGeneratorTransformer, due to changes in RDKit!")
+
 
     def _mol2fp(self, mol):
         if self.useCounts:
@@ -478,6 +488,8 @@ class MorganFingerprintTransformer(FpsTransformer):
         self.useBondTypes = useBondTypes
         self.useFeatures = useFeatures
         self.useCounts = useCounts
+        raise DeprecationWarning("MorganFingerprintTransformer will be replace by MorganGeneratorTransformer, due to changes in RDKit!")
+
 
     def _mol2fp(self, mol):
         if self.useCounts:
@@ -541,3 +553,490 @@ def parallel_helper(args):
     transformer = getattr(fingerprints, classname)(**parameters)
     return transformer._transform(X_mols)
 
+
+class FpsGeneratorTransformer(FpsTransformer):
+
+
+    def _fp2array(self, fp):
+        raise DeprecationWarning("Generators can directly return fingerprints")
+
+    def _mol2fp(self, mol):
+        raise DeprecationWarning("use _mol2array")
+
+    def __getstate__(self):
+        # Get the state of the parent class
+        state = super().__getstate__()
+        # Remove the unpicklable property from the state
+        state.pop("_fpgen", None) # fpgen is not picklable
+        return state
+
+    def __setstate__(self, state):
+        # Restore the state of the parent class
+        super().__setstate__(state)
+        # Re-create the unpicklable property
+        self._generate_fp_generator()
+
+    @abstractmethod
+    def _generate_fp_generator(self,*args, **kwargs):
+        raise NotImplementedError("_generate_fp_generator not implemented")
+
+    @abstractmethod
+    def _transform_mol(self, mol) -> np.array:
+        """Generate numpy array descriptor from mol
+
+        MUST BE OVERWRITTEN
+        """
+        raise NotImplementedError("_transform_mol not implemented")
+
+
+class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
+    def __init__(self, nBits=2048, radius=2, useChirality=False,
+                 useBondTypes=True, useFeatures=False, useCounts=False,
+                 parallel: Union[bool, int] = False,):
+        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
+
+        Parameters
+        ----------
+        nBits : int, optional
+            Size of the hashed fingerprint, by default 2048
+        radius : int, optional
+            Radius of the fingerprint, by default 2
+        useChirality : bool, optional
+            Include chirality in calculation of the fingerprint keys, by default False
+        useBondTypes : bool, optional
+            Include bondtypes in calculation of the fingerprint keys, by default True
+        useFeatures : bool, optional
+            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
+        super().__init__(parallel = parallel)
+        self._useFeatures = useFeatures
+        self._useCounts = useCounts
+        self._useBondTypes = useBondTypes
+        self._generate_fp_generator(useFeatures=useFeatures, radius=radius, nBits=nBits,
+                                    useChirality=useChirality, useBondTypes=useBondTypes)
+
+
+    def _generate_fp_generator(self, useFeatures:bool, radius:int, nBits:int,
+                               useChirality:bool, useBondTypes:bool):
+
+        if useFeatures:
+            atomInvariantsGenerator = GetMorganFeatureAtomInvGen()
+        else:
+            atomInvariantsGenerator = None
+
+        self._fpgen = GetMorganGenerator(radius=radius,
+                                         fpSize=nBits,
+                                         includeChirality=useChirality,
+                                         useBondTypes=useBondTypes,
+                                         atomInvariantsGenerator=atomInvariantsGenerator,
+                                         )
+
+    @property
+    def radius(self):
+        return self._fpgen.GetOptions().radius
+
+    @radius.setter
+    def radius(self, value:int):
+        self._fpgen.GetOptions().radius = value
+
+    @property
+    def nBits(self):
+        return self._fpgen.GetOptions().fpSize
+
+    @nBits.setter
+    def nBits(self, value:int):
+        self._fpgen.GetOptions().fpSize = value
+
+    @property
+    def useChirality(self):
+        return self._fpgen.GetOptions().includeChirality
+
+    @useChirality.setter
+    def useChirality(self, value:bool):
+        self._fpgen.GetOptions().includeChirality = value
+
+    @property
+    def useFeatures(self):
+        return self._useFeatures
+
+    @useFeatures.setter
+    def useFeatures(self, value:bool):
+        self._useFeatures = value
+        self._generate_fp_generator(useFeatures=self.useFeatures, radius=self.radius, nBits=self.nBits,
+                                    useChirality=self.useChirality, useBondTypes=self.useBondTypes)
+
+    @property
+    def useBondTypes(self):
+        return self._useBondTypes
+
+    @useBondTypes.setter
+    def useBondTypes(self, value:bool):
+        self._useBondTypes = value
+        self._generate_fp_generator(useFeatures=self.useFeatures, radius=self.radius, nBits=self.nBits,
+                                    useChirality=self.useChirality, useBondTypes=self.useBondTypes)
+
+    @property
+    def useCounts(self):
+        return self._useCounts
+
+    @useCounts.setter
+    def useCounts(self, value:bool):
+        self._useCounts = value
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol)
+
+
+class TopologicalTorsionFPGeneatorTransformer(FpsGeneratorTransformer):
+    def __init__(self, targetSize:int = 4, fromAtoms = None, ignoreAtoms = None, atomInvariants = None, confId=-1,
+                 includeChirality:bool = False, nBitsPerEntry:int = 4, nBits=2048,
+                 useCounts:bool=False, parallel: Union[bool, int] = False):
+
+        super().__init__(parallel=parallel)
+        self._fromAtoms = fromAtoms
+        self._ignoreAtoms = ignoreAtoms
+        self._atomInvariants = atomInvariants
+        self._nBitsPerEntry = nBitsPerEntry
+        self._confId = confId
+        self._useCounts = useCounts
+        self._targetSize = targetSize
+
+        self._generate_fp_generator(targetSize=targetSize, includeChirality=includeChirality,
+                                    nBits=nBits)
+
+    @property
+    def useCounts(self):
+        return self._useCounts
+
+    @useCounts.setter
+    def useCounts(self, value:bool):
+        self._useCounts = value
+
+    @property
+    def confId(self):
+        return self._confId
+
+    @confId.setter
+    def confId(self, value: int):
+        self._confId = value
+
+    @property
+    def fromAtoms(self):
+        return self._fromAtoms
+
+    @fromAtoms.setter
+    def fromAtoms(self, value: int):
+        self._fromAtoms = value
+
+    @property
+    def ignoreAtoms(self):
+        return self._ignoreAtoms
+
+    @ignoreAtoms.setter
+    def ignoreAtoms(self, value: int):
+        self._ignoreAtoms = value
+
+    @property
+    def atomInvariants(self):
+        return self._atomInvariants
+
+    @atomInvariants.setter
+    def atomInvariants(self, value: int):
+        self._atomInvariants = value
+
+    @property
+    def nBits(self):
+        return self._fpgen.GetOptions().fpSize
+
+    @nBits.setter
+    def nBits(self, value: int):
+        self._fpgen.GetOptions().fpSize = value
+
+    @property
+    def nBitsPerEntry(self):
+        return self._nBitsPerEntry
+
+    @nBitsPerEntry.setter
+    def nBitsPerEntry(self, value: int):
+        self._nBitsPerEntry = value
+
+    @property
+    def includeChirality(self):
+        return self._fpgen.GetOptions().includeChirality
+
+    @includeChirality.setter
+    def includeChirality(self, value:int):
+        self._fpgen.GetOptions().includeChirality = value
+
+    @property
+    def targetSize(self):
+        return self._targetSize
+
+    @targetSize.setter
+    def targetSize(self, value:int):
+        self._targetSize = value
+        self._generate_fp_generator(targetSize=value,
+                                    includeChirality=self.includeChirality,
+                                    nBits=self.nBits)
+
+    def _generate_fp_generator(self, targetSize: int, includeChirality: bool, nBits: int):
+        self._fpgen = GetTopologicalTorsionGenerator(torsionAtomCount=targetSize, includeChirality=includeChirality,
+                                                     fpSize=nBits)
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self._ignoreAtoms, customAtomInvariants=self._atomInvariants)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self._ignoreAtoms, customAtomInvariants=self._atomInvariants)
+
+
+class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
+    def __init__(self, minLength:int = 1, maxLength:int = 30, fromAtoms = None, ignoreAtoms = None, atomInvariants = None,
+                 includeChirality:bool = False, use2D:bool = True, confId:int = -1, nBits=2048, nBitsPerEntry:int = 4,
+                 useCounts:bool=False, parallel: Union[bool, int] = False,):
+        super().__init__(parallel = parallel)
+        self._useCounts= useCounts
+        self._confId = confId
+        self._fromAtoms = fromAtoms
+        self._ignoreAtoms = ignoreAtoms
+        self._atomInvariants = atomInvariants
+        self._minLength = minLength
+        self._maxLength = maxLength
+
+        self._generate_fp_generator(minLength=minLength, maxLength=maxLength,
+                                    includeChirality=includeChirality, use2D=use2D,
+                                    nBits=nBits, nBitsPerEntry=nBitsPerEntry)
+
+    @property
+    def useCounts(self):
+        return self._useCounts
+
+    @useCounts.setter
+    def useCounts(self, value:bool):
+        self._useCounts = value
+
+    @property
+    def confId(self):
+        return self._confId
+
+    @confId.setter
+    def confId(self, value:int):
+        self._confId = value
+
+    @property
+    def fromAtoms(self):
+        return self._fromAtoms
+
+    @fromAtoms.setter
+    def fromAtoms(self, value:int):
+        self._fromAtoms = value
+
+    @property
+    def ignoreAtoms(self):
+        return self._ignoreAtoms
+
+    @ignoreAtoms.setter
+    def ignoreAtoms(self, value:int):
+        self._ignoreAtoms = value
+
+    @property
+    def atomInvariants(self):
+        return self._atomInvariants
+
+    @atomInvariants.setter
+    def atomInvariants(self, value:int):
+        self._atomInvariants = value
+
+    @property
+    def minLength(self):
+        return self._minLength
+
+    @minLength.setter
+    def minDistance(self, value: int):
+        self._minLength = value
+        self._generate_fp_generator(minLength=value, maxLength=self.maxLength,
+                                    includeChirality=self.includeChirality, use2D=self.use2D,
+                                    nBits=self.nBits, nBitsPerEntry=self.nBitsPerEntry)
+
+    @property
+    def maxLength(self):
+        return self._maxLength
+
+    @maxLength.setter
+    def maxLength(self, value: int):
+        self._maxLength = value
+        self._generate_fp_generator(minLength=self.minLength, maxLength=value,
+                                    includeChirality=self.includeChirality, use2D=self.use2D,
+                                    nBits=self.nBits, nBitsPerEntry=self.nBitsPerEntry)
+
+    @property
+    def includeChirality(self):
+        return self._fpgen.GetOptions().includeChirality
+
+    @includeChirality.setter
+    def includeChirality(self, value: bool):
+        self._fpgen.GetOptions().includeChirality = value
+
+    @property
+    def use2D(self):
+        return self._fpgen.GetOptions().use2D
+
+    @use2D.setter
+    def use2D(self, value: bool):
+        self._fpgen.GetOptions().use2D = value
+
+    @property
+    def nBits(self):
+        return self._fpgen.GetOptions().fpSize
+
+    @nBits.setter
+    def nBits(self, value: int):
+        self._fpgen.GetOptions().fpSize = value
+
+    @property
+    def nBitsPerEntry(self):
+        return self._fpgen.GetOptions().numBitsPerFeature
+
+    @nBitsPerEntry.setter
+    def nBitsPerEntry(self, value: int):
+        self._fpgen.GetOptions().numBitsPerFeature = value
+
+    def _generate_fp_generator(self,  minLength, maxLength, includeChirality, use2D, nBits, nBitsPerEntry):
+        self._fpgen = GetAtomPairGenerator(minDistance=minLength, maxDistance=maxLength,
+                                           includeChirality=includeChirality,
+                                           use2D=use2D, fpSize=nBits)
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self._ignoreAtoms, customAtomInvariants=self._atomInvariants)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self._ignoreAtoms, customAtomInvariants=self._atomInvariants)
+
+
+class RDKitFPGeneratorTransformer(FpsGeneratorTransformer):
+    def __init__(self, minPath:int = 1, maxPath:int =7, useHs:bool = True, branchedPaths:bool = True,
+                 useBondOrder:bool = True, countSimulation:bool = False, countBounds = None,
+                 nBits:int  = 2048, numBitsPerFeature:int = 2,
+                 useCounts:bool = False, parallel: Union[bool, int] = False
+                 ):
+        """Calculates the RDKit fingerprints
+
+        Parameters
+        ----------
+        minPath : int, optional
+            the minimum path length (in bonds) to be included, by default 1
+        maxPath : int, optional
+            the maximum path length (in bonds) to be included, by default 7
+        useHs : bool, optional
+            toggles inclusion of Hs in paths (if the molecule has explicit Hs), by default True
+        branchedPaths : bool, optional
+            toggles generation of branched subgraphs, not just linear paths, by default True
+        useBondOrder : bool, optional
+            toggles inclusion of bond orders in the path hashes, by default True
+        countSimulation : bool, optional
+            if set, use count simulation while generating the fingerprint, by default False
+        countBounds : _type_, optional
+            boundaries for count simulation, corresponding bit will be set if the count is higher than the number provided for that spot, by default None
+        nBits : int, optional
+            size of the generated fingerprint, does not affect the sparse versions, by default 2048
+        numBitsPerFeature : int, optional
+            the number of bits set per path/subgraph found, by default 2
+        """
+        super().__init__(parallel = parallel)
+        self._useCounts = useCounts
+        self._countBounds = countBounds
+        self._generate_fp_generator( minPath=minPath, maxPath=maxPath, useHs=useHs,
+                            branchedPaths=branchedPaths,useBondOrder=useBondOrder,
+                            countSimulation=countSimulation, fpSize=nBits,
+                            countBounds=countBounds, numBitsPerFeature=numBitsPerFeature)
+
+
+    @property
+    def nBits(self):
+        return self._fpgen.GetOptions().fpSize
+    @nBits.setter
+    def nBits(self, value: int):
+        self._fpgen.GetOptions().fpSize = value
+    @property
+    def minPath(self):
+        return self._fpgen.GetOptions().minPath
+    @minPath.setter
+    def minPath(self, value:int):
+        self._fpgen.GetOptions().minPath = value
+    @property
+    def maxPath(self):
+        return self._fpgen.GetOptions().maxPath
+    @maxPath.setter
+    def maxPath(self, value:int):
+        self._fpgen.GetOptions().maxPath = value
+    @property
+    def useHs(self):
+        return self._fpgen.GetOptions().useHs
+    @useHs.setter
+    def useHs(self, value:bool):
+        self._fpgen.GetOptions().useHs = value
+    @property
+    def branchedPaths(self):
+        return self._fpgen.GetOptions().branchedPaths
+    @branchedPaths.setter
+    def branchedPaths(self, value:int):
+        self._fpgen.GetOptions().branchedPaths = value
+    @property
+    def useBondOrder(self):
+        return self._fpgen.GetOptions().useBondOrder
+    @useBondOrder.setter
+    def useBondOrder(self, value:int):
+        self._fpgen.GetOptions().useBondOrder = value
+    @property
+    def numBitsPerFeature(self):
+        return self._fpgen.GetOptions().numBitsPerFeature
+    @numBitsPerFeature.setter
+    def numBitsPerFeature(self, value:int):
+        self._fpgen.GetOptions().numBitsPerFeature = value
+    @property
+    def countBounds(self):
+        return self._countBounds
+    @countBounds.setter
+    def countBounds(self, value:int):
+        self._countBounds = value
+        self._generate_fp_generator(minPath=self.minPath, maxPath=self.maxPath, useHs=self.useHs,
+                            branchedPaths=self.branchedPaths,useBondOrder=self.useBondOrder,
+                            countSimulation=self.countSimulation, fpSize=self.nBits,
+                            countBounds=value, numBitsPerFeature=self.numBitsPerFeature)
+
+    @property
+    def countSimulation(self):
+        return self._countBounds
+    @countSimulation.setter
+    def countSimulation(self, value: bool):
+        self._countSimulation=value
+        self._generate_fp_generator(minPath=self.minPath, maxPath=self.maxPath, useHs=self.useHs,
+                            branchedPaths=self.branchedPaths,useBondOrder=self.useBondOrder,
+                            countSimulation=value, fpSize=self.nBits,
+                            countBounds=self.countBounds, numBitsPerFeature=self.numBitsPerFeature)
+
+    @property
+    def useCounts(self):
+        return self._useCounts
+    @useCounts.setter
+    def useCounts(self, value:bool):
+        self._useCounts = value
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol)
+
+    def _generate_fp_generator(self, minPath, maxPath, useHs, branchedPaths,
+                               useBondOrder, countSimulation, fpSize, countBounds,
+                               numBitsPerFeature):
+            self._fpgen = GetRDKitFPGenerator(minPath=minPath, maxPath=maxPath, useHs=useHs,
+                            branchedPaths=branchedPaths,useBondOrder=useBondOrder,
+                            countSimulation=countSimulation, fpSize=fpSize,
+                            countBounds=countBounds, numBitsPerFeature=numBitsPerFeature)
