@@ -9,11 +9,17 @@ _U = TypeVar("_U")
 
 
 class InvalidInstance(NamedTuple):
+    """
+    The InvalidInstance represents objects which raised an error during a pipeline step.
+    """
     pipeline_step: str
     error: str
 
 
 class NumpyArrayWithInvalidInstances:
+    """
+    The NumpyArrayWithInvalidInstances is
+    """
     is_valid_array: npt.NDArray[np.bool_]
     invalid_list: list[InvalidInstance]
     value_array: npt.NDArray[Any]
