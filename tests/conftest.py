@@ -7,6 +7,7 @@ from urllib.request import urlopen
 
 import pandas as pd
 import pytest
+import sklearn
 
 
 TEST_DATA_URL = "https://ndownloader.figshare.com/files/25747817"
@@ -45,3 +46,10 @@ def data_pth(tmp_path_factory) -> Path:
 @pytest.fixture()
 def data(data_pth) -> pd.DataFrame:
     yield pd.read_csv(data_pth)
+
+@pytest.fixture(scope="module")
+def pandas_output():
+    """Set sklearn to output pandas dataframes"""
+    sklearn.set_config(transform_output="pandas")
+    yield
+    sklearn.set_config(transform_output="default")

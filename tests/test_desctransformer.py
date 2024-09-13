@@ -3,11 +3,15 @@ import pytest
 import numpy as np
 import pandas as pd
 from rdkit.Chem import Descriptors
+import sklearn
+from packaging.version import Version
+from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.descriptors import MolecularDescriptorTransformer
-from fixtures import mols_list, smiles_list
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from fixtures import mols_list, smiles_list, mols_container, smiles_container, skip_pandas_output_test
 from sklearn import clone
+from sklearn.pipeline import Pipeline
 import joblib
-
 
 
 @pytest.fixture
@@ -49,11 +53,10 @@ def test_descriptor_transformer_available_descriptors(default_descriptor_transfo
     assert (len(selected_descriptor_transformer.selected_descriptors) ==  5)
     
 
-def test_descriptor_transformer_transform(mols_list, default_descriptor_transformer):
-    for mols in  [mols_list, np.array(mols_list), pd.Series(mols_list)]:
-        features = default_descriptor_transformer.transform(mols)
-        assert(len(features) == len(mols))
-        assert(len(features[0]) == len(Descriptors._descList))
+def test_descriptor_transformer_transform(mols_container, default_descriptor_transformer):
+    features = default_descriptor_transformer.transform(mols_container)
+    assert(len(features) == len(mols_container))
+    assert(len(features[0]) == len(Descriptors._descList))
         
 def test_descriptor_transformer_wrong_descriptors():
     with pytest.raises(AssertionError):
@@ -71,6 +74,23 @@ def test_descriptor_transformer_parallel(mols_list, default_descriptor_transform
     features2 = transformer2.transform(mols_list)
     assert(len(features2) == len(mols_list))
     assert(len(features2[0]) == len(Descriptors._descList))
+
+
+@skip_pandas_output_test
+def test_descriptor_transformer_pandas_output(mols_container, default_descriptor_transformer, selected_descriptor_transformer, pandas_output):
+    for transformer in [default_descriptor_transformer, selected_descriptor_transformer]:
+        features = transformer.transform(mols_container)
+        assert isinstance(features, pd.DataFrame)
+        assert features.shape[0] == len(mols_container)
+        assert features.columns.tolist() == transformer.selected_descriptors
+
+@skip_pandas_output_test
+def test_descriptor_transformer_pandas_output_pipeline(smiles_container, default_descriptor_transformer, pandas_output):
+    pipeline = Pipeline([("s2m", SmilesToMolTransformer()), ("desc", default_descriptor_transformer)])
+    features = pipeline.fit_transform(smiles_container)
+    assert isinstance(features, pd.DataFrame)
+    assert features.shape[0] == len(smiles_container)
+    assert features.columns.tolist() == default_descriptor_transformer.selected_descriptors
 
 # This test may fail on windows and mac (due to spawn rather than fork?)
 # def test_descriptor_transformer_parallel_speedup(mols_list, default_descriptor_transformer):

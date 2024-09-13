@@ -1,6 +1,7 @@
 #%%
 from multiprocessing import Pool, get_context
 import multiprocessing
+import re
 from typing import Union
 from rdkit import Chem
 from rdkit import DataStructs
@@ -16,10 +17,13 @@ from scipy.sparse import lil_matrix
 from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from scikit_mol.core import check_transform_input
 from scikit_mol._invalid import NumpyArrayWithInvalidInstances, rdkit_error_handling
 
 from abc import ABC, abstractmethod
 
+
+_PATTERN_FINGERPRINT_TRANSFORMER = re.compile(r"^(?P<fingerprint_name>\w+)FingerprintTransformer$")
 
 #%%
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
@@ -27,6 +31,41 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def __init__(self, parallel: Union[bool, int] = False, start_method: str = None):
         self.parallel = parallel
         self.start_method = start_method #TODO implement handling of start_method
+
+    # The dtype of the fingerprint array computed by the transformer
+    # If needed this property can be overwritten in the child class.
+    _DTYPE_FINGERPRINT = np.int8
+
+    def _get_column_prefix(self) -> str:
+        matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
+        if matched:
+            fingerprint_name = matched.group("fingerprint_name")
+            return f"fp_{fingerprint_name.lower()}"
+        else:
+            return "fp"
+
+    def _get_n_digits_column_suffix(self) -> int:
+        return len(str(self.nBits))
+
+    def get_display_feature_names_out(self, input_features=None):
+        """Get feature names for display purposes
+
+        All feature names will have the same length,
+        since the different elements will be prefixed with zeros
+        depending on the number of bits.
+        """
+        prefix = self._get_column_prefix()
+        n_digits = self._get_n_digits_column_suffix()
+        return np.array([f"{prefix}_{str(i).zfill(n_digits)}" for i in range(1, self.nBits + 1)])
+
+    def get_feature_names_out(self, input_features=None):
+        """Get feature names for fingerprint transformers
+
+        This method is used by the scikit-learn set_output API
+        to get the column names of the transformed dataframe.
+        """
+        prefix = self._get_column_prefix()
+        return np.array([f"{prefix}_{i}" for i in range(1, self.nBits + 1)])
 
     @abstractmethod
     def _mol2fp(self, mol):
@@ -37,7 +76,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         raise NotImplementedError("_mol2fp not implemented")
 
     def _fp2array(self, fp):
-        arr = np.zeros((self.nBits,), dtype=np.int8)
+        arr = np.zeros((self.nBits,), dtype=self._DTYPE_FINGERPRINT)
         DataStructs.ConvertToNumpyArray(fp, arr)
         return arr
 
@@ -47,9 +86,13 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         return arr
 
     def fit(self, X, y=None):
-        """Included for scikit-learn compatibility, does nothing"""
+        """Included for scikit-learn compatibility
+
+        Also sets the column prefix for use by the transform method with dataframe output.
+        """
         return self
 
+    @check_transform_input
     def _transform(self, X):
         arr_list = []
         for i, mol in enumerate(X):
@@ -57,7 +100,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         return NumpyArrayWithInvalidInstances(arr_list)
 
     def _transform_sparse(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=np.int8)
+        arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
         for i, mol in enumerate(X):
             arr[i,:] = self._transform_mol(mol)
         
@@ -91,7 +134,10 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
                 #TODO check what is fastest, pickle or recreate and do this only for classes that need this
                 #arrays = pool.map(self._transform, x_chunks)
                 parameters = self.get_params()
-                arrays = pool.map(parallel_helper, [(self.__class__.__name__, parameters, x_chunk) for x_chunk in x_chunks]) 
+                # TODO: create "transform_parallel" function in the core module,
+                # and use it here and in the descriptors transformer
+                #x_chunks = [np.array(x).reshape(-1, 1) for x in x_chunks]
+                arrays = pool.map(parallel_helper, [(self.__class__.__name__, parameters, x_chunk) for x_chunk in x_chunks])
                 arr_list = []
                 arr_list.extend(arrays)
             return arr_list
@@ -299,11 +345,7 @@ class MHFingerprintTransformer(FpsTransformer):
         # Re-create the unpicklable property
         self._recreate_encoder()
 
-    def _transform(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=np.int32)
-        for i, mol in enumerate(X):
-            arr[i,:] = self._transform_mol(mol)
-        return arr
+    _DTYPE_FINGERPRINT = np.int32
 
     def _mol2fp(self, mol):
         fp = self.mhfp_encoder.EncodeMol(mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius)
