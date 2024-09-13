@@ -30,6 +30,9 @@ class NumpyArrayWithInvalidInstances:
         self.value_array = np.vstack(valid_vector_list)
         self.invalid_list = filter_by_list(array_list, ~self.is_valid_array)
 
+    def __len__(self):
+        return self.is_valid_array.shape[0]
+
     def __getitem__(self, item: int) -> npt.NDArray[Any] | InvalidInstance:
         n_invalids_prior = sum(~self.is_valid_array[:item - 1])
         if self.is_valid_array[item]:
