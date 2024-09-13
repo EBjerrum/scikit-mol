@@ -64,7 +64,8 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             if mol:
                 X_out.append(mol)
             else:
-                X_out.append(InvalidInstance(str(self), "Invalid Smiles."))
+                error = Chem.DetectChemistryProblems(mol)
+                X_out.append(InvalidInstance(str(self), f"Invalid Smiles.: {error}"))
         return X_out
 
     @check_transform_input
