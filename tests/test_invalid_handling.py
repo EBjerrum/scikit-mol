@@ -8,7 +8,7 @@ from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 from scikit_mol.wrapper import WrappedTransformer
 from scikit_mol._invalid import NumpyArrayWithInvalidInstances
-from tests.test_invalid_helpers.invalid_transformer import TestInvalidTransformer
+from test_invalid_helpers.invalid_transformer import TestInvalidTransformer
 
 
 @pytest.fixture
@@ -26,6 +26,7 @@ def smilestofp_pipeline():
 
 
 def test_descriptor_transformer(smiles_list, invalid_smiles_list, smilestofp_pipeline):
+
     smilestofp_pipeline.set_params()
     mol_pca = smilestofp_pipeline.fit_transform(smiles_list)
     error_mol_pca = smilestofp_pipeline.fit_transform(invalid_smiles_list)
