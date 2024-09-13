@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from rdkit import Chem
-from fixtures import mols_list, smiles_list, fingerprint, chiral_smiles_list, chiral_mols_list
+from fixtures import mols_list, smiles_list, mols_container, smiles_container, fingerprint, chiral_smiles_list, chiral_mols_list
 from sklearn import clone
 
 from scikit_mol.fingerprints import MorganFingerprintTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, TopologicalTorsionFingerprintTransformer, SECFingerprintTransformer, MHFingerprintTransformer, AvalonFingerprintTransformer
@@ -99,46 +99,42 @@ def test_set_params(morgan_transformer, rdkit_transformer, atompair_transformer,
         params_2 = t.get_params()
         assert all([ params[key] == params_2[key] for key in params.keys()])
 
-def test_transform(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
-    #Test different types of input
-    for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
-        #Test the different transformers
-        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
-            params   = t.get_params()
-            fps = t.transform(mols)
-            #Assert that the same length of input and output
-            assert len(fps) == len(mols_list)
+def test_transform(mols_container, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
+    #Test the different transformers
+    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
+        params   = t.get_params()
+        fps = t.transform(mols_container)
+        #Assert that the same length of input and output
+        assert len(fps) == len(mols_container)
 
-            # assert that the size of the fingerprint is the expected size
-            if type(t) == type(maccs_transformer) or type(t) == type(secfp_transformer) or type(t) == type(mhfp_transformer):
-                fpsize = t.nBits
-            elif type(t) == type(rdkit_transformer):
-                fpsize = params['fpSize']
-            else:
-                fpsize = params['nBits']
-            
-            assert len(fps[0]) == fpsize
+        # assert that the size of the fingerprint is the expected size
+        if type(t) == type(maccs_transformer) or type(t) == type(secfp_transformer) or type(t) == type(mhfp_transformer):
+            fpsize = t.nBits
+        elif type(t) == type(rdkit_transformer):
+            fpsize = params['fpSize']
+        else:
+            fpsize = params['nBits']
+        
+        assert len(fps[0]) == fpsize
 
-def test_transform_parallel(mols_list, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
-    #Test different types of input
-    for mols in [mols_list, np.array(mols_list), pd.Series(mols_list)]:
-        #Test the different transformers
-        for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
-            t.set_params(parallel=True)
-            params   = t.get_params()
-            fps = t.transform(mols)
-            #Assert that the same length of input and output
-            assert len(fps) == len(mols_list)
+def test_transform_parallel(mols_container, morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, mhfp_transformer, avalon_transformer):
+    #Test the different transformers
+    for t in [morgan_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, rdkit_transformer, secfp_transformer, mhfp_transformer, avalon_transformer]:
+        t.set_params(parallel=True)
+        params   = t.get_params()
+        fps = t.transform(mols_container)
+        #Assert that the same length of input and output
+        assert len(fps) == len(mols_container)
 
-            # assert that the size of the fingerprint is the expected size
-            if type(t) == type(maccs_transformer) or type(t) == type(secfp_transformer) or type(t) == type(mhfp_transformer):
-                fpsize = t.nBits
-            elif type(t) == type(rdkit_transformer):
-                fpsize = params['fpSize']
-            else:
-                fpsize = params['nBits']
-            
-            assert len(fps[0]) == fpsize
+        # assert that the size of the fingerprint is the expected size
+        if type(t) == type(maccs_transformer) or type(t) == type(secfp_transformer) or type(t) == type(mhfp_transformer):
+            fpsize = t.nBits
+        elif type(t) == type(rdkit_transformer):
+            fpsize = params['fpSize']
+        else:
+            fpsize = params['nBits']
+        
+        assert len(fps[0]) == fpsize
 
 
 def test_picklable(morgan_transformer, rdkit_transformer, atompair_transformer, topologicaltorsion_transformer, maccs_transformer, secfp_transformer, avalon_transformer):

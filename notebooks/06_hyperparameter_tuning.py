@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3.9.4 ('rdkit')
 #     language: python
@@ -96,7 +96,8 @@ optimization_pipe = make_pipeline(moltransformer, regressor)
 
 # %% Now hyperparameter tuning
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.utils.fixes import loguniform
+#from sklearn.utils.fixes import loguniform
+from scipy.stats import loguniform
 
 # %% [markdown]
 # With the pipelines, getting the names of the parameters to tune is a bit more tricky, as they are concatenations of the name of the step and the parameter with double underscores in between. We can get the available parameters from the pipeline with the get_params() method, and select the parameters we want to change from there.
