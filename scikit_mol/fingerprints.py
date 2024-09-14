@@ -248,7 +248,8 @@ class AtomPairFingerprintTransformer(FpsTransformer): #FIXME, some of the init a
         self.nBitsPerEntry = nBitsPerEntry
         self.useCounts = useCounts
 
-        raise DeprecationWarning("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFingerprintGeneratorTransformer, due to changes in RDKit!")
+        print("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!")
+        #raise DeprecationWarning("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!")
 
 
     def _mol2fp(self, mol):
@@ -289,7 +290,8 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         self.nBitsPerEntry = nBitsPerEntry
         self.nBits = nBits
         self.useCounts = useCounts
-        raise DeprecationWarning("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFingerprintGeneratorTransformer, due to changes in RDKit!")
+        print("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFPGeneatorTransformer, due to changes in RDKit!")
+        #raise DeprecationWarning("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!")
 
 
     def _mol2fp(self, mol):
@@ -488,7 +490,9 @@ class MorganFingerprintTransformer(FpsTransformer):
         self.useBondTypes = useBondTypes
         self.useFeatures = useFeatures
         self.useCounts = useCounts
-        raise DeprecationWarning("MorganFingerprintTransformer will be replace by MorganGeneratorTransformer, due to changes in RDKit!")
+
+        print("MorganFingerprintTransformer will be replace by MorganGeneratorTransformer, due to changes in RDKit!")
+        #raise DeprecationWarning("MorganFingerprintTransformer will be replace by MorganFPGeneratorTransformer, due to changes in RDKit!")
 
 
     def _mol2fp(self, mol):
@@ -574,7 +578,7 @@ class FpsGeneratorTransformer(FpsTransformer):
         # Restore the state of the parent class
         super().__setstate__(state)
         # Re-create the unpicklable property
-        self._generate_fp_generator()
+        self._generate_fp_generator(**state)
 
     @abstractmethod
     def _generate_fp_generator(self,*args, **kwargs):
@@ -614,6 +618,7 @@ class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
         self._useFeatures = useFeatures
         self._useCounts = useCounts
         self._useBondTypes = useBondTypes
+
         self._generate_fp_generator(useFeatures=useFeatures, radius=radius, nBits=nBits,
                                     useChirality=useChirality, useBondTypes=useBondTypes)
 
