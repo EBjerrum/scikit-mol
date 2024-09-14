@@ -2,6 +2,8 @@
 from multiprocessing import Pool, get_context
 import multiprocessing
 import re
+import inspect
+from typing import Callable
 from typing import Union
 from rdkit import Chem
 from rdkit import DataStructs
@@ -571,6 +573,8 @@ class FpsGeneratorTransformer(FpsTransformer):
         # Get the state of the parent class
         state = super().__getstate__()
         # Remove the unpicklable property from the state
+        props = {k:v for k,v in inspect.getmembers(self) if not isinstance(v, Callable) and not k.startswith("_")}
+        state.update(props)
         state.pop("_fpgen", None) # fpgen is not picklable
         return state
 
@@ -578,7 +582,8 @@ class FpsGeneratorTransformer(FpsTransformer):
         # Restore the state of the parent class
         super().__setstate__(state)
         # Re-create the unpicklable property
-        self._generate_fp_generator(**state)
+        generatort_keys = inspect.signature(self._generate_fp_generator).parameters.keys()
+        self._generate_fp_generator(**{k:state["_"+k] if "_"+k in state else state[k] for k in generatort_keys})
 
     @abstractmethod
     def _generate_fp_generator(self,*args, **kwargs):
@@ -592,6 +597,14 @@ class FpsGeneratorTransformer(FpsTransformer):
         """
         raise NotImplementedError("_transform_mol not implemented")
 
+    @property
+    def fpSize(self):
+        return self.nBits
+
+    #Scikit-Learn expects to be able to set fpSize directly on object via .set_params(), so this updates nBits used by the abstract class
+    @fpSize.setter
+    def fpSize(self, fpSize):
+        self.nBits = fpSize
 
 class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
     def __init__(self, nBits=2048, radius=2, useChirality=False,
@@ -699,18 +712,16 @@ class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
 
 class TopologicalTorsionFPGeneatorTransformer(FpsGeneratorTransformer):
     def __init__(self, targetSize:int = 4, fromAtoms = None, ignoreAtoms = None, atomInvariants = None, confId=-1,
-                 includeChirality:bool = False, nBitsPerEntry:int = 4, nBits=2048,
+                 includeChirality:bool = False, nBits=2048,
                  useCounts:bool=False, parallel: Union[bool, int] = False):
 
         super().__init__(parallel=parallel)
         self._fromAtoms = fromAtoms
         self._ignoreAtoms = ignoreAtoms
         self._atomInvariants = atomInvariants
-        self._nBitsPerEntry = nBitsPerEntry
         self._confId = confId
         self._useCounts = useCounts
         self._targetSize = targetSize
-
         self._generate_fp_generator(targetSize=targetSize, includeChirality=includeChirality,
                                     nBits=nBits)
 
@@ -763,14 +774,6 @@ class TopologicalTorsionFPGeneatorTransformer(FpsGeneratorTransformer):
         self._fpgen.GetOptions().fpSize = value
 
     @property
-    def nBitsPerEntry(self):
-        return self._nBitsPerEntry
-
-    @nBitsPerEntry.setter
-    def nBitsPerEntry(self, value: int):
-        self._nBitsPerEntry = value
-
-    @property
     def includeChirality(self):
         return self._fpgen.GetOptions().includeChirality
 
@@ -802,7 +805,7 @@ class TopologicalTorsionFPGeneatorTransformer(FpsGeneratorTransformer):
 
 class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
     def __init__(self, minLength:int = 1, maxLength:int = 30, fromAtoms = None, ignoreAtoms = None, atomInvariants = None,
-                 includeChirality:bool = False, use2D:bool = True, confId:int = -1, nBits=2048, nBitsPerEntry:int = 4,
+                 includeChirality:bool = False, use2D:bool = True, confId:int = -1, nBits=2048,
                  useCounts:bool=False, parallel: Union[bool, int] = False,):
         super().__init__(parallel = parallel)
         self._useCounts= useCounts
@@ -815,7 +818,7 @@ class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
 
         self._generate_fp_generator(minLength=minLength, maxLength=maxLength,
                                     includeChirality=includeChirality, use2D=use2D,
-                                    nBits=nBits, nBitsPerEntry=nBitsPerEntry)
+                                    nBits=nBits)
 
     @property
     def useCounts(self):
@@ -862,11 +865,11 @@ class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
         return self._minLength
 
     @minLength.setter
-    def minDistance(self, value: int):
+    def minLength(self, value: int):
         self._minLength = value
         self._generate_fp_generator(minLength=value, maxLength=self.maxLength,
                                     includeChirality=self.includeChirality, use2D=self.use2D,
-                                    nBits=self.nBits, nBitsPerEntry=self.nBitsPerEntry)
+                                    nBits=self.nBits)
 
     @property
     def maxLength(self):
@@ -877,7 +880,7 @@ class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
         self._maxLength = value
         self._generate_fp_generator(minLength=self.minLength, maxLength=value,
                                     includeChirality=self.includeChirality, use2D=self.use2D,
-                                    nBits=self.nBits, nBitsPerEntry=self.nBitsPerEntry)
+                                    nBits=self.nBits)
 
     @property
     def includeChirality(self):
@@ -907,11 +910,7 @@ class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
     def nBitsPerEntry(self):
         return self._fpgen.GetOptions().numBitsPerFeature
 
-    @nBitsPerEntry.setter
-    def nBitsPerEntry(self, value: int):
-        self._fpgen.GetOptions().numBitsPerFeature = value
-
-    def _generate_fp_generator(self,  minLength, maxLength, includeChirality, use2D, nBits, nBitsPerEntry):
+    def _generate_fp_generator(self,  minLength, maxLength, includeChirality, use2D, nBits):
         self._fpgen = GetAtomPairGenerator(minDistance=minLength, maxDistance=maxLength,
                                            includeChirality=includeChirality,
                                            use2D=use2D, fpSize=nBits)
@@ -1013,7 +1012,6 @@ class RDKitFPGeneratorTransformer(FpsGeneratorTransformer):
                             branchedPaths=self.branchedPaths,useBondOrder=self.useBondOrder,
                             countSimulation=self.countSimulation, fpSize=self.nBits,
                             countBounds=value, numBitsPerFeature=self.numBitsPerFeature)
-
     @property
     def countSimulation(self):
         return self._countBounds
@@ -1024,7 +1022,6 @@ class RDKitFPGeneratorTransformer(FpsGeneratorTransformer):
                             branchedPaths=self.branchedPaths,useBondOrder=self.useBondOrder,
                             countSimulation=value, fpSize=self.nBits,
                             countBounds=self.countBounds, numBitsPerFeature=self.numBitsPerFeature)
-
     @property
     def useCounts(self):
         return self._useCounts
