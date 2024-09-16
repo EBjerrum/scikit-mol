@@ -572,9 +572,8 @@ class FpsGeneratorTransformer(FpsTransformer):
     def __getstate__(self):
         # Get the state of the parent class
         state = super().__getstate__()
+        state.update(self.get_params())
         # Remove the unpicklable property from the state
-        props = {k:v for k,v in inspect.getmembers(self) if not isinstance(v, Callable) and not k.startswith("_")}
-        state.update(props)
         state.pop("_fpgen", None) # fpgen is not picklable
         return state
 
@@ -583,7 +582,8 @@ class FpsGeneratorTransformer(FpsTransformer):
         super().__setstate__(state)
         # Re-create the unpicklable property
         generatort_keys = inspect.signature(self._generate_fp_generator).parameters.keys()
-        self._generate_fp_generator(**{k:state["_"+k] if "_"+k in state else state[k] for k in generatort_keys})
+        params = {k:state["_"+k] if "_"+k in state else state[k] for k in generatort_keys}
+        self._generate_fp_generator(**params)
 
     @abstractmethod
     def _generate_fp_generator(self,*args, **kwargs):
