@@ -1,6 +1,8 @@
 #For a non-scikit-learn check smiles sanitizer class
+
 import pandas as pd
 from rdkit import Chem
+
 
 class CheckSmilesSanitazion:
     def __init__(self, return_mol=False):

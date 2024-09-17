@@ -63,8 +63,9 @@ def chiral_smiles_list(): #Need to be a certain size, so the fingerprints reacts
                 'N[C@@H](C)C(=O)Oc1ccccc1CCCCCCCCCCCCCCCCCCN[H]']]
 
 @pytest.fixture
-def invalid_smiles_list(smiles_list):
-    smiles_list.append('Invalid')
+def invalid_smiles_list():
+    smiles_list = ['S-CC', 'Invalid']
+    smiles_list.extend(_SMILES_LIST)
     return smiles_list
 
 _MOLS_LIST = [Chem.MolFromSmiles(smiles) for smiles in _SMILES_LIST]

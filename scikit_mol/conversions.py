@@ -8,6 +8,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 from scikit_mol.core import check_transform_input, feature_names_default_mol ,DEFAULT_MOL_COLUMN_NAME
 
+from scikit_mol._invalid import InvalidInstance
+
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
 
@@ -62,9 +64,15 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             if mol:
                 X_out.append(mol)
             else:
-                raise ValueError(f'Issue with parsing SMILES {smiles}\nYou probably should use the scikit-mol.sanitizer.Sanitizer on your dataset first')
-
-        return np.array(X_out).reshape(-1,1)
+                mol = Chem.MolFromSmiles(smiles, sanitize=False)
+                if mol:
+                    errors = Chem.DetectChemistryProblems(mol)
+                    error_message = "\n".join(error.Message() for error in errors)
+                    message = f"Invalid SMILES: {error_message}"
+                else:
+                    message = f"Invalid SMILES: {smiles}"
+                X_out.append(InvalidInstance(str(self), message))
+        return X_out
 
     @check_transform_input
     def inverse_transform(self, X_mols_list, y=None): #TODO, maybe the inverse transform should be configurable e.g. isomericSmiles etc.?
