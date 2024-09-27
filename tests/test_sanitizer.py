@@ -32,7 +32,7 @@ def test_checksmilessanitation_x_and_y(smiles_list, invalid_smiles_list, sanitiz
     assert errors[0] == sanitizer.errors.SMILES[0]
     # Test that y is correctly split into y_error and the rest
     assert all([a == b for a, b in zip(y_sanitized, list(range(len(smiles_list) - 1)))])
-    assert y_errors[0] == len(smiles_list) - 1  # Last smiles is invalid
+    assert y_errors[0] == len(invalid_smiles_list) - 1  # Last smiles is invalid
 
 
 def test_checksmilessanitation_np(smiles_list, invalid_smiles_list, sanitizer):
