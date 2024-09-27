@@ -83,7 +83,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
                 else:
                     message = f"Invalid SMILES: {smiles}"
                 X_out.append(InvalidMol(str(self), message))
-        return X_out
+        return np.array(X_out).reshape(-1, 1)
 
     @check_transform_input
     def inverse_transform(

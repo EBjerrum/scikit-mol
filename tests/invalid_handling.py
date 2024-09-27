@@ -18,15 +18,13 @@ def smilestofp_pipeline():
             ("smiles_to_mol", SmilesToMolTransformer()),
             ("remove_sulfur", TestInvalidTransformer()),
             ("mol_2_fp", MorganFingerprintTransformer()),
-            ("PCA", WrappedTransformer(PCA(2), replace_invalid=True))
+            ("PCA", WrappedTransformer(PCA(2), replace_invalid=True)),
         ]
-
     )
     return pipeline
 
 
 def test_descriptor_transformer(smiles_list, invalid_smiles_list, smilestofp_pipeline):
-
     smilestofp_pipeline.set_params()
     mol_pca = smilestofp_pipeline.fit_transform(smiles_list)
     error_mol_pca = smilestofp_pipeline.fit_transform(invalid_smiles_list)
