@@ -19,7 +19,6 @@ from scipy.sparse import vstack
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from scikit_mol.core import check_transform_input
-from scikit_mol._invalid import NumpyArrayWithInvalidInstances, rdkit_error_handling
 
 from abc import ABC, abstractmethod
 

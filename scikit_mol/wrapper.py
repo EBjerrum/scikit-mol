@@ -107,6 +107,10 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
     def decorator(func):
         @wraps(func)
         def wrapper(obj, X, *args, **kwargs):
+            if not getattr(obj, "handle_errors", True):
+                # If handle_errors is False, call the original function without filtering
+                return func(obj, X, *args, **kwargs)
+
             valid_mask = np.isfinite(X).all(axis=1)
 
             if warn_on_invalid and not np.all(valid_mask):
@@ -147,11 +151,11 @@ class NanGuardWrapper(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         estimator: BaseEstimator,
-        replace_invalid: bool = True,
+        handle_errors: bool = True,
         replace_value=np.nan,
     ):
         super().__init__()
-        self.replace_invalid = replace_invalid
+        self.handle_errors = handle_errors
         self.replace_value = replace_value
         self.estimator = estimator
 

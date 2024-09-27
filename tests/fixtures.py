@@ -87,6 +87,7 @@ def chiral_smiles_list():  # Need to be a certain size, so the fingerprints reac
 
 @pytest.fixture
 def invalid_smiles_list(smiles_list):
+    smiles_list = smiles_list.copy()
     smiles_list.append("Invalid")
     return smiles_list
 
