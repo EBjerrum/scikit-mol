@@ -17,9 +17,10 @@ from scikit_mol.core import (
 
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, parallel: Union[bool, int] = False):
+    def __init__(self, parallel: Union[bool, int] = False, handle_errors: bool = False):
         self.parallel = parallel
         self.start_method = None  # TODO implement handling of start_method
+        self.handle_errors = handle_errors
 
     @feature_names_default_mol
     def get_feature_names_out(self, input_features=None):
@@ -83,22 +84,33 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
                 else:
                     message = f"Invalid SMILES: {smiles}"
                 X_out.append(InvalidMol(str(self), message))
+        if not self.handle_errors and not all(X_out):
+            fails = [x for x in X_out if not x]
+            raise ValueError(
+                f"Invalid SMILES found: {fails}."
+            )  # TODO with this appraoch we get all errors, but we do process ALL the smiles first which could be slow
         return np.array(X_out).reshape(-1, 1)
 
     @check_transform_input
-    def inverse_transform(
-        self, X_mols_list, y=None
-    ):  # TODO, maybe the inverse transform should be configurable e.g. isomericSmiles etc.?
+    def inverse_transform(self, X_mols_list, y=None):
         X_out = []
 
         for mol in X_mols_list:
-            if mol:
+            if isinstance(mol, Chem.Mol):
                 try:
                     smiles = Chem.MolToSmiles(mol)
                     X_out.append(smiles)
                 except Exception as e:
-                    X_out.append(InvalidMol(str(self), str(e)))
+                    X_out.append(
+                        InvalidMol(
+                            str(self), f"Error converting Mol to SMILES: {str(e)}"
+                        )
+                    )
             else:
                 X_out.append(InvalidMol(str(self), f"Not a Mol: {mol}"))
+
+        if not self.handle_errors and not all(isinstance(x, str) for x in X_out):
+            fails = [x for x in X_out if not isinstance(x, str)]
+            raise ValueError(f"Invalid Mols found: {fails}.")
 
         return np.array(X_out).reshape(-1, 1)
