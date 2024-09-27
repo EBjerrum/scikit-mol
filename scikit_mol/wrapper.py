@@ -151,7 +151,7 @@ class NanGuardWrapper(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         estimator: BaseEstimator,
-        handle_errors: bool = True,
+        handle_errors: bool = False,
         replace_value=np.nan,
     ):
         super().__init__()

@@ -20,7 +20,7 @@ def smilestofp_pipeline():
     pipeline = Pipeline(
         [
             ("smiles_to_mol", SmilesToMolTransformer(handle_errors=True)),
-            ("mol_2_fp", MACCSKeysFingerprintTransformer()),
+            ("mol_2_fp", MACCSKeysFingerprintTransformer(handle_errors=True)),
             ("PCA", NanGuardWrapper(PCA(2), handle_errors=True)),
         ]
     )

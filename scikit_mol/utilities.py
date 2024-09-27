@@ -1,14 +1,19 @@
-#For a non-scikit-learn check smiles sanitizer class
+# For a non-scikit-learn check smiles sanitizer class
 
 import pandas as pd
 from rdkit import Chem
+
+from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.compose import ColumnTransformer
+import warnings
 
 
 class CheckSmilesSanitazion:
     def __init__(self, return_mol=False):
         self.return_mol = return_mol
         self.errors = pd.DataFrame()
-    
+
     def sanitize(self, X_smiles_list, y=None):
         if y:
             y_out = []
@@ -29,9 +34,11 @@ class CheckSmilesSanitazion:
                     y_errors.append(y_value)
 
             if X_errors:
-                print(f'Error in parsing {len(X_errors)} SMILES. Unparsable SMILES can be found in self.errors')
+                print(
+                    f"Error in parsing {len(X_errors)} SMILES. Unparsable SMILES can be found in self.errors"
+                )
 
-            self.errors = pd.DataFrame({'SMILES':X_errors, 'y':y_errors})
+            self.errors = pd.DataFrame({"SMILES": X_errors, "y": y_errors})
 
             return X_out, y_out, X_errors, y_errors
 
@@ -50,8 +57,69 @@ class CheckSmilesSanitazion:
                     X_errors.append(smiles)
 
             if X_errors:
-                print(f'Error in parsing {len(X_errors)} SMILES. Unparsable SMILES can be found in self.errors')
+                print(
+                    f"Error in parsing {len(X_errors)} SMILES. Unparsable SMILES can be found in self.errors"
+                )
 
-            self.errors = pd.DataFrame({'SMILES':X_errors})
+            self.errors = pd.DataFrame({"SMILES": X_errors})
 
             return X_out, X_errors
+
+
+def set_handle_errors(estimator, value):
+    """
+    Recursively set the handle_errors parameter for all compatible estimators.
+
+    :param estimator: A scikit-learn estimator, pipeline, or custom wrapper
+    :param value: Boolean value to set for handle_errors
+    """
+
+    def _set_handle_errors_recursive(est, val):
+        if hasattr(est, "handle_errors"):
+            est.handle_errors = val
+
+        # Handle Pipeline
+        if isinstance(est, Pipeline):
+            for _, step in est.steps:
+                _set_handle_errors_recursive(step, val)
+
+        # Handle FeatureUnion
+        elif isinstance(est, FeatureUnion):
+            for _, transformer in est.transformer_list:
+                _set_handle_errors_recursive(transformer, val)
+
+        # Handle ColumnTransformer
+        elif isinstance(est, ColumnTransformer):
+            for _, transformer, _ in est.transformers:
+                _set_handle_errors_recursive(transformer, val)
+
+        # Handle NanGuardWrapper
+        elif hasattr(est, "estimator") and isinstance(est.estimator, BaseEstimator):
+            _set_handle_errors_recursive(est.estimator, val)
+
+        # Handle other estimators with get_params
+        elif isinstance(est, BaseEstimator):
+            params = est.get_params(deep=False)
+            for param_name, param_value in params.items():
+                if isinstance(param_value, BaseEstimator):
+                    _set_handle_errors_recursive(param_value, val)
+
+    # Apply the recursive function
+    _set_handle_errors_recursive(estimator, value)
+
+    # Final check
+    params = estimator.get_params(deep=True)
+    mismatched_params = [
+        key.rstrip("__handle_errors")
+        for key, val in params.items()
+        if key.endswith("__handle_errors") and val != value
+    ]
+
+    if mismatched_params:
+        warnings.warn(
+            f"The following components have 'handle_errors' set to a different value than requested: {mismatched_params}. "
+            "This could be due to nested estimators that were not properly handled.",
+            UserWarning,
+        )
+
+    return estimator
