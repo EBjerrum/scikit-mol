@@ -4,11 +4,13 @@ from abc import ABC
 from typing import Any
 
 import numpy as np
+import pandas as pd
 from functools import wraps
 import warnings
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.utils.metaestimators import available_if
+from sklearn.base import TransformerMixin
 
 from scikit_mol._invalid import (
     rdkit_error_handling,
@@ -125,6 +127,12 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
                 output = np.full((X.shape[0], result.shape[1]), fill_value)
                 output[valid_indices] = result
                 return output
+            elif isinstance(result, pd.DataFrame):
+                # Create a DataFrame with NaN values for all rows
+                output = pd.DataFrame(index=range(X.shape[0]), columns=result.columns)
+                # Fill the valid rows with the result data
+                output.iloc[valid_indices] = result
+                return output
             else:
                 return result  # For methods that return non-array results
 
@@ -133,7 +141,7 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
     return decorator
 
 
-class NanGuardWrapper(BaseEstimator):
+class NanGuardWrapper(BaseEstimator, TransformerMixin):
     """Nan/Inf safe wrapper for sklearn estimator objects."""
 
     def __init__(
