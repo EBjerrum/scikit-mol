@@ -12,10 +12,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from scikit_mol.core import check_transform_input
 
 
-
 class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     """Descriptor calculation transformer
-    
+
     Parameters
     ----------
     desc_list : (List of descriptor names)
@@ -23,7 +22,7 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     parallel : boolean, int
         if True, multiprocessing will be used. If set to an int > 1, that specified number of processes
         will be used, otherwise it's autodetected.
-    start_method : str 
+    start_method : str
         The method to start child processes when parallel=True. can be 'fork', 'spawn' or 'forkserver'.
         If None, the OS and Pythons default will be used.
 
@@ -34,14 +33,18 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
 
 
     """
+
     def __init__(
-        self, desc_list: Optional[str] = None, 
+        self,
+        desc_list: Optional[str] = None,
         parallel: Union[bool, int] = False,
-        start_method: str = None#"fork"
-        ):
+        start_method: str = None,  # "fork",
+        handle_errors: bool = False,
+    ):
         self.desc_list = desc_list
         self.parallel = parallel
         self.start_method = start_method
+        self.handle_errors = handle_errors
 
     def _get_desc_calculator(self) -> MolecularDescriptorCalculator:
         if self.desc_list:
@@ -50,9 +53,7 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
                 for desc_name in self.desc_list
                 if desc_name not in self.available_descriptors
             ]
-            assert (
-                not unknown_descriptors
-            ), f"Unknown descriptor names {unknown_descriptors} specified, please check available_descriptors property\nPlease check availble list {self.available_descriptors}"
+            assert not unknown_descriptors, f"Unknown descriptor names {unknown_descriptors} specified, please check available_descriptors property\nPlease check availble list {self.available_descriptors}"
         else:
             self.desc_list = self.available_descriptors
         return MolecularDescriptorCalculator(self.desc_list)
@@ -89,11 +90,21 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         """Allowed methods are spawn, fork and forkserver on MacOS and Linux, only spawn is possible on Windows.
         None will choose the default for the OS and version of Python."""
         allowed_start_methods = ["spawn", "fork", "forkserver", None]
-        assert start_method in allowed_start_methods, f"start_method not in allowed methods {allowed_start_methods}"
+        assert (
+            start_method in allowed_start_methods
+        ), f"start_method not in allowed methods {allowed_start_methods}"
         self._start_method = start_method
 
     def _transform_mol(self, mol: Mol) -> List[Any]:
-        return list(self.calculators.CalcDescriptors(mol))
+        if not mol and self.handle_errors:
+            return [np.nan] * len(self.desc_list)
+        try:
+            return list(self.calculators.CalcDescriptors(mol))
+        except Exception as e:
+            if self.handle_errors:
+                return [np.nan] * len(self.desc_list)
+            else:
+                raise e
 
     def fit(self, x, y=None):
         """Included for scikit-learn compatibility, does nothing"""
@@ -119,19 +130,25 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         -------
         np.array
             Descriptors, shape (samples, length of .selected_descriptors )
-        
+
         """
         if not self.parallel:
             return self._transform(x)
         elif self.parallel:
-            n_processes = self.parallel if self.parallel > 1 else None # Pool(processes=None) autodetects
-            n_chunks = n_processes if n_processes is not None else multiprocessing.cpu_count() #TODO, tune the number of chunks per child process
-            
+            n_processes = (
+                self.parallel if self.parallel > 1 else None
+            )  # Pool(processes=None) autodetects
+            n_chunks = (
+                n_processes if n_processes is not None else multiprocessing.cpu_count()
+            )  # TODO, tune the number of chunks per child process
+
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                 params = self.get_params()
-                x_chunks = np.array_split(x, n_chunks) 
-                #x_chunks = [x.reshape(-1, 1) for x in x_chunks]
-                arrays = pool.map(parallel_helper, [(params, x) for x in x_chunks]) #is the helper function a safer way of handling the picklind and child process communication
+                x_chunks = np.array_split(x, n_chunks)
+                # x_chunks = [x.reshape(-1, 1) for x in x_chunks]
+                arrays = pool.map(
+                    parallel_helper, [(params, x) for x in x_chunks]
+                )  # is the helper function a safer way of handling the picklind and child process communication
                 arr = np.concatenate(arrays)
             return arr
 
@@ -139,12 +156,11 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
 # May be safer to instantiate the transformer object in the child process, and only transfer the parameters
 # There were issues with freezing when using RDKit 2022.3
 def parallel_helper(args):
-    """Will get a tuple with Desc2DTransformer parameters and mols to transform. 
+    """Will get a tuple with Desc2DTransformer parameters and mols to transform.
     Will then instantiate the transformer and transform the molecules"""
     from scikit_mol.descriptors import MolecularDescriptorTransformer
-    
+
     params, mols = args
     transformer = MolecularDescriptorTransformer(**params)
     y = transformer._transform(mols)
     return y
-    

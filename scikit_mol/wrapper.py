@@ -111,7 +111,7 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
                 # If handle_errors is False, call the original function without filtering
                 return func(obj, X, *args, **kwargs)
 
-            valid_mask = np.isfinite(X).all(axis=1)
+            valid_mask = np.isfinite(X).all(axis=1)  # Find all rows with nan, inf, etc.
 
             if warn_on_invalid and not np.all(valid_mask):
                 warnings.warn(
