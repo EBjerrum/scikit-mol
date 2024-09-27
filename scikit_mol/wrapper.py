@@ -8,7 +8,11 @@ from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.utils.metaestimators import available_if
 
-from scikit_mol._invalid import rdkit_error_handling, InvalidInstance, NumpyArrayWithInvalidInstances
+from scikit_mol._invalid import (
+    rdkit_error_handling,
+    InvalidMol,
+    NumpyArrayWithInvalidInstances,
+)
 
 
 class AbstractWrapper(BaseEstimator, ABC):
@@ -20,6 +24,7 @@ class AbstractWrapper(BaseEstimator, ABC):
     model: BaseEstimator | Pipeline
         The wrapped model or pipeline.
     """
+
     model: BaseEstimator | Pipeline
 
     def __init__(self, replace_invalid: bool, replace_value: Any = np.nan):
@@ -49,7 +54,9 @@ class AbstractWrapper(BaseEstimator, ABC):
 class WrappedTransformer(AbstractWrapper):
     """Wrapper for sklearn transformer objects."""
 
-    def __init__(self, model: BaseEstimator, replace_invalid: bool = False, replace_value=np.nan):
+    def __init__(
+        self, model: BaseEstimator, replace_invalid: bool = False, replace_value=np.nan
+    ):
         """Initialize the WrappedTransformer.
 
         Parameters
@@ -81,7 +88,7 @@ class WrappedTransformer(AbstractWrapper):
 
     @available_if(has_fit_transform)
     def fit_transform(self, X, y=None):
-        out = self._fit_transform(X,y)
+        out = self._fit_transform(X, y)
         if not self.replace_invalid:
             return out
 
@@ -89,7 +96,4 @@ class WrappedTransformer(AbstractWrapper):
             return out.array_filled_with(self.replace_value)
 
         if isinstance(out, list):
-            return [self.replace_value if isinstance(v, InvalidInstance) else v for v in out]
-
-
-
+            return [self.replace_value if isinstance(v, InvalidMol) else v for v in out]

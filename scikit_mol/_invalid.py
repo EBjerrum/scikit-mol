@@ -12,6 +12,7 @@ class InvalidInstance(NamedTuple):
     """
     The InvalidInstance represents objects which raised an error during a pipeline step.
     """
+
     pipeline_step: str
     error: str
 
@@ -20,6 +21,7 @@ class NumpyArrayWithInvalidInstances:
     """
     The NumpyArrayWithInvalidInstances is
     """
+
     is_valid_array: npt.NDArray[np.bool_]
     invalid_list: list[InvalidInstance]
     value_array: npt.NDArray[Any]
@@ -34,13 +36,13 @@ class NumpyArrayWithInvalidInstances:
         return self.is_valid_array.shape[0]
 
     def __getitem__(self, item: int) -> npt.NDArray[Any] | InvalidInstance:
-        n_invalids_prior = sum(~self.is_valid_array[:item - 1])
+        n_invalids_prior = sum(~self.is_valid_array[: item - 1])
         if self.is_valid_array[item]:
             return self.value_array[item - n_invalids_prior]
         return self.invalid_list[n_invalids_prior + 1]
 
     def __setitem__(self, key: int, value: npt.NDArray[Any] | InvalidInstance) -> None:
-        n_invalids_prior = sum(~self.is_valid_array[:key - 1])
+        n_invalids_prior = sum(~self.is_valid_array[: key - 1])
         if isinstance(value, InvalidInstance):
             if self.is_valid_array[key]:
                 self.value_array = np.delete(self.value_array, key - n_invalids_prior)
@@ -52,8 +54,10 @@ class NumpyArrayWithInvalidInstances:
             if self.is_valid_array[key]:
                 self.value_array[key - n_invalids_prior] = value
             else:
-                self.value_array = np.insert(self.value_array, key - n_invalids_prior, value)
-                del(self.invalid_list[n_invalids_prior + 1])
+                self.value_array = np.insert(
+                    self.value_array, key - n_invalids_prior, value
+                )
+                del self.invalid_list[n_invalids_prior + 1]
                 self.is_valid_array[key] = True
 
     def array_filled_with(self, fill_value) -> npt.NDArray[Any]:
@@ -63,10 +67,10 @@ class NumpyArrayWithInvalidInstances:
 
 
 def batch_update_sequence(
-        old_list: list[npt.NDArray[Any] | InvalidInstance] | NumpyArrayWithInvalidInstances,
-        new_values: list[Any],
-        value_indices: npt.NDArray[np.int_],
-   ):
+    old_list: list[npt.NDArray[Any] | InvalidInstance] | NumpyArrayWithInvalidInstances,
+    new_values: list[Any],
+    value_indices: npt.NDArray[np.int_],
+):
     old_list = list(old_list)  # Make shallow copy of list to avoid inplace changes.
     for new_value, idx in zip(new_values, value_indices, strict=True):
         old_list[idx] = new_value
@@ -108,7 +112,9 @@ def rdkit_error_handling(func):
         if x_new is None:  # fit may not return anything
             return None
         new_pos = np.where(is_valid_array)[0]
-        if isinstance(x_new, np.ndarray) and isinstance(x, NumpyArrayWithInvalidInstances):
+        if isinstance(x_new, np.ndarray) and isinstance(
+            x, NumpyArrayWithInvalidInstances
+        ):
             if x_new.shape[0] != x.value_array.shape[0]:
                 raise AssertionError("Numer of rows is not as expected.")
             x.value_array = x_new
@@ -122,12 +128,11 @@ def rdkit_error_handling(func):
         if isinstance(x_new, NumpyArrayWithInvalidInstances):
             return NumpyArrayWithInvalidInstances(x_list)
         return x_list
+
     return wrapper
 
 
-def filter_rows(
-    X: Sequence[_T], y: Sequence[_U]
-) -> tuple[Sequence[_T], Sequence[_U]]:
+def filter_rows(X: Sequence[_T], y: Sequence[_U]) -> tuple[Sequence[_T], Sequence[_U]]:
     is_valid_array = get_is_valid_array(X)
     x_new = filter_by_list(X, is_valid_array)
     y_new = filter_by_list(y, is_valid_array)
@@ -142,5 +147,3 @@ def get_is_valid_array(item_list: Sequence[Any]) -> npt.NDArray[np.bool_]:
         else:
             is_valid_list.append(False)
     return np.array(is_valid_list, dtype=bool)
-
-
