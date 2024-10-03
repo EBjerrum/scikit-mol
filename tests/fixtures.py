@@ -115,6 +115,18 @@ def chiral_mols_list(chiral_smiles_list):
 
 
 @pytest.fixture
+def mols_with_invalid_container(invalid_smiles_list):
+    mols = []
+    for smiles in invalid_smiles_list:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            mols.append(InvalidMol("TestError", f"Invalid SMILES: {smiles}"))
+        else:
+            mols.append(mol)
+    return mols
+
+
+@pytest.fixture
 def fingerprint(mols_list):
     return rdMolDescriptors.GetHashedMorganFingerprint(mols_list[0], 2, nBits=1000)
 
@@ -185,12 +197,3 @@ def combined_transformer(featurizer):
         remainder="drop",
     )
     return transformer
-
-
-@pytest.fixture
-def mols_with_invalid_container():
-    valid_smiles = ["CC", "CCO", "c1ccccc1"]
-    invalid_smiles = "NOT_A_VALID_SMILES"
-    mols = [Chem.MolFromSmiles(s) for s in valid_smiles]
-    mols.append(InvalidMol("TestError", "Invalid SMILES"))
-    return mols

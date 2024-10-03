@@ -13,6 +13,7 @@ from fixtures import (
     chiral_smiles_list,
     chiral_mols_list,
     mols_with_invalid_container,
+    invalid_smiles_list,
 )
 from sklearn import clone
 
