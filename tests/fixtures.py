@@ -23,7 +23,11 @@ from scikit_mol.fingerprints import (
 from scikit_mol.descriptors import MolecularDescriptorTransformer
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.standardizer import Standardizer
-from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT, DEFAULT_MOL_COLUMN_NAME
+from scikit_mol.core import (
+    SKLEARN_VERSION_PANDAS_OUT,
+    DEFAULT_MOL_COLUMN_NAME,
+    InvalidMol,
+)
 
 # TODO these should really go into the conftest.py, so that they are automatically imported in the tests
 
@@ -181,3 +185,12 @@ def combined_transformer(featurizer):
         remainder="drop",
     )
     return transformer
+
+
+@pytest.fixture
+def mols_with_invalid_container():
+    valid_smiles = ["CC", "CCO", "c1ccccc1"]
+    invalid_smiles = "NOT_A_VALID_SMILES"
+    mols = [Chem.MolFromSmiles(s) for s in valid_smiles]
+    mols.append(InvalidMol("TestError", "Invalid SMILES"))
+    return mols

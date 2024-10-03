@@ -42,7 +42,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
     # The dtype of the fingerprint array computed by the transformer
     # If needed this property can be overwritten in the child class.
-    _DTYPE_FINGERPRINT = np.int8
+    _DTYPE_FINGERPRINT = float  # Float is necessary for the handle_errors to work
 
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
@@ -173,8 +173,6 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
 
 class MACCSKeysFingerprintTransformer(FpsTransformer):
-    _DTYPE_FINGERPRINT = float
-
     def __init__(self, parallel: Union[bool, int] = False, handle_errors: bool = False):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
@@ -307,36 +305,33 @@ class AtomPairFingerprintTransformer(FpsTransformer):
         self.useCounts = useCounts
 
     def _mol2fp(self, mol):
-        if mol:
-            if self.useCounts:
-                return rdMolDescriptors.GetHashedAtomPairFingerprint(
-                    mol,
-                    nBits=int(self.nBits),
-                    minLength=int(self.minLength),
-                    maxLength=int(self.maxLength),
-                    fromAtoms=self.fromAtoms,
-                    ignoreAtoms=self.ignoreAtoms,
-                    atomInvariants=self.atomInvariants,
-                    includeChirality=bool(self.includeChirality),
-                    use2D=bool(self.use2D),
-                    confId=int(self.confId),
-                )
-            else:
-                return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(
-                    mol,
-                    nBits=int(self.nBits),
-                    minLength=int(self.minLength),
-                    maxLength=int(self.maxLength),
-                    fromAtoms=self.fromAtoms,
-                    ignoreAtoms=self.ignoreAtoms,
-                    atomInvariants=self.atomInvariants,
-                    nBitsPerEntry=int(self.nBitsPerEntry),
-                    includeChirality=bool(self.includeChirality),
-                    use2D=bool(self.use2D),
-                    confId=int(self.confId),
-                )
+        if self.useCounts:
+            return rdMolDescriptors.GetHashedAtomPairFingerprint(
+                mol,
+                nBits=int(self.nBits),
+                minLength=int(self.minLength),
+                maxLength=int(self.maxLength),
+                fromAtoms=self.fromAtoms,
+                ignoreAtoms=self.ignoreAtoms,
+                atomInvariants=self.atomInvariants,
+                includeChirality=bool(self.includeChirality),
+                use2D=bool(self.use2D),
+                confId=int(self.confId),
+            )
         else:
-            return False
+            return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(
+                mol,
+                nBits=int(self.nBits),
+                minLength=int(self.minLength),
+                maxLength=int(self.maxLength),
+                fromAtoms=self.fromAtoms,
+                ignoreAtoms=self.ignoreAtoms,
+                atomInvariants=self.atomInvariants,
+                nBitsPerEntry=int(self.nBitsPerEntry),
+                includeChirality=bool(self.includeChirality),
+                use2D=bool(self.use2D),
+                confId=int(self.confId),
+            )
 
 
 class TopologicalTorsionFingerprintTransformer(FpsTransformer):
@@ -389,6 +384,11 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 
 class MHFingerprintTransformer(FpsTransformer):
     # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
+
+    _DTYPE_FINGERPRINT = (
+        np.int32
+    )  # MHFingerprints seemingly can't handle floats, so can't use handle_errors
+
     def __init__(
         self,
         radius: int = 3,
@@ -399,7 +399,6 @@ class MHFingerprintTransformer(FpsTransformer):
         n_permutations: int = 2048,
         seed: int = 42,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
     ):
         """Transforms the RDKit mol into the MinHash fingerprint (MHFP)
 
@@ -413,7 +412,7 @@ class MHFingerprintTransformer(FpsTransformer):
             this is effectively the length of the FP
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, handle_errors=False)
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -437,8 +436,6 @@ class MHFingerprintTransformer(FpsTransformer):
         super().__setstate__(state)
         # Re-create the unpicklable property
         self._recreate_encoder()
-
-    _DTYPE_FINGERPRINT = np.int32
 
     def _mol2fp(self, mol):
         fp = self.mhfp_encoder.EncodeMol(
