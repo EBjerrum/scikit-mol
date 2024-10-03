@@ -6,7 +6,11 @@ from sklearn import clone
 from rdkit import Chem
 import sklearn
 from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT, DEFAULT_MOL_COLUMN_NAME
+from scikit_mol.core import (
+    SKLEARN_VERSION_PANDAS_OUT,
+    DEFAULT_MOL_COLUMN_NAME,
+    InvalidMol,
+)
 from fixtures import (
     smiles_list,
     invalid_smiles_list,
@@ -77,14 +81,87 @@ def test_smilestomol_inverse_transform(smilestomol_transformer, smiles_container
     assert all(isinstance(smiles, str) for smiles in result.flatten())
 
 
+def test_smilestomol_inverse_transform_with_invalid(
+    invalid_smiles_list, smilestomol_transformer
+):
+    smilestomol_transformer.set_params(handle_errors=True)
+
+    # Forward transform
+    mols = smilestomol_transformer.transform(invalid_smiles_list)
+
+    # Inverse transform
+    result = smilestomol_transformer.inverse_transform(mols)
+
+    assert len(result) == len(invalid_smiles_list)
+
+    # Check that all but the last element are the same as the original SMILES
+    for original, res in zip(invalid_smiles_list[:-1], result[:-1].flatten()):
+        assert isinstance(res, str)
+        assert original == res
+
+    # Check that the last element is an InvalidMol instance
+    assert isinstance(result[-1].item(), InvalidMol)
+    assert "Invalid SMILES" in result[-1].item().error
+    assert invalid_smiles_list[-1] in result[-1].item().error
+
+
+def test_smilestomol_get_feature_names_out(smilestomol_transformer):
+    feature_names = smilestomol_transformer.get_feature_names_out()
+    assert feature_names == [DEFAULT_MOL_COLUMN_NAME]
+
+
+def test_smilestomol_handle_errors(invalid_smiles_list, smilestomol_transformer):
+    smilestomol_transformer.set_params(handle_errors=True)
+    result = smilestomol_transformer.transform(invalid_smiles_list)
+
+    assert len(result) == len(invalid_smiles_list)
+    assert isinstance(result, np.ndarray)
+
+    # Check that all but the last element are valid RDKit Mol objects
+    for mol in result[:-1].flatten():
+        assert isinstance(mol, Chem.Mol)
+        assert mol is not None
+
+    # Check that the last element is an InvalidMol instance
+    last_mol = result[-1].item()
+    assert isinstance(last_mol, InvalidMol)
+
+    # Check if the error message is correctly set for the invalid SMILES
+    assert "Invalid SMILES" in last_mol.error
+    assert invalid_smiles_list[-1] in last_mol.error
+
+
+@pytest.mark.skipif(
+    not skip_pandas_output_test,
+    reason="Pandas output not supported in this sklearn version",
+)
+def test_smilestomol_handle_errors_pandas_output(
+    invalid_smiles_list, smilestomol_transformer, pandas_output
+):
+    smilestomol_transformer.set_params(handle_errors=True)
+    result = smilestomol_transformer.transform(invalid_smiles_list)
+
+    assert len(result) == len(invalid_smiles_list)
+    assert isinstance(result, pd.DataFrame)
+    assert result.columns == [DEFAULT_MOL_COLUMN_NAME]
+
+    # Check that all but the last element are valid RDKit Mol objects
+    for mol in result[DEFAULT_MOL_COLUMN_NAME][:-1]:
+        assert isinstance(mol, Chem.Mol)
+        assert mol is not None
+
+    # Check that the last element is an InvalidMol instance
+    last_mol = result[DEFAULT_MOL_COLUMN_NAME].iloc[-1]
+    assert isinstance(last_mol, InvalidMol)
+
+    # Check if the error message is correctly set for the invalid SMILES
+    assert "Invalid SMILES" in last_mol.error
+    assert invalid_smiles_list[-1] in last_mol.error
+
+
 @skip_pandas_output_test
 def test_pandas_output(smiles_container, smilestomol_transformer, pandas_output):
     mols = smilestomol_transformer.transform(smiles_container)
     assert isinstance(mols, pd.DataFrame)
     assert mols.shape[0] == len(smiles_container)
     assert mols.columns.tolist() == [DEFAULT_MOL_COLUMN_NAME]
-
-
-def test_smilestomol_get_feature_names_out(smilestomol_transformer):
-    feature_names = smilestomol_transformer.get_feature_names_out()
-    assert feature_names == [DEFAULT_MOL_COLUMN_NAME]
