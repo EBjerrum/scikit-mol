@@ -58,6 +58,12 @@ Users can install latest tagged release from pip
 
     pip install scikit-mol
 
+or from conda-forge
+
+    conda install -c conda-forge scikit-mol
+
+The conda forge package should get updated shortly after a new tagged release on pypi.
+
 Bleeding edge
 
     pip install git+https://github.com:EBjerrum/scikit-mol.git
