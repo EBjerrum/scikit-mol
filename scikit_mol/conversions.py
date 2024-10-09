@@ -17,10 +17,28 @@ from scikit_mol.core import (
 
 
 class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, parallel: Union[bool, int] = False, handle_errors: bool = False):
+    """
+    Transformer for converting SMILES strings to RDKit mol objects.
+
+    This transformer can be included in pipelines during development and training,
+    but the safe inference mode should only be enabled when deploying models for
+    inference in production environments.
+
+    Parameters:
+    -----------
+    parallel : Union[bool, int], default=False
+        If True or int > 1, enables parallel processing.
+    safe_inference_mode : bool, default=False
+        If True, enables safeguards for handling invalid data during inference.
+        This should only be set to True when deploying models to production.
+    """
+
+    def __init__(
+        self, parallel: Union[bool, int] = False, safe_inference_mode: bool = False
+    ):
         self.parallel = parallel
         self.start_method = None  # TODO implement handling of start_method
-        self.handle_errors = handle_errors
+        self.safe_inference_mode = safe_inference_mode
 
     @feature_names_default_mol
     def get_feature_names_out(self, input_features=None):
@@ -46,7 +64,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
         Raises
         ------
         ValueError
-            Raises ValueError if a SMILES string is unparsable by RDKit
+            Raises ValueError if a SMILES string is unparsable by RDKit and safe_inference_mode is False
         """
 
         if not self.parallel:
@@ -84,11 +102,11 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
                 else:
                     message = f"Invalid SMILES: {smiles}"
                 X_out.append(InvalidMol(str(self), message))
-        if not self.handle_errors and not all(X_out):
+        if not self.safe_inference_mode and not all(X_out):
             fails = [x for x in X_out if not x]
             raise ValueError(
                 f"Invalid SMILES found: {fails}."
-            )  # TODO with this appraoch we get all errors, but we do process ALL the smiles first which could be slow
+            )  # TODO with this approach we get all errors, but we do process ALL the smiles first which could be slow
         return np.array(X_out).reshape(-1, 1)
 
     @check_transform_input
@@ -109,7 +127,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             else:
                 X_out.append(InvalidMol(str(self), f"Not a Mol: {mol}"))
 
-        if not self.handle_errors and not all(isinstance(x, str) for x in X_out):
+        if not self.safe_inference_mode and not all(isinstance(x, str) for x in X_out):
             fails = [x for x in X_out if not isinstance(x, str)]
             raise ValueError(f"Invalid Mols found: {fails}.")
 

@@ -1,4 +1,3 @@
-# %%
 from multiprocessing import Pool, get_context
 import multiprocessing
 import re
@@ -28,21 +27,20 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
 )
 
 
-# %%
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def __init__(
         self,
         parallel: Union[bool, int] = False,
         start_method: str = None,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
         self.parallel = parallel
         self.start_method = start_method
-        self.handle_errors = handle_errors
+        self.safe_inference_mode = safe_inference_mode
 
     # The dtype of the fingerprint array computed by the transformer
     # If needed this property can be overwritten in the child class.
-    _DTYPE_FINGERPRINT = float  # Float is necessary for the handle_errors to work
+    _DTYPE_FINGERPRINT = np.int8
 
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
@@ -86,21 +84,21 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         raise NotImplementedError("_mol2fp not implemented")
 
     def _fp2array(self, fp):
-        arr = np.zeros((self.nBits,), dtype=self._DTYPE_FINGERPRINT)
         if fp:
+            arr = np.zeros((self.nBits,), dtype=self._DTYPE_FINGERPRINT)
             DataStructs.ConvertToNumpyArray(fp, arr)
+            return arr
         else:
-            arr[:] = np.nan  # Sadly, dtype=int8 does not allow for NaN values
-        return arr
+            return np.ma.masked_all((self.nBits,), dtype=self._DTYPE_FINGERPRINT)
 
     def _transform_mol(self, mol):
-        if not mol and self.handle_errors:
+        if not mol and self.safe_inference_mode:
             return self._fp2array(False)
         try:
             fp = self._mol2fp(mol)
             return self._fp2array(fp)
         except Exception as e:
-            if self.handle_errors:
+            if self.safe_inference_mode:
                 return self._fp2array(False)
             else:
                 raise e
@@ -114,10 +112,16 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
     @check_transform_input
     def _transform(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
-        for i, mol in enumerate(X):
-            arr[i, :] = self._transform_mol(mol)
-        return arr
+        if self.safe_inference_mode:
+            # Use the new method with masked arrays if we're in safe inference mode
+            arrays = [self._transform_mol(mol) for mol in X]
+            return np.ma.stack(arrays)
+        else:
+            # Use the original, faster method if we're not in safe inference mode
+            arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
+            for i, mol in enumerate(X):
+                arr[i, :] = self._transform_mol(mol)
+            return arr
 
     def _transform_sparse(self, X):
         arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
@@ -167,17 +171,21 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
                         for x_chunk in x_chunks
                     ],
                 )
-
-                arr = np.concatenate(arrays)
+                if self.safe_inference_mode:
+                    arr = np.ma.concatenate(arrays)
+                else:
+                    arr = np.concatenate(arrays)
             return arr
 
 
 class MACCSKeysFingerprintTransformer(FpsTransformer):
-    def __init__(self, parallel: Union[bool, int] = False, handle_errors: bool = False):
+    def __init__(
+        self, parallel: Union[bool, int] = False, safe_inference_mode: bool = False
+    ):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
         """
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.nBits = 167
 
     @property
@@ -210,7 +218,7 @@ class RDKitFingerprintTransformer(FpsTransformer):
         numBitsPerFeature: int = 2,
         atomInvariantsGenerator=None,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
         """Calculates the RDKit fingerprints
 
@@ -237,7 +245,7 @@ class RDKitFingerprintTransformer(FpsTransformer):
         atomInvariantsGenerator : _type_, optional
             atom invariants to be used during fingerprint generation, by default None
         """
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.minPath = minPath
         self.maxPath = maxPath
         self.useHs = useHs
@@ -289,9 +297,9 @@ class AtomPairFingerprintTransformer(FpsTransformer):
         nBits=2048,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.minLength = minLength
         self.maxLength = maxLength
         self.fromAtoms = fromAtoms
@@ -346,9 +354,9 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         nBits=2048,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.targetSize = targetSize
         self.fromAtoms = fromAtoms
         self.ignoreAtoms = ignoreAtoms
@@ -385,9 +393,7 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 class MHFingerprintTransformer(FpsTransformer):
     # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
 
-    _DTYPE_FINGERPRINT = (
-        np.int32
-    )  # MHFingerprints seemingly can't handle floats, so can't use handle_errors
+    _DTYPE_FINGERPRINT = np.int32
 
     def __init__(
         self,
@@ -399,6 +405,7 @@ class MHFingerprintTransformer(FpsTransformer):
         n_permutations: int = 2048,
         seed: int = 42,
         parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
     ):
         """Transforms the RDKit mol into the MinHash fingerprint (MHFP)
 
@@ -412,7 +419,7 @@ class MHFingerprintTransformer(FpsTransformer):
             this is effectively the length of the FP
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
-        super().__init__(parallel=parallel, handle_errors=False)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -490,7 +497,7 @@ class SECFingerprintTransformer(FpsTransformer):
         n_permutations: int = 0,
         seed: int = 0,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
         """Transforms the RDKit mol into the SMILES extended connectivity fingerprint (SECFP)
 
@@ -504,7 +511,7 @@ class SECFingerprintTransformer(FpsTransformer):
             n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -582,7 +589,7 @@ class MorganFingerprintTransformer(FpsTransformer):
         useFeatures=False,
         useCounts=False,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
@@ -601,7 +608,7 @@ class MorganFingerprintTransformer(FpsTransformer):
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
         """
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.nBits = nBits
         self.radius = radius
         self.useChirality = useChirality
@@ -640,7 +647,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
         bitFlags: int = 15761407,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
         """Transform RDKit mols into Count or bit-based Avalon Fingerprints
 
@@ -657,7 +664,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
         """
-        super().__init__(parallel=parallel, handle_errors=handle_errors)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.nBits = nBits
         self.isQuery = isQuery
         self.resetVect = resetVect
@@ -685,7 +692,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
 def parallel_helper(args):
     """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
     Then instantiates the class with the parameters and processes the mol.
-    Intention is to be able to do this in chilcprocesses as some classes can't be pickled"""
+    Intention is to be able to do this in child processes as some classes can't be pickled"""
     classname, parameters, X_mols = args
     from scikit_mol import fingerprints
 

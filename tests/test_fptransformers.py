@@ -415,7 +415,7 @@ def test_AvalonFingerprintTransformer(chiral_mols_list):
     )
 
 
-def test_transform_with_error_handling(
+def test_transform_with_safe_inference_mode(
     mols_with_invalid_container,
     morgan_transformer,
     rdkit_transformer,
@@ -434,20 +434,20 @@ def test_transform_with_error_handling(
         secfp_transformer,
         avalon_transformer,
     ]:
-        t.set_params(handle_errors=True)
+        t.set_params(safe_inference_mode=True)
         print(type(t))
         fps = t.transform(mols_with_invalid_container)
 
         assert len(fps) == len(mols_with_invalid_container)
 
         # Check that the last row (corresponding to the InvalidMol) contains NaNs
-        assert np.all(np.isnan(fps[-1]))
+        assert np.all(fps.mask[-1])
 
         # Check that other rows don't contain NaNs
-        assert not np.any(np.isnan(fps[:-1]))
+        assert not np.any(fps.mask[:-1])
 
 
-def test_transform_without_error_handling(
+def test_transform_without_safe_inference_mode(
     mols_with_invalid_container,
     morgan_transformer,
     rdkit_transformer,
@@ -456,6 +456,7 @@ def test_transform_without_error_handling(
     maccs_transformer,
     secfp_transformer,
     avalon_transformer,
+    # MHFP seem to accept invalid mols and return 0,0,0,0's
 ):
     for t in [
         morgan_transformer,
@@ -466,7 +467,7 @@ def test_transform_without_error_handling(
         secfp_transformer,
         avalon_transformer,
     ]:
-        t.set_params(handle_errors=False)
+        t.set_params(safe_inference_mode=False)
         with pytest.raises(
             Exception
         ):  # You might want to be more specific about the exception type
@@ -475,7 +476,7 @@ def test_transform_without_error_handling(
 
 
 # Add this test to check parallel processing with error handling
-def test_transform_parallel_with_error_handling(
+def test_transform_parallel_with_safe_inference_mode(
     mols_with_invalid_container,
     morgan_transformer,
     rdkit_transformer,
@@ -494,13 +495,16 @@ def test_transform_parallel_with_error_handling(
         secfp_transformer,
         avalon_transformer,
     ]:
-        t.set_params(handle_errors=True, parallel=True)
+        t.set_params(safe_inference_mode=True, parallel=True)
         fps = t.transform(mols_with_invalid_container)
 
         assert len(fps) == len(mols_with_invalid_container)
 
-        # Check that the last row (corresponding to the InvalidMol) contains NaNs
-        assert np.all(np.isnan(fps[-1]))
+        print(fps.mask)
+        # Check that the last row (corresponding to the InvalidMol) is masked
+        assert np.all(
+            fps.mask[-1]
+        )  # Mask should be true for all elements in the last row
 
-        # Check that other rows don't contain NaNs
-        assert not np.any(np.isnan(fps[:-1]))
+        # Check that other rows don't contain any masked values
+        assert not np.any(fps.mask[:-1, :])

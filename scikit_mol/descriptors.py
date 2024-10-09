@@ -25,6 +25,9 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     start_method : str
         The method to start child processes when parallel=True. can be 'fork', 'spawn' or 'forkserver'.
         If None, the OS and Pythons default will be used.
+    safe_inference_mode : bool
+        If True, enables safeguards for handling invalid data during inference.
+        This should only be set to True when deploying models to production.
 
     Returns
     -------
@@ -39,12 +42,12 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         desc_list: Optional[str] = None,
         parallel: Union[bool, int] = False,
         start_method: str = None,  # "fork",
-        handle_errors: bool = False,
+        safe_inference_mode: bool = False,
     ):
         self.desc_list = desc_list
         self.parallel = parallel
         self.start_method = start_method
-        self.handle_errors = handle_errors
+        self.safe_inference_mode = safe_inference_mode
 
     def _get_desc_calculator(self) -> MolecularDescriptorCalculator:
         if self.desc_list:
@@ -96,12 +99,12 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         self._start_method = start_method
 
     def _transform_mol(self, mol: Mol) -> List[Any]:
-        if not mol and self.handle_errors:
+        if not mol and self.safe_inference_mode:
             return [np.nan] * len(self.desc_list)
         try:
             return list(self.calculators.CalcDescriptors(mol))
         except Exception as e:
-            if self.handle_errors:
+            if self.safe_inference_mode:
                 return [np.nan] * len(self.desc_list)
             else:
                 raise e
