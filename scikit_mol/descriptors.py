@@ -98,14 +98,17 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         ), f"start_method not in allowed methods {allowed_start_methods}"
         self._start_method = start_method
 
-    def _transform_mol(self, mol: Mol) -> List[Any]:
-        if not mol and self.safe_inference_mode:
-            return [np.nan] * len(self.desc_list)
+    def _transform_mol(self, mol: Mol) -> Union[np.ndarray, np.ma.MaskedArray]:
+        if not mol:
+            if self.safe_inference_mode:
+                return np.ma.masked_all(len(self.desc_list))
+            else:
+                raise ValueError("Invalid molecule provided: {mol}")
         try:
-            return list(self.calculators.CalcDescriptors(mol))
+            return np.array(list(self.calculators.CalcDescriptors(mol)))
         except Exception as e:
             if self.safe_inference_mode:
-                return [np.nan] * len(self.desc_list)
+                return np.ma.masked_all(len(self.desc_list))
             else:
                 raise e
 
@@ -114,13 +117,17 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         return self
 
     @check_transform_input
-    def _transform(self, x: List[Mol]) -> np.ndarray:
-        arr = np.zeros((len(x), len(self.desc_list)))
-        for i, mol in enumerate(x):
-            arr[i, :] = self._transform_mol(mol)
-        return arr
+    def _transform(self, x: List[Mol]) -> Union[np.ndarray, np.ma.MaskedArray]:
+        if self.safe_inference_mode:
+            arrays = [self._transform_mol(mol) for mol in x]
+            return np.ma.array(arrays)
+        else:
+            arr = np.zeros((len(x), len(self.desc_list)))
+            for i, mol in enumerate(x):
+                arr[i, :] = self._transform_mol(mol)
+            return arr
 
-    def transform(self, x: List[Mol], y=None) -> np.ndarray:
+    def transform(self, x: List[Mol], y=None) -> Union[np.ndarray, np.ma.MaskedArray]:
         """Transform a list of molecules into an array of descriptor values
         Parameters
         ----------
@@ -131,8 +138,8 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        np.array
-            Descriptors, shape (samples, length of .selected_descriptors )
+        Union[np.ndarray, np.ma.MaskedArray]
+            Descriptors, shape (samples, length of .selected_descriptors)
 
         """
         if not self.parallel:
@@ -148,11 +155,11 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                 params = self.get_params()
                 x_chunks = np.array_split(x, n_chunks)
-                # x_chunks = [x.reshape(-1, 1) for x in x_chunks]
-                arrays = pool.map(
-                    parallel_helper, [(params, x) for x in x_chunks]
-                )  # is the helper function a safer way of handling the picklind and child process communication
-                arr = np.concatenate(arrays)
+                arrays = pool.map(parallel_helper, [(params, x) for x in x_chunks])
+                if self.safe_inference_mode:
+                    arr = np.ma.concatenate(arrays)
+                else:
+                    arr = np.concatenate(arrays)
             return arr
 
 
