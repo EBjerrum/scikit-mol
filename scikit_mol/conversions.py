@@ -94,18 +94,20 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
             if mol:
                 X_out.append(mol)
             else:
-                mol = Chem.MolFromSmiles(smiles, sanitize=False)
+                mol = Chem.MolFromSmiles(
+                    smiles, sanitize=False
+                )  # TODO We could maybe convert mol, and then use Chem.SanitizeMol to get the error message from the sanitizer, and only parse once?
                 if mol:
                     errors = Chem.DetectChemistryProblems(mol)
                     error_message = "\n".join(error.Message() for error in errors)
-                    message = f"Invalid SMILES: {error_message}"
+                    message = f"Invalid Molecule: {error_message}"
                 else:
                     message = f"Invalid SMILES: {smiles}"
                 X_out.append(InvalidMol(str(self), message))
         if not self.safe_inference_mode and not all(X_out):
             fails = [x for x in X_out if not x]
             raise ValueError(
-                f"Invalid SMILES found: {fails}."
+                f"Invalid input found: {fails}."
             )  # TODO with this approach we get all errors, but we do process ALL the smiles first which could be slow
         return np.array(X_out).reshape(-1, 1)
 

@@ -105,7 +105,7 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
             if self.safe_inference_mode:
                 return np.ma.masked_all(len(self.desc_list))
             else:
-                raise ValueError("Invalid molecule provided: {mol}")
+                raise ValueError(f"Invalid molecule provided: {mol}")
         try:
             return np.array(list(self.calculators.CalcDescriptors(mol)))
         except Exception as e:

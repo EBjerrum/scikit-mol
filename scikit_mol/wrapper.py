@@ -183,7 +183,7 @@ class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         estimator: BaseEstimator,
-        safe_inference_mode: bool = True,
+        safe_inference_mode: bool = False,
         replace_value=np.nan,
         mask_nonfinite: bool = True,
     ):
