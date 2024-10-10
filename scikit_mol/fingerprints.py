@@ -33,14 +33,12 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         parallel: Union[bool, int] = False,
         start_method: str = None,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
         self.parallel = parallel
         self.start_method = start_method
         self.safe_inference_mode = safe_inference_mode
-
-    # The dtype of the fingerprint array computed by the transformer
-    # If needed this property can be overwritten in the child class.
-    _DTYPE_FINGERPRINT = np.int8
+        self.dtype = dtype
 
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
@@ -85,11 +83,11 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
     def _fp2array(self, fp):
         if fp:
-            arr = np.zeros((self.nBits,), dtype=self._DTYPE_FINGERPRINT)
+            arr = np.zeros((self.nBits,), dtype=self.dtype)
             DataStructs.ConvertToNumpyArray(fp, arr)
             return arr
         else:
-            return np.ma.masked_all((self.nBits,), dtype=self._DTYPE_FINGERPRINT)
+            return np.ma.masked_all((self.nBits,), dtype=self.dtype)
 
     def _transform_mol(self, mol):
         if not mol and self.safe_inference_mode:
@@ -118,13 +116,13 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
             return np.ma.stack(arrays)
         else:
             # Use the original, faster method if we're not in safe inference mode
-            arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
+            arr = np.zeros((len(X), self.nBits), dtype=self.dtype)
             for i, mol in enumerate(X):
                 arr[i, :] = self._transform_mol(mol)
             return arr
 
     def _transform_sparse(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=self._DTYPE_FINGERPRINT)
+        arr = np.zeros((len(X), self.nBits), dtype=self.dtype)
         for i, mol in enumerate(X):
             arr[i, :] = self._transform_mol(mol)
 
@@ -180,12 +178,17 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
 class MACCSKeysFingerprintTransformer(FpsTransformer):
     def __init__(
-        self, parallel: Union[bool, int] = False, safe_inference_mode: bool = False
+        self,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
         """
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.nBits = 167
 
     @property
@@ -219,6 +222,7 @@ class RDKitFingerprintTransformer(FpsTransformer):
         atomInvariantsGenerator=None,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
         """Calculates the RDKit fingerprints
 
@@ -245,7 +249,9 @@ class RDKitFingerprintTransformer(FpsTransformer):
         atomInvariantsGenerator : _type_, optional
             atom invariants to be used during fingerprint generation, by default None
         """
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.minPath = minPath
         self.maxPath = maxPath
         self.useHs = useHs
@@ -298,8 +304,11 @@ class AtomPairFingerprintTransformer(FpsTransformer):
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.minLength = minLength
         self.maxLength = maxLength
         self.fromAtoms = fromAtoms
@@ -355,8 +364,11 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.targetSize = targetSize
         self.fromAtoms = fromAtoms
         self.ignoreAtoms = ignoreAtoms
@@ -391,10 +403,6 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
 
 
 class MHFingerprintTransformer(FpsTransformer):
-    # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
-
-    _DTYPE_FINGERPRINT = np.int32
-
     def __init__(
         self,
         radius: int = 3,
@@ -406,8 +414,11 @@ class MHFingerprintTransformer(FpsTransformer):
         seed: int = 42,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int32,
     ):
         """Transforms the RDKit mol into the MinHash fingerprint (MHFP)
+
+        https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
 
         Args:
             radius (int, optional): The MHFP radius. Defaults to 3.
@@ -419,7 +430,9 @@ class MHFingerprintTransformer(FpsTransformer):
             this is effectively the length of the FP
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -498,6 +511,7 @@ class SECFingerprintTransformer(FpsTransformer):
         seed: int = 0,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
         """Transforms the RDKit mol into the SMILES extended connectivity fingerprint (SECFP)
 
@@ -511,7 +525,9 @@ class SECFingerprintTransformer(FpsTransformer):
             n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.radius = radius
         self.rings = rings
         self.isomeric = isomeric
@@ -590,6 +606,7 @@ class MorganFingerprintTransformer(FpsTransformer):
         useCounts=False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
@@ -608,7 +625,9 @@ class MorganFingerprintTransformer(FpsTransformer):
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
         """
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.nBits = nBits
         self.radius = radius
         self.useChirality = useChirality
@@ -648,6 +667,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
     ):
         """Transform RDKit mols into Count or bit-based Avalon Fingerprints
 
@@ -664,7 +684,9 @@ class AvalonFingerprintTransformer(FpsTransformer):
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
         """
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
         self.nBits = nBits
         self.isQuery = isQuery
         self.resetVect = resetVect

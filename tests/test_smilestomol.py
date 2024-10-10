@@ -84,7 +84,7 @@ def test_smilestomol_inverse_transform(smilestomol_transformer, smiles_container
 def test_smilestomol_inverse_transform_with_invalid(
     invalid_smiles_list, smilestomol_transformer
 ):
-    smilestomol_transformer.set_params(handle_errors=True)
+    smilestomol_transformer.set_params(safe_inference_mode=True)
 
     # Forward transform
     mols = smilestomol_transformer.transform(invalid_smiles_list)
@@ -110,8 +110,8 @@ def test_smilestomol_get_feature_names_out(smilestomol_transformer):
     assert feature_names == [DEFAULT_MOL_COLUMN_NAME]
 
 
-def test_smilestomol_handle_errors(invalid_smiles_list, smilestomol_transformer):
-    smilestomol_transformer.set_params(handle_errors=True)
+def test_smilestomol_safe_inference(invalid_smiles_list, smilestomol_transformer):
+    smilestomol_transformer.set_params(safe_inference_mode=True)
     result = smilestomol_transformer.transform(invalid_smiles_list)
 
     assert len(result) == len(invalid_smiles_list)
@@ -135,10 +135,10 @@ def test_smilestomol_handle_errors(invalid_smiles_list, smilestomol_transformer)
     not skip_pandas_output_test,
     reason="Pandas output not supported in this sklearn version",
 )
-def test_smilestomol_handle_errors_pandas_output(
+def test_smilestomol_safe_inference_pandas_output(
     invalid_smiles_list, smilestomol_transformer, pandas_output
 ):
-    smilestomol_transformer.set_params(handle_errors=True)
+    smilestomol_transformer.set_params(safe_inference_mode=True)
     result = smilestomol_transformer.transform(invalid_smiles_list)
 
     assert len(result) == len(invalid_smiles_list)

@@ -26,9 +26,12 @@ class Standardizer(BaseEstimator, TransformerMixin):
     def _standardize_mol(self, mol):
         if not mol:
             if self.safe_inference_mode:
-                return InvalidMol(str(self), "Invalid input molecule")
+                if isinstance(mol, InvalidMol):
+                    return mol
+                else:
+                    return InvalidMol(str(self), f"Invalid input molecule: {mol}")
             else:
-                raise ValueError("Invalid input molecule")
+                raise ValueError(f"Invalid input molecule: {mol}")
 
         try:
             block = BlockLogs()  # Block all RDkit logging

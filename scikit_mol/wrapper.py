@@ -11,7 +11,7 @@ from sklearn.utils.metaestimators import available_if
 
 
 class MaskedArrayError(ValueError):
-    """Raised when a masked array is passed but handle_errors is False."""
+    """Raised when a masked array is passed but safe_inference_mode is False."""
 
     pass
 

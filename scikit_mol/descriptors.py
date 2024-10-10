@@ -43,11 +43,13 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         parallel: Union[bool, int] = False,
         start_method: str = None,  # "fork",
         safe_inference_mode: bool = False,
+        dtype: np.dtype = np.float32,
     ):
         self.desc_list = desc_list
         self.parallel = parallel
         self.start_method = start_method
         self.safe_inference_mode = safe_inference_mode
+        self.dtype = dtype
 
     def _get_desc_calculator(self) -> MolecularDescriptorCalculator:
         if self.desc_list:
@@ -120,9 +122,9 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     def _transform(self, x: List[Mol]) -> Union[np.ndarray, np.ma.MaskedArray]:
         if self.safe_inference_mode:
             arrays = [self._transform_mol(mol) for mol in x]
-            return np.ma.array(arrays)
+            return np.ma.array(arrays, dtype=self.dtype)
         else:
-            arr = np.zeros((len(x), len(self.desc_list)))
+            arr = np.zeros((len(x), len(self.desc_list)), dtype=self.dtype)
             for i, mol in enumerate(x):
                 arr[i, :] = self._transform_mol(mol)
             return arr
