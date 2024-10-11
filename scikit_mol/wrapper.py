@@ -7,6 +7,7 @@ import pandas as pd
 from functools import wraps
 import warnings
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils import check_array
 from sklearn.utils.metaestimators import available_if
 
 
@@ -53,6 +54,7 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
             reduced_X = X[valid_mask]
 
             if y is not None:
+                y = check_array(y, force_all_finite=False)
                 reduced_y = y[valid_mask]
             else:
                 reduced_y = None
@@ -229,3 +231,8 @@ class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
     @filter_invalid_rows(warn_on_invalid=True)
     def score(self, X, y=None):
         return self.estimator.score(X, y)
+
+    @available_if(lambda self: hasattr(self.estimator, "get_feature_names_out"))
+    @filter_invalid_rows(warn_on_invalid=True)
+    def get_feature_names_out(self, *args, **kwargs):
+        return self.estimator.get_feature_names_out(*args, **kwargs)
