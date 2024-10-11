@@ -2,9 +2,11 @@ from multiprocessing import get_context
 import multiprocessing
 from typing import Union
 from rdkit import Chem
+from rdkit.rdBase import BlockLogs
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from torch import Block
 
 from scikit_mol.core import (
     check_transform_input,
@@ -89,21 +91,21 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
     @check_transform_input
     def _transform(self, X):
         X_out = []
-        for smiles in X:
-            mol = Chem.MolFromSmiles(smiles)
-            if mol:
-                X_out.append(mol)
-            else:
-                mol = Chem.MolFromSmiles(
-                    smiles, sanitize=False
-                )  # TODO We could maybe convert mol, and then use Chem.SanitizeMol to get the error message from the sanitizer, and only parse once?
+        with BlockLogs():
+            for smiles in X:
+                mol = Chem.MolFromSmiles(smiles, sanitize=False)
                 if mol:
                     errors = Chem.DetectChemistryProblems(mol)
-                    error_message = "\n".join(error.Message() for error in errors)
-                    message = f"Invalid Molecule: {error_message}"
+                    if errors:
+                        error_message = "\n".join(error.Message() for error in errors)
+                        message = f"Invalid Molecule: {error_message}"
+                        X_out.append(InvalidMol(str(self), message))
+                    else:
+                        Chem.SanitizeMol(mol)
+                        X_out.append(mol)
                 else:
                     message = f"Invalid SMILES: {smiles}"
-                X_out.append(InvalidMol(str(self), message))
+                    X_out.append(InvalidMol(str(self), message))
         if not self.safe_inference_mode and not all(X_out):
             fails = [x for x in X_out if not x]
             raise ValueError(
