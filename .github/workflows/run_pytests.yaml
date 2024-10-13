@@ -25,38 +25,36 @@ jobs:
             python-version: 3.9
           - os: ubuntu-latest
             python-version: 3.8
-          - os: ubuntu-latest
-            python-version: 3.7
     steps:
       - name: Checkout scikit_mol
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install scikit_mol
         run: python -m pip install -e .[dev]
       - name: Cache tests/data
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: tests/data
           key: ${{ runner.os }}-${{ hashFiles('tests/conftest.py') }}
       - name: Run Tests
         run: pytest --cov=./scikit_mol .
 
- # deploy scikit_mol to pypi for tagged commits if tests pass
+  # deploy scikit_mol to pypi for tagged commits if tests pass
   deploy:
-    needs: [ tests ]
+    needs: [tests]
     name: deploy to pypi
     runs-on: ubuntu-latest
     # this checks that the commit is a tagged commit
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.8
       - name: Install dependencies
