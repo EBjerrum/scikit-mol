@@ -49,19 +49,6 @@ standard_mols = standardizer.transform(mols)
 standard_smiles = smi2mol.inverse_transform(standard_mols)
 standard_smiles
 
-# %%
-standard_mols
-
-# %%
-for mol in standard_mols.flatten():
-    Chem.SanitizeMol(mol)
-
-# %%
-trf = MorganFingerprintTransformer( useCounts=True)
-fps = trf.transform(standard_mols)
-fps
-
-
 # %% [markdown]
 # Some of the molecules were desalted and neutralized.
 #
