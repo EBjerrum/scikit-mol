@@ -6,7 +6,6 @@ from rdkit.rdBase import BlockLogs
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
-from torch import Block
 
 from scikit_mol.core import (
     check_transform_input,
