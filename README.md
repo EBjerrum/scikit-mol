@@ -48,6 +48,11 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
   - Standardizer
 
 <br>
+- safeinference
+  - SafeInferenceWrapper
+  - set_safe_inference_mode
+
+<br>
 
 - Utilities
   - CheckSmilesSanitazion
@@ -107,3 +112,5 @@ Probably still, please check issues at GitHub and report there
 - [@VincentAlexanderScholz](https://github.com/VincentAlexanderScholz)
 - [@RiesBen](https://github.com/RiesBen)
 - [@enricogandini](https://github.com/enricogandini)
+- [@mikemhenry](https://github.com/mikemhenry)
+- [@c-feldmann](https://github.com/c-feldmann)
