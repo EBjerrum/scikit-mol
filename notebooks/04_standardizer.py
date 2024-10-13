@@ -44,10 +44,23 @@ for mol in mols[0:2]:
 
 # %%
 # You can just run straight up like this. Note that neutralising is optional
-standardizer = Standardizer(neutralize=True)
+standardizer = Standardizer()
 standard_mols = standardizer.transform(mols)
 standard_smiles = smi2mol.inverse_transform(standard_mols)
 standard_smiles
+
+# %%
+standard_mols
+
+# %%
+for mol in standard_mols.flatten():
+    Chem.SanitizeMol(mol)
+
+# %%
+trf = MorganFingerprintTransformer( useCounts=True)
+fps = trf.transform(standard_mols)
+fps
+
 
 # %% [markdown]
 # Some of the molecules were desalted and neutralized.
@@ -66,8 +79,8 @@ fake_y = range(len(smiles_strings))
 std_pipe.fit(smiles_strings, fake_y)
 
 
-print(f'Predictions with no standardization: {std_pipe.predict(smiles_strings)}')
-print(f'Predictions with standardization:    {nonstd_pipe.predict(smiles_strings)}')
+print(f'Predictions with no standardization: {nonstd_pipe.predict(smiles_strings)}')
+print(f'Predictions with standardization:    {std_pipe.predict(smiles_strings)}')
 
 
 # %% [markdown]
@@ -79,5 +92,5 @@ print(f'Predictions with standardization:    {nonstd_pipe.predict(smiles_strings
 
 # %%
 nonstd_pipe.fit(smiles_strings, fake_y)
-print(f'Predictions with no standardization: {std_pipe.predict(smiles_strings)}')
-print(f'Predictions with standardization:    {nonstd_pipe.predict(smiles_strings)}')
+print(f'Predictions with no standardization: {nonstd_pipe.predict(smiles_strings)}')
+print(f'Predictions with standardization:    {std_pipe.predict(smiles_strings)}')

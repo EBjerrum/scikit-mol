@@ -46,6 +46,7 @@ class Standardizer(BaseEstimator, TransformerMixin):
             else:
                 uncharged_parent_clean_mol = parent_clean_mol
             del block  # Release logging block to previous state
+            Chem.SanitizeMol(uncharged_parent_clean_mol)
             return uncharged_parent_clean_mol
         except Exception as e:
             if self.safe_inference_mode:
