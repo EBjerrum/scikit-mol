@@ -10,6 +10,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import check_array
 from sklearn.utils.metaestimators import available_if
 
+from .utilities import set_safe_inference_mode
+
 
 class MaskedArrayError(ValueError):
     """Raised when a masked array is passed but safe_inference_mode is False."""
@@ -54,7 +56,15 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
             reduced_X = X[valid_mask]
 
             if y is not None:
-                y = check_array(y, force_all_finite=False)
+                # TODO, how can we check y in the same way as the estimator?
+                y = check_array(
+                    y,
+                    force_all_finite=False,  # accept_sparse="csr",
+                    ensure_2d=False,
+                    dtype=None,
+                    input_name="y",
+                    estimator=obj,
+                )
                 reduced_y = y[valid_mask]
             else:
                 reduced_y = None
