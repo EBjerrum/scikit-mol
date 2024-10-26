@@ -5,7 +5,7 @@ Thanks for your interest in contributing to the project. Please read on in the s
 ## Slack channel
 
 We have a slack channel for communication, ask for an invite: esbenbjerrum+scikit_mol@gmail.com
-It's not really active and Slack wan't to be paid now. Maybe we can use Discord instead.
+It's not really active and Slack wan't to be paid now. Maybe we can use Discord instead as slack is now deleting old threads.
 
 ## Installation
 
@@ -22,12 +22,13 @@ The projects transformers subclasses the BaseEstimator and Transformer mixin cla
 
 - The arguments accepted by **init** should all be keyword arguments with a default value.
 - Every keyword argument accepted by **init** should correspond to an attribute on the instance.
-- - There should be no logic, not even input validation, and the parameters should not be changed.
+- - There should be no logic, not even input validation, and the parameters should not be changed inside the **init** function.
     Scikit-learn classes depends on this in order to for e.g. the .get_params(), .set_params(), cloning abilities and representation rendering to work.
+- With the new error handling, falsy objects need to return masked arrays or arrays with np.nan (for float dtype)
 
 ### Tips
 
-- We have observed that some external tools used "exotic" types such at np.int64 when doing hyperparameter tuning. It is thus necessary to cast to standard types before making calls to rdkit functions. This behaviour is tested in the test_parameter_types test
+- We have observed that some external tools used "exotic" types such at np.int64 when doing hyperparameter tuning. It is thus necessary do defensive programming to cast parameters to standard types before making calls to rdkit functions. This behaviour is tested in the test_parameter_types test
 
 - @property getters and setters can be used if additional logic are needed when setting the attributes from the keywords while at the same time adhering to the sklearn requisites.
 
@@ -48,6 +49,7 @@ parameters and output of methods should preferably be using typehints
 ## Testing
 
 New transformer classes should be added to the pytest tests in the tests directory. A lot of tests are made general, and tests aspects of the transformers that are needed for sklearn compliance or other features. The transformer is then added to a fixture and can be added to the lists of transformer objects that are run by these test. Specific tests may also be necessary to set up. As exampe the assert_transformer_set_params needs a list of non-default parameters in order to set the set_params functionality of the object.
+Scikit-Learn has a check_estimator that we should strive to get to work, some classes of scikit-mol currently does not pass all tests.
 
 ## Notebooks
 
