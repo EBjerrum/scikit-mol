@@ -2,9 +2,8 @@ from multiprocessing import Pool, get_context
 import multiprocessing
 import re
 import inspect
-from typing import Callable
+from warnings import warn
 from typing import Union
-from rdkit import Chem
 from rdkit import DataStructs
 
 # from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
@@ -32,7 +31,6 @@ from abc import ABC, abstractmethod
 _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
     r"^(?P<fingerprint_name>\w+)FingerprintTransformer$"
 )
-
 
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def __init__(
@@ -218,200 +216,6 @@ class MACCSKeysFingerprintTransformer(FpsTransformer):
 
     def _mol2fp(self, mol):
         return rdMolDescriptors.GetMACCSKeysFingerprint(mol)
-
-
-class RDKitFingerprintTransformer(FpsTransformer):
-    def __init__(
-        self,
-        minPath: int = 1,
-        maxPath: int = 7,
-        useHs: bool = True,
-        branchedPaths: bool = True,
-        useBondOrder: bool = True,
-        countSimulation: bool = False,
-        countBounds=None,
-        fpSize: int = 2048,
-        numBitsPerFeature: int = 2,
-        atomInvariantsGenerator=None,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        """Calculates the RDKit fingerprints
-
-        Parameters
-        ----------
-        minPath : int, optional
-            the minimum path length (in bonds) to be included, by default 1
-        maxPath : int, optional
-            the maximum path length (in bonds) to be included, by default 7
-        useHs : bool, optional
-            toggles inclusion of Hs in paths (if the molecule has explicit Hs), by default True
-        branchedPaths : bool, optional
-            toggles generation of branched subgraphs, not just linear paths, by default True
-        useBondOrder : bool, optional
-            toggles inclusion of bond orders in the path hashes, by default True
-        countSimulation : bool, optional
-            if set, use count simulation while generating the fingerprint, by default False
-        countBounds : _type_, optional
-            boundaries for count simulation, corresponding bit will be set if the count is higher than the number provided for that spot, by default None
-        fpSize : int, optional
-            size of the generated fingerprint, does not affect the sparse versions, by default 2048
-        numBitsPerFeature : int, optional
-            the number of bits set per path/subgraph found, by default 2
-        atomInvariantsGenerator : _type_, optional
-            atom invariants to be used during fingerprint generation, by default None
-        """
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.minPath = minPath
-        self.maxPath = maxPath
-        self.useHs = useHs
-        self.branchedPaths = branchedPaths
-        self.useBondOrder = useBondOrder
-        self.countSimulation = countSimulation
-        self.countBounds = countBounds
-        self.fpSize = fpSize
-        self.numBitsPerFeature = numBitsPerFeature
-        self.atomInvariantsGenerator = atomInvariantsGenerator
-
-
-    def _mol2fp(self, mol):
-        generator = rdFingerprintGenerator.GetRDKitFPGenerator(
-            minPath=int(self.minPath),
-            maxPath=int(self.maxPath),
-            useHs=bool(self.useHs),
-            branchedPaths=bool(self.branchedPaths),
-            useBondOrder=bool(self.useBondOrder),
-            countSimulation=bool(self.countSimulation),
-            countBounds=bool(self.countBounds),
-            fpSize=int(self.fpSize),
-            numBitsPerFeature=int(self.numBitsPerFeature),
-            atomInvariantsGenerator=self.atomInvariantsGenerator,
-        )
-        return generator.GetFingerprint(mol)
-
-
-class AtomPairFingerprintTransformer(FpsTransformer):
-    def __init__(
-        self,
-        minLength: int = 1,
-        maxLength: int = 30,
-        fromAtoms=0,
-        ignoreAtoms=0,
-        atomInvariants=0,
-        nBitsPerEntry: int = 4,
-        includeChirality: bool = False,
-        use2D: bool = True,
-        confId: int = -1,
-        fpSize=2048,
-        useCounts: bool = False,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.minLength = minLength
-        self.maxLength = maxLength
-        self.fromAtoms = fromAtoms
-        self.ignoreAtoms = ignoreAtoms
-        self.atomInvariants = atomInvariants
-        self.includeChirality = includeChirality
-        self.use2D = use2D
-        self.confId = confId
-        self.fpSize = fpSize
-        self.nBitsPerEntry = nBitsPerEntry
-        self.useCounts = useCounts
-
-        print("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!")
-        #raise DeprecationWarning("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!")
-
-
-    def _mol2fp(self, mol):
-        if self.useCounts:
-            return rdMolDescriptors.GetHashedAtomPairFingerprint(
-                mol,
-                nBits=int(self.fpSize),
-                minLength=int(self.minLength),
-                maxLength=int(self.maxLength),
-                fromAtoms=self.fromAtoms,
-                ignoreAtoms=self.ignoreAtoms,
-                atomInvariants=self.atomInvariants,
-                includeChirality=bool(self.includeChirality),
-                use2D=bool(self.use2D),
-                confId=int(self.confId),
-            )
-        else:
-            return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(
-                mol,
-                nBits=int(self.fpSize),
-                minLength=int(self.minLength),
-                maxLength=int(self.maxLength),
-                fromAtoms=self.fromAtoms,
-                ignoreAtoms=self.ignoreAtoms,
-                atomInvariants=self.atomInvariants,
-                nBitsPerEntry=int(self.nBitsPerEntry),
-                includeChirality=bool(self.includeChirality),
-                use2D=bool(self.use2D),
-                confId=int(self.confId),
-            )
-
-
-class TopologicalTorsionFingerprintTransformer(FpsTransformer):
-    def __init__(
-        self,
-        targetSize: int = 4,
-        fromAtoms=0,
-        ignoreAtoms=0,
-        atomInvariants=0,
-        includeChirality: bool = False,
-        nBitsPerEntry: int = 4,
-        fpSize=2048,
-        useCounts: bool = False,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.targetSize = targetSize
-        self.fromAtoms = fromAtoms
-        self.ignoreAtoms = ignoreAtoms
-        self.atomInvariants = atomInvariants
-        self.includeChirality = includeChirality
-        self.nBitsPerEntry = nBitsPerEntry
-        self.fpSize = fpSize
-        self.useCounts = useCounts
-        print("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFPGeneatorTransformer, due to changes in RDKit!")
-        #raise DeprecationWarning("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!")
-
-
-    def _mol2fp(self, mol):
-        if self.useCounts:
-            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprint(
-                mol,
-                nBits=int(self.fpSize),
-                targetSize=int(self.targetSize),
-                fromAtoms=self.fromAtoms,
-                ignoreAtoms=self.ignoreAtoms,
-                atomInvariants=self.atomInvariants,
-                includeChirality=bool(self.includeChirality),
-            )
-        else:
-            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprintAsBitVect(
-                mol,
-                nBits=int(self.fpSize),
-                targetSize=int(self.targetSize),
-                fromAtoms=self.fromAtoms,
-                ignoreAtoms=self.ignoreAtoms,
-                atomInvariants=self.atomInvariants,
-                includeChirality=bool(self.includeChirality),
-                nBitsPerEntry=int(self.nBitsPerEntry),
-            )
 
 
 class MHFingerprintTransformer(FpsTransformer):
@@ -602,71 +406,6 @@ class SECFingerprintTransformer(FpsTransformer):
         return self.fpSize
 
 
-class MorganFingerprintTransformer(FpsTransformer):
-    def __init__(
-        self,
-        fpSize=2048,
-        radius=2,
-        useChirality=False,
-        useBondTypes=True,
-        useFeatures=False,
-        useCounts=False,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
-
-        Parameters
-        ----------
-        fpSize : int, optional
-            Size of the hashed fingerprint, by default 2048
-        radius : int, optional
-            Radius of the fingerprint, by default 2
-        useChirality : bool, optional
-            Include chirality in calculation of the fingerprint keys, by default False
-        useBondTypes : bool, optional
-            Include bondtypes in calculation of the fingerprint keys, by default True
-        useFeatures : bool, optional
-            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
-        useCounts : bool, optional
-            If toggled will create the count and not bit-based fingerprint, by default False
-        """
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.fpSize = fpSize
-        self.radius = radius
-        self.useChirality = useChirality
-        self.useBondTypes = useBondTypes
-        self.useFeatures = useFeatures
-        self.useCounts = useCounts
-
-        print("MorganFingerprintTransformer will be replace by MorganGeneratorTransformer, due to changes in RDKit!")
-        #raise DeprecationWarning("MorganFingerprintTransformer will be replace by MorganFPGeneratorTransformer, due to changes in RDKit!")
-
-
-    def _mol2fp(self, mol):
-        if self.useCounts:
-            return rdMolDescriptors.GetHashedMorganFingerprint(
-                mol,
-                int(self.radius),
-                nBits=int(self.fpSize),
-                useFeatures=bool(self.useFeatures),
-                useChirality=bool(self.useChirality),
-                useBondTypes=bool(self.useBondTypes),
-            )
-        else:
-            return rdMolDescriptors.GetMorganFingerprintAsBitVect(
-                mol,
-                int(self.radius),
-                nBits=int(self.fpSize),
-                useFeatures=bool(self.useFeatures),
-                useChirality=bool(self.useChirality),
-                useBondTypes=bool(self.useBondTypes),
-            )
-
-
 class AvalonFingerprintTransformer(FpsTransformer):
     # Fingerprint from the Avalon toolkeit, https://doi.org/10.1021/ci050413p
     def __init__(
@@ -722,6 +461,262 @@ class AvalonFingerprintTransformer(FpsTransformer):
             )
 
 
+class MorganFingerprintTransformer(FpsTransformer):
+    def __init__(
+        self,
+        fpSize=2048,
+        radius=2,
+        useChirality=False,
+        useBondTypes=True,
+        useFeatures=False,
+        useCounts=False,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
+
+        Parameters
+        ----------
+        fpSize : int, optional
+            Size of the hashed fingerprint, by default 2048
+        radius : int, optional
+            Radius of the fingerprint, by default 2
+        useChirality : bool, optional
+            Include chirality in calculation of the fingerprint keys, by default False
+        useBondTypes : bool, optional
+            Include bondtypes in calculation of the fingerprint keys, by default True
+        useFeatures : bool, optional
+            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.fpSize = fpSize
+        self.radius = radius
+        self.useChirality = useChirality
+        self.useBondTypes = useBondTypes
+        self.useFeatures = useFeatures
+        self.useCounts = useCounts
+
+        warn("MorganFingerprintTransformer will be replace by MorganGeneratorTransformer, due to changes in RDKit!", DeprecationWarning)
+
+    def _mol2fp(self, mol):
+        if self.useCounts:
+            return rdMolDescriptors.GetHashedMorganFingerprint(
+                mol,
+                int(self.radius),
+                nBits=int(self.fpSize),
+                useFeatures=bool(self.useFeatures),
+                useChirality=bool(self.useChirality),
+                useBondTypes=bool(self.useBondTypes),
+            )
+        else:
+            return rdMolDescriptors.GetMorganFingerprintAsBitVect(
+                mol,
+                int(self.radius),
+                nBits=int(self.fpSize),
+                useFeatures=bool(self.useFeatures),
+                useChirality=bool(self.useChirality),
+                useBondTypes=bool(self.useBondTypes),
+            )
+
+
+class RDKitFingerprintTransformer(FpsTransformer):
+    def __init__(
+        self,
+        minPath: int = 1,
+        maxPath: int = 7,
+        useHs: bool = True,
+        branchedPaths: bool = True,
+        useBondOrder: bool = True,
+        countSimulation: bool = False,
+        countBounds=None,
+        fpSize: int = 2048,
+        numBitsPerFeature: int = 2,
+        atomInvariantsGenerator=None,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        """Calculates the RDKit fingerprints
+
+        Parameters
+        ----------
+        minPath : int, optional
+            the minimum path length (in bonds) to be included, by default 1
+        maxPath : int, optional
+            the maximum path length (in bonds) to be included, by default 7
+        useHs : bool, optional
+            toggles inclusion of Hs in paths (if the molecule has explicit Hs), by default True
+        branchedPaths : bool, optional
+            toggles generation of branched subgraphs, not just linear paths, by default True
+        useBondOrder : bool, optional
+            toggles inclusion of bond orders in the path hashes, by default True
+        countSimulation : bool, optional
+            if set, use count simulation while generating the fingerprint, by default False
+        countBounds : _type_, optional
+            boundaries for count simulation, corresponding bit will be set if the count is higher than the number provided for that spot, by default None
+        fpSize : int, optional
+            size of the generated fingerprint, does not affect the sparse versions, by default 2048
+        numBitsPerFeature : int, optional
+            the number of bits set per path/subgraph found, by default 2
+        atomInvariantsGenerator : _type_, optional
+            atom invariants to be used during fingerprint generation, by default None
+        """
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.minPath = minPath
+        self.maxPath = maxPath
+        self.useHs = useHs
+        self.branchedPaths = branchedPaths
+        self.useBondOrder = useBondOrder
+        self.countSimulation = countSimulation
+        self.countBounds = countBounds
+        self.fpSize = fpSize
+        self.numBitsPerFeature = numBitsPerFeature
+        self.atomInvariantsGenerator = atomInvariantsGenerator
+
+        warn("RDKitFingerprintTransformer will be replace by RDKitFPGeneratorTransformer, due to changes in RDKit!", DeprecationWarning)
+
+
+    def _mol2fp(self, mol):
+        generator = rdFingerprintGenerator.GetRDKitFPGenerator(
+            minPath=int(self.minPath),
+            maxPath=int(self.maxPath),
+            useHs=bool(self.useHs),
+            branchedPaths=bool(self.branchedPaths),
+            useBondOrder=bool(self.useBondOrder),
+            countSimulation=bool(self.countSimulation),
+            countBounds=bool(self.countBounds),
+            fpSize=int(self.fpSize),
+            numBitsPerFeature=int(self.numBitsPerFeature),
+            atomInvariantsGenerator=self.atomInvariantsGenerator,
+        )
+        return generator.GetFingerprint(mol)
+
+
+class AtomPairFingerprintTransformer(FpsTransformer):
+    def __init__(
+        self,
+        minLength: int = 1,
+        maxLength: int = 30,
+        fromAtoms=0,
+        ignoreAtoms=0,
+        atomInvariants=0,
+        nBitsPerEntry: int = 4,
+        includeChirality: bool = False,
+        use2D: bool = True,
+        confId: int = -1,
+        fpSize=2048,
+        useCounts: bool = False,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.minLength = minLength
+        self.maxLength = maxLength
+        self.fromAtoms = fromAtoms
+        self.ignoreAtoms = ignoreAtoms
+        self.atomInvariants = atomInvariants
+        self.includeChirality = includeChirality
+        self.use2D = use2D
+        self.confId = confId
+        self.fpSize = fpSize
+        self.nBitsPerEntry = nBitsPerEntry
+        self.useCounts = useCounts
+
+        warn("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!", DeprecationWarning)
+
+    def _mol2fp(self, mol):
+        if self.useCounts:
+            return rdMolDescriptors.GetHashedAtomPairFingerprint(
+                mol,
+                nBits=int(self.fpSize),
+                minLength=int(self.minLength),
+                maxLength=int(self.maxLength),
+                fromAtoms=self.fromAtoms,
+                ignoreAtoms=self.ignoreAtoms,
+                atomInvariants=self.atomInvariants,
+                includeChirality=bool(self.includeChirality),
+                use2D=bool(self.use2D),
+                confId=int(self.confId),
+            )
+        else:
+            return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(
+                mol,
+                nBits=int(self.fpSize),
+                minLength=int(self.minLength),
+                maxLength=int(self.maxLength),
+                fromAtoms=self.fromAtoms,
+                ignoreAtoms=self.ignoreAtoms,
+                atomInvariants=self.atomInvariants,
+                nBitsPerEntry=int(self.nBitsPerEntry),
+                includeChirality=bool(self.includeChirality),
+                use2D=bool(self.use2D),
+                confId=int(self.confId),
+            )
+
+
+class TopologicalTorsionFingerprintTransformer(FpsTransformer):
+    def __init__(
+        self,
+        targetSize: int = 4,
+        fromAtoms=0,
+        ignoreAtoms=0,
+        atomInvariants=0,
+        includeChirality: bool = False,
+        nBitsPerEntry: int = 4,
+        fpSize=2048,
+        useCounts: bool = False,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.targetSize = targetSize
+        self.fromAtoms = fromAtoms
+        self.ignoreAtoms = ignoreAtoms
+        self.atomInvariants = atomInvariants
+        self.includeChirality = includeChirality
+        self.nBitsPerEntry = nBitsPerEntry
+        self.fpSize = fpSize
+        self.useCounts = useCounts
+
+        warn("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFPGeneatorTransformer, due to changes in RDKit!", DeprecationWarning)
+
+    def _mol2fp(self, mol):
+        if self.useCounts:
+            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprint(
+                mol,
+                nBits=int(self.fpSize),
+                targetSize=int(self.targetSize),
+                fromAtoms=self.fromAtoms,
+                ignoreAtoms=self.ignoreAtoms,
+                atomInvariants=self.atomInvariants,
+                includeChirality=bool(self.includeChirality),
+            )
+        else:
+            return rdMolDescriptors.GetHashedTopologicalTorsionFingerprintAsBitVect(
+                mol,
+                nBits=int(self.fpSize),
+                targetSize=int(self.targetSize),
+                fromAtoms=self.fromAtoms,
+                ignoreAtoms=self.ignoreAtoms,
+                atomInvariants=self.atomInvariants,
+                includeChirality=bool(self.includeChirality),
+                nBitsPerEntry=int(self.nBitsPerEntry),
+            )
+
+
 def parallel_helper(args):
     """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
     Then instantiates the class with the parameters and processes the mol.
@@ -731,6 +726,7 @@ def parallel_helper(args):
 
     transformer = getattr(fingerprints, classname)(**parameters)
     return transformer._transform(X_mols)
+
 
 class FpsGeneratorTransformer(FpsTransformer):
     _regenerate_on_properties = ()
