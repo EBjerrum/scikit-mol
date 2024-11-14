@@ -131,31 +131,17 @@ def test_set_params(
     ]:
         params = t.get_params()
         # change extracted dictionary
-        params["nBits"] = 4242
+        params["fpSize"] = 4242
         # change params in transformer
-        t.set_params(nBits=4242)
+        t.set_params(fpSize=4242)
         # get parameters as dictionary and assert that it is the same
         params_2 = t.get_params()
         assert all([params[key] == params_2[key] for key in params.keys()])
 
-    for t in [rdkit_transformer]:
+    for t in [rdkit_transformer, secfp_transformer, mhfp_transformer]:
         params = t.get_params()
         params["fpSize"] = 4242
         t.set_params(fpSize=4242)
-        params_2 = t.get_params()
-        assert all([params[key] == params_2[key] for key in params.keys()])
-
-    for t in [secfp_transformer]:
-        params = t.get_params()
-        params["length"] = 4242
-        t.set_params(length=4242)
-        params_2 = t.get_params()
-        assert all([params[key] == params_2[key] for key in params.keys()])
-
-    for t in [mhfp_transformer]:
-        params = t.get_params()
-        params["n_permutations"] = 4242
-        t.set_params(n_permutations=4242)
         params_2 = t.get_params()
         assert all([params[key] == params_2[key] for key in params.keys()])
 
@@ -183,21 +169,13 @@ def test_transform(
         avalon_transformer,
     ]:
         params = t.get_params()
+        print(type(t), params)
         fps = t.transform(mols_container)
         # Assert that the same length of input and output
         assert len(fps) == len(mols_container)
 
         # assert that the size of the fingerprint is the expected size
-        if (
-            type(t) == type(maccs_transformer)
-            or type(t) == type(secfp_transformer)
-            or type(t) == type(mhfp_transformer)
-        ):
-            fpsize = t.nBits
-        elif type(t) == type(rdkit_transformer):
-            fpsize = params["fpSize"]
-        else:
-            fpsize = params["nBits"]
+        fpsize = params["fpSize"]
 
         assert len(fps[0]) == fpsize
 
@@ -231,16 +209,7 @@ def test_transform_parallel(
         assert len(fps) == len(mols_container)
 
         # assert that the size of the fingerprint is the expected size
-        if (
-            type(t) == type(maccs_transformer)
-            or type(t) == type(secfp_transformer)
-            or type(t) == type(mhfp_transformer)
-        ):
-            fpsize = t.nBits
-        elif type(t) == type(rdkit_transformer):
-            fpsize = params["fpSize"]
-        else:
-            fpsize = params["nBits"]
+        fpsize = params["fpSize"]
 
         assert len(fps[0]) == fpsize
 
@@ -306,7 +275,7 @@ def assert_transformer_set_params(tr_class, new_params, mols_list):
 
 def test_morgan_set_params(chiral_mols_list):
     new_params = {
-        "nBits": 1024,
+        "fpSize": 1024,
         "radius": 1,
         "useBondTypes": False,  # TODO, why doesn't this change the FP?
         "useChirality": True,
@@ -328,7 +297,7 @@ def test_atompairs_set_params(chiral_mols_list):
         "includeChirality": True,
         "maxLength": 3,
         "minLength": 3,
-        "nBits": 1024,
+        "fpSize": 1024,
         "nBitsPerEntry": 3,
         #'use2D': True, #TODO, understand why this can't be set different
         "useCounts": True,
@@ -344,7 +313,7 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
         #'fromAtoms': 0,
         #'ignoreAtoms': 0,
         #'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
-        "nBits": 1024,
+        "fpSize": 1024,
         "nBitsPerEntry": 3,
         "targetSize": 5,
         "useCounts": True,
@@ -376,7 +345,7 @@ def test_SECFingerprintTransformer(chiral_mols_list):
     new_params = {
         "isomeric": True,
         "kekulize": True,
-        "length": 1048,
+        "fpSize": 1048,
         "min_radius": 2,
         #'n_permutations': 2, # The SECFp is not using this setting
         "radius": 2,
@@ -395,7 +364,7 @@ def test_MHFingerprintTransformer(chiral_mols_list):
         "isomeric": True,
         "kekulize": True,
         "min_radius": 2,
-        "n_permutations": 4096,
+        "fpSize": 4096,
         "seed": 44,
     }
     assert_transformer_set_params(
@@ -405,7 +374,7 @@ def test_MHFingerprintTransformer(chiral_mols_list):
 
 def test_AvalonFingerprintTransformer(chiral_mols_list):
     new_params = {
-        "nBits": 1024,
+        "fpSize": 1024,
         "isQuery": True,
         # 'resetVect': True, #TODO: this doesn't change the FP
         "bitFlags": 32767,

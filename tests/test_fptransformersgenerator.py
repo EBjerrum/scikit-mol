@@ -60,9 +60,9 @@ def test_set_params(transformer_class):
     transformer = transformer_class()
     params   = transformer.get_params()
     #change extracted dictionary
-    params['nBits'] = 4242
+    params['fpSize'] = 4242
     #change params in transformer
-    transformer.set_params(nBits = 4242)
+    transformer.set_params(fpSize = 4242)
     # get parameters as dictionary and assert that it is the same
     params_2 = transformer.get_params()
     assert all([ params[key] == params_2[key] for key in params.keys()])
@@ -76,7 +76,7 @@ def test_transform(mols_container, transformer_class):
     #Assert that the same length of input and output
     assert len(fps) == len(mols_container)
 
-    fpsize = params['nBits']
+    fpsize = params['fpSize']
 
     assert len(fps[0]) == fpsize
 
@@ -90,7 +90,7 @@ def test_transform_parallel(mols_container, transformer_class):
     #Assert that the same length of input and output
     assert len(fps) == len(mols_container)
 
-    fpsize = params['nBits']
+    fpsize = params['fpSize']
     assert len(fps[0]) == fpsize
 
 
@@ -134,7 +134,7 @@ def assert_transformer_set_params(transfomer, new_params, mols_list):
 
 
 def test_morgan_set_params(chiral_mols_list):
-    new_params = {'nBits': 1024,
+    new_params = {'fpSize': 1024,
                 'radius': 1,
                 'useBondTypes': False,# TODO, why doesn't this change the FP?
                 'useChirality': True,
@@ -153,7 +153,7 @@ def test_atompairs_set_params(chiral_mols_list):
         'includeChirality': True, 
         'maxLength': 3,
         'minLength': 3,
-        'nBits': 1024,
+        'fpSize': 1024,
         #'nBitsPerEntry': 3, #Todo: not setable with the generators?
         #'use2D': True, #TODO, understand why this can't be set different
         'useCounts': True}
@@ -166,7 +166,7 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
                     #'fromAtoms': 0,
                     #'ignoreAtoms': 0,
                     #'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
-                    'nBits': 1024,
+                    'fpSize': 1024,
                     #'nBitsPerEntry': 3, #Todo: not setable with the generators?
                     'targetSize': 5,
                     'useCounts': True}
@@ -178,7 +178,7 @@ def test_RDKitFPTransformer(chiral_mols_list):
                 #'branchedPaths': False,
                 #'countBounds': 0, #TODO: What does this do?
                 'countSimulation': True,
-                'nBits': 1024,
+                'fpSize': 1024,
                 'maxPath': 3,
                 'minPath': 2,
                 'numBitsPerFeature': 3,

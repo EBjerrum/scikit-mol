@@ -96,11 +96,12 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
             X_transformed = pipeline.transform(X_smiles)
             assert isinstance(X_transformed, pd.DataFrame), f"the output of {FP_name} is not a pandas dataframe"
             assert X_transformed.shape[0] == len(X_smiles), f"the number of rows in the output of {FP_name} is not equal to the number of samples"
-            assert len(X_transformed.columns) == pipeline.named_steps["FP"].nBits, f"the number of columns in the output of {FP_name} is not equal to the number of bits"
+            assert len(X_transformed.columns) == pipeline.named_steps["FP"].fpSize, f"the number of columns in the output of {FP_name} is not equal to the number of bits"
             print(f"\nfitting and transforming completed")
 
-        except:
+        except Exception as err:
             print(f"\n!!!! FAILED pipeline fitting and transforming for {FP_name} with useCounts={useCounts}")
+            print("\n".join(err.args))
             failed_FP.append(FP_name)
             pass
 
@@ -136,7 +137,7 @@ def test_combined_transformer_pandas_out(combined_transformer, SLC6A4_subset_wit
     pipeline_skmol = combined_transformer.named_transformers_["pipeline-1"]
     featurizer_skmol = pipeline_skmol[-1]
     if isinstance(featurizer_skmol, FpsTransformer):
-        n_skmol_features = featurizer_skmol.nBits
+        n_skmol_features = featurizer_skmol.fpSize
     elif isinstance(featurizer_skmol, MolecularDescriptorTransformer):
         n_skmol_features = len(featurizer_skmol.desc_list)
     else:
