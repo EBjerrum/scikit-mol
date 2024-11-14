@@ -48,6 +48,11 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
   - Standardizer
 
 <br>
+- safeinference
+  - SafeInferenceWrapper
+  - set_safe_inference_mode
+
+<br>
 
 - Utilities
   - CheckSmilesSanitazion
@@ -57,6 +62,12 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
 Users can install latest tagged release from pip
 
     pip install scikit-mol
+
+or from conda-forge
+
+    conda install -c conda-forge scikit-mol
+
+The conda forge package should get updated shortly after a new tagged release on pypi.
 
 Bleeding edge
 
@@ -76,6 +87,7 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 - [Using skopt for hyperparameter tuning](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/08_external_library_skopt.ipynb)
 - [Testing different fingerprints as part of the hyperparameter optimization](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers.ipynb)
 - [Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/10_pipeline_pandas_output.ipynb)
+- [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/11_safe_inference.ipynb)
 
   We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
@@ -100,3 +112,5 @@ Probably still, please check issues at GitHub and report there
 - [@VincentAlexanderScholz](https://github.com/VincentAlexanderScholz)
 - [@RiesBen](https://github.com/RiesBen)
 - [@enricogandini](https://github.com/enricogandini)
+- [@mikemhenry](https://github.com/mikemhenry)
+- [@c-feldmann](https://github.com/c-feldmann)
