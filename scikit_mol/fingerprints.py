@@ -45,6 +45,17 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         self.safe_inference_mode = safe_inference_mode
         self.dtype = dtype
 
+
+    @property
+    def nBits(self):
+        warn("nBits will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        return self.fpSize
+
+    @nBits.setter
+    def nBits(self, nBits):
+        warn("nBits will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        self.fpSize = nBits
+
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
         if matched:
@@ -299,10 +310,12 @@ class MHFingerprintTransformer(FpsTransformer):
 
     @property
     def n_permutations(self):
+        warn("n_permutations will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
         return self.fpSize
 
     @n_permutations.setter
     def n_permutations(self, n_permutations):
+        warn("n_permutations will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
         self.fpSize = n_permutations
         # each time the n_permutations parameter is modified refresh an instance of the encoder
         self._recreate_encoder()
@@ -402,7 +415,7 @@ class SECFingerprintTransformer(FpsTransformer):
 
     @property
     def length(self):
-        # to be compliant with the requirement of the base class
+        warn("length will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
         return self.fpSize
 
 
