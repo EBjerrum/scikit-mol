@@ -15,9 +15,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
-from scikit_mol.fingerprints import FpsTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
-                                    TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
-                                    MHFingerprintTransformer, AvalonFingerprintTransformer
+from scikit_mol.fingerprints import (FpsTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer,
+                                    TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer,
+                                    MHFingerprintTransformer, AvalonFingerprintTransformer, MorganFPGeneratorTransformer,
+                                     RDKitFPGeneratorTransformer, AtomPairFPGeneratorTransformer, TopologicalTorsionFPGeneatorTransformer)
+
 from scikit_mol.descriptors import MolecularDescriptorTransformer
 
 from fixtures import SLC6A4_subset, SLC6A4_subset_with_cddd, skip_pandas_output_test, mols_container, featurizer, combined_transformer
@@ -28,6 +30,9 @@ def test_transformer(SLC6A4_subset):
     X_smiles = X_smiles.to_frame()
     X_train, X_test = X_smiles[:128], X_smiles[128:]
     Y_train, Y_test = Y[:128], Y[128:]
+
+    MorganFPGeneratorTransformer,
+    RDKitFPGeneratorTransformer, AtomPairFPGeneratorTransformer, TopologicalTorsionFPGeneatorTransformer
 
     # run FP with default parameters except when useCounts can be given as an argument
     FP_dict = {"MACCSTransformer": [MACCSKeysFingerprintTransformer, None],
@@ -40,7 +45,15 @@ def test_transformer(SLC6A4_subset):
                "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
                "SECFingerprintTransformer": [SECFingerprintTransformer, None],
                "MHFingerprintTransformer": [MHFingerprintTransformer, None],
-               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None]}
+               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer, True],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer, False],
+               'RDKitFPGeneratorTransformer': [RDKitFPGeneratorTransformer, None],
+               'AtomPairFPGeneratorTransformer': [AtomPairFPGeneratorTransformer, True],
+               'AtomPairFPGeneratorTransformer': [ AtomPairFPGeneratorTransformer, False],
+               'TopologicalTorsionFPGeneatorTransformer': [TopologicalTorsionFPGeneatorTransformer, True],
+               'TopologicalTorsionFPGeneatorTransformer': [ TopologicalTorsionFPGeneatorTransformer, False],
+               }
 
     # fit on toy data and print train/test score if successful or collect the failed FP
     failed_FP = []
@@ -81,7 +94,22 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
                "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
                "SECFingerprintTransformer": [SECFingerprintTransformer, None],
                "MHFingerprintTransformer": [MHFingerprintTransformer, None],
-               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None]}
+               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer,
+                                                True],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer,
+                                                False],
+               'RDKitFPGeneratorTransformer': [RDKitFPGeneratorTransformer,
+                                               None],
+               'AtomPairFPGeneratorTransformer': [
+                   AtomPairFPGeneratorTransformer, True],
+               'AtomPairFPGeneratorTransformer': [
+                   AtomPairFPGeneratorTransformer, False],
+               'TopologicalTorsionFPGeneatorTransformer': [
+                   TopologicalTorsionFPGeneatorTransformer, True],
+               'TopologicalTorsionFPGeneatorTransformer': [
+                   TopologicalTorsionFPGeneatorTransformer, False],
+               }
 
     # fit on toy data and check that the output is a pandas dataframe
     failed_FP = []
