@@ -2,7 +2,8 @@ from multiprocessing import Pool, get_context
 import multiprocessing
 import re
 import inspect
-from warnings import warn
+from warnings import warn, simplefilter
+
 from typing import Union
 from rdkit import DataStructs
 
@@ -30,6 +31,7 @@ from scikit_mol.core import check_transform_input
 
 from abc import ABC, abstractmethod
 
+simplefilter("always", DeprecationWarning)
 
 _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
     r"^(?P<fingerprint_name>\w+)FingerprintTransformer$"
@@ -47,21 +49,26 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
         self.start_method = start_method
         self.safe_inference_mode = safe_inference_mode
 
+    # TODO, remove when finally deprecating nBits and dtype
     @property
     def nBits(self):
         warn(
-            "nBits will be replace by fpSize, due to changes harmonization!",
+            "nBits will be replaced by fpSize, due to changes harmonization!",
             DeprecationWarning,
+            stacklevel=2,
         )
         return self.fpSize
 
+    # TODO, remove when finally deprecating nBits and dtype
     @nBits.setter
     def nBits(self, nBits):
-        warn(
-            "nBits will be replace by fpSize, due to changes harmonization!",
-            DeprecationWarning,
-        )
-        self.fpSize = nBits
+        if nBits is not None:
+            warn(
+                "nBits will be replaced by fpSize, due to changes harmonization!",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+            self.fpSize = nBits
 
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
@@ -229,6 +236,13 @@ class FpsTransformer(BaseFpsTransformer):
         else:
             return np.ma.masked_all((self.fpSize,), dtype=self.dtype)
 
+    # TODO, remove when finally deprecating nBits
+    def _get_param_names(self):
+        """Get parameter names excluding deprecated parameters"""
+        params = super()._get_param_names()
+        # Remove deprecated parameters before they're accessed
+        return [p for p in params if p not in ("nBits")]
+
 
 class FpsGeneratorTransformer(BaseFpsTransformer):
     _regenerate_on_properties = ()
@@ -277,6 +291,35 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
         MUST BE OVERWRITTEN
         """
         raise NotImplementedError("_transform_mol not implemented")
+
+    # TODO, remove when finally deprecating nBits and dtype
+    @property
+    def dtype(self):
+        warn(
+            "dtype is no longer supported, due to move to generator based fingerprints",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return None
+
+    # TODO, remove when finally deprecating nBits and dtype
+    @dtype.setter
+    def dtype(self, dtype):
+        if dtype is not None:
+            print("Tester")
+            warn(
+                "dtype is no longer supported, due to move to generator based fingerprints",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+        pass
+
+    # TODO, remove when finally deprecating nBits and dtype
+    def _get_param_names(self):
+        """Get parameter names excluding deprecated parameters"""
+        params = super()._get_param_names()
+        # Remove deprecated parameters before they're accessed
+        return [p for p in params if p not in ("dtype", "nBits")]
 
 
 def parallel_helper(args):

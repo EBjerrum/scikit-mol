@@ -99,6 +99,8 @@ class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
         useCounts=False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
+        dtype: np.dtype = None,
+        nBits: int = None,
     ):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
@@ -130,6 +132,8 @@ class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
         self.useFeatures = useFeatures
         self.useCounts = useCounts
         self.useBondTypes = useBondTypes
+        self.dtype = dtype
+        self.nBits = nBits
 
         self._generate_fp_generator()
         delattr(self, "_initializing")
