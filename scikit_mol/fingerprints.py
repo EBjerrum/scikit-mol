@@ -1,8 +1,9 @@
 from multiprocessing import Pool, get_context
 import multiprocessing
 import re
+import inspect
+from warnings import warn
 from typing import Union
-from rdkit import Chem
 from rdkit import DataStructs
 
 # from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
@@ -10,6 +11,11 @@ from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem import rdFingerprintGenerator
 from rdkit.Chem import rdMHFPFingerprint
 from rdkit.Avalon import pyAvalonTools
+
+from rdkit.Chem.rdFingerprintGenerator import (GetMorganGenerator, GetMorganFeatureAtomInvGen,
+                                               GetTopologicalTorsionGenerator,
+                                               GetAtomPairGenerator,
+                                               GetRDKitFPGenerator)
 
 import numpy as np
 import pandas as pd
@@ -26,7 +32,6 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
     r"^(?P<fingerprint_name>\w+)FingerprintTransformer$"
 )
 
-
 class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def __init__(
         self,
@@ -40,6 +45,17 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         self.safe_inference_mode = safe_inference_mode
         self.dtype = dtype
 
+
+    @property
+    def nBits(self):
+        warn("nBits will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        return self.fpSize
+
+    @nBits.setter
+    def nBits(self, nBits):
+        warn("nBits will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        self.fpSize = nBits
+
     def _get_column_prefix(self) -> str:
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
         if matched:
@@ -49,7 +65,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
             return "fp"
 
     def _get_n_digits_column_suffix(self) -> int:
-        return len(str(self.nBits))
+        return len(str(self.fpSize))
 
     def get_display_feature_names_out(self, input_features=None):
         """Get feature names for display purposes
@@ -61,7 +77,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         prefix = self._get_column_prefix()
         n_digits = self._get_n_digits_column_suffix()
         return np.array(
-            [f"{prefix}_{str(i).zfill(n_digits)}" for i in range(1, self.nBits + 1)]
+            [f"{prefix}_{str(i).zfill(n_digits)}" for i in range(1, self.fpSize + 1)]
         )
 
     def get_feature_names_out(self, input_features=None):
@@ -71,7 +87,7 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         to get the column names of the transformed dataframe.
         """
         prefix = self._get_column_prefix()
-        return np.array([f"{prefix}_{i}" for i in range(1, self.nBits + 1)])
+        return np.array([f"{prefix}_{i}" for i in range(1, self.fpSize + 1)])
 
     @abstractmethod
     def _mol2fp(self, mol):
@@ -83,11 +99,11 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
 
     def _fp2array(self, fp):
         if fp:
-            arr = np.zeros((self.nBits,), dtype=self.dtype)
+            arr = np.zeros((self.fpSize,), dtype=self.dtype)
             DataStructs.ConvertToNumpyArray(fp, arr)
             return arr
         else:
-            return np.ma.masked_all((self.nBits,), dtype=self.dtype)
+            return np.ma.masked_all((self.fpSize,), dtype=self.dtype)
 
     def _transform_mol(self, mol):
         if not mol and self.safe_inference_mode:
@@ -113,16 +129,17 @@ class FpsTransformer(ABC, BaseEstimator, TransformerMixin):
         if self.safe_inference_mode:
             # Use the new method with masked arrays if we're in safe inference mode
             arrays = [self._transform_mol(mol) for mol in X]
+            print(arrays)
             return np.ma.stack(arrays)
         else:
             # Use the original, faster method if we're not in safe inference mode
-            arr = np.zeros((len(X), self.nBits), dtype=self.dtype)
+            arr = np.zeros((len(X), self.fpSize), dtype=self.dtype)
             for i, mol in enumerate(X):
                 arr[i, :] = self._transform_mol(mol)
             return arr
 
     def _transform_sparse(self, X):
-        arr = np.zeros((len(X), self.nBits), dtype=self.dtype)
+        arr = np.zeros((len(X), self.fpSize), dtype=self.dtype)
         for i, mol in enumerate(X):
             arr[i, :] = self._transform_mol(mol)
 
@@ -182,6 +199,7 @@ class MACCSKeysFingerprintTransformer(FpsTransformer):
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
+        fpSize=167,
     ):
         """MACCS keys fingerprinter
         calculates the 167 fixed MACCS keys
@@ -189,22 +207,334 @@ class MACCSKeysFingerprintTransformer(FpsTransformer):
         super().__init__(
             parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
         )
-        self.nBits = 167
+        if fpSize != 167:
+            raise ValueError(
+                "fpSize can only be 167, matching the number of defined MACCS keys!"
+            )
+        self._fpSize = fpSize
 
     @property
-    def nBits(self):
-        return self._nBits
+    def fpSize(self):
+        return self._fpSize
 
-    @nBits.setter
-    def nBits(self, nBits):
-        if nBits != 167:
+    @fpSize.setter
+    def fpSize(self, fpSize):
+        if fpSize != 167:
             raise ValueError(
-                "nBits can only be 167, matching the number of defined MACCS keys!"
+                "fpSize can only be 167, matching the number of defined MACCS keys!"
             )
-        self._nBits = nBits
+        self._fpSize = fpSize
 
     def _mol2fp(self, mol):
         return rdMolDescriptors.GetMACCSKeysFingerprint(mol)
+
+
+class MHFingerprintTransformer(FpsTransformer):
+    def __init__(
+        self,
+        radius: int = 3,
+        rings: bool = True,
+        isomeric: bool = False,
+        kekulize: bool = False,
+        min_radius: int = 1,
+        fpSize: int = 2048,
+        seed: int = 42,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int32,
+    ):
+        """Transforms the RDKit mol into the MinHash fingerprint (MHFP)
+
+        https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
+
+        Args:
+            radius (int, optional): The MHFP radius. Defaults to 3.
+            rings (bool, optional): Whether or not to include rings in the shingling. Defaults to True.
+            isomeric (bool, optional): Whether the isomeric SMILES to be considered. Defaults to False.
+            kekulize (bool, optional): Whether or not to kekulize the extracted SMILES. Defaults to False.
+            min_radius (int, optional): The minimum radius that is used to extract n-gram. Defaults to 1.
+            fpSize (int, optional): The number of permutations used for hashing. Defaults to 2048,
+            this is effectively the length of the FP
+            seed (int, optional): The value used to seed numpy.random. Defaults to 0.
+        """
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.radius = radius
+        self.rings = rings
+        self.isomeric = isomeric
+        self.kekulize = kekulize
+        self.min_radius = min_radius
+        # Set the .n_permutations and .seed without creating the encoder twice
+        self.fpSize = fpSize
+        self._seed = seed
+        # create the encoder instance
+        self._recreate_encoder()
+
+    def __getstate__(self):
+        # Get the state of the parent class
+        state = super().__getstate__()
+        # Remove the unpicklable property from the state
+        state.pop("mhfp_encoder", None)  # mhfp_encoder is not picklable
+        return state
+
+    def __setstate__(self, state):
+        # Restore the state of the parent class
+        super().__setstate__(state)
+        # Re-create the unpicklable property
+        self._recreate_encoder()
+
+    def _mol2fp(self, mol):
+        fp = self.mhfp_encoder.EncodeMol(
+            mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius
+        )
+        return fp
+
+    def _fp2array(self, fp):
+        return np.array(fp)
+
+    def _recreate_encoder(self):
+        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(
+            self.fpSize, self._seed
+        )
+
+    @property
+    def seed(self):
+        return self._seed
+
+    @seed.setter
+    def seed(self, seed):
+        self._seed = seed
+        # each time the seed parameter is modified refresh an instance of the encoder
+        self._recreate_encoder()
+
+    @property
+    def n_permutations(self):
+        warn("n_permutations will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        return self.fpSize
+
+    @n_permutations.setter
+    def n_permutations(self, n_permutations):
+        warn("n_permutations will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        self.fpSize = n_permutations
+        # each time the n_permutations parameter is modified refresh an instance of the encoder
+        self._recreate_encoder()
+
+
+class SECFingerprintTransformer(FpsTransformer):
+    # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
+    def __init__(
+        self,
+        radius: int = 3,
+        rings: bool = True,
+        isomeric: bool = False,
+        kekulize: bool = False,
+        min_radius: int = 1,
+        fpSize: int = 2048,
+        n_permutations: int = 0,
+        seed: int = 0,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        """Transforms the RDKit mol into the SMILES extended connectivity fingerprint (SECFP)
+
+        Args:
+            radius (int, optional): The MHFP radius. Defaults to 3.
+            rings (bool, optional): Whether or not to include rings in the shingling. Defaults to True.
+            isomeric (bool, optional): Whether the isomeric SMILES to be considered. Defaults to False.
+            kekulize (bool, optional): Whether or not to kekulize the extracted SMILES. Defaults to False.
+            min_radius (int, optional): The minimum radius that is used to extract n-gram. Defaults to 1.
+            fpSize (int, optional): The length of the folded fingerprint. Defaults to 2048.
+            n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
+            seed (int, optional): The value used to seed numpy.random. Defaults to 0.
+        """
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.radius = radius
+        self.rings = rings
+        self.isomeric = isomeric
+        self.kekulize = kekulize
+        self.min_radius = min_radius
+        self.fpSize = fpSize
+        # Set the .n_permutations and seed without creating the encoder twice
+        self._n_permutations = n_permutations
+        self._seed = seed
+        # create the encoder instance
+        self._recreate_encoder()
+
+    def __getstate__(self):
+        # Get the state of the parent class
+        state = super().__getstate__()
+        # Remove the unpicklable property from the state
+        state.pop("mhfp_encoder", None)  # mhfp_encoder is not picklable
+        return state
+
+    def __setstate__(self, state):
+        # Restore the state of the parent class
+        super().__setstate__(state)
+        # Re-create the unpicklable property
+        self._recreate_encoder()
+
+    def _mol2fp(self, mol):
+        return self.mhfp_encoder.EncodeSECFPMol(
+            mol,
+            self.radius,
+            self.rings,
+            self.isomeric,
+            self.kekulize,
+            self.min_radius,
+            self.length,
+        )
+
+    def _recreate_encoder(self):
+        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(
+            self._n_permutations, self._seed
+        )
+
+    @property
+    def seed(self):
+        return self._seed
+
+    @seed.setter
+    def seed(self, seed):
+        self._seed = seed
+        # each time the seed parameter is modified refresh an instace of the encoder
+        self._recreate_encoder()
+
+    @property
+    def n_permutations(self):
+        return self._n_permutations
+
+    @n_permutations.setter
+    def n_permutations(self, n_permutations):
+        self._n_permutations = n_permutations
+        # each time the n_permutations parameter is modified refresh an instace of the encoder
+        self._recreate_encoder()
+
+    @property
+    def length(self):
+        warn("length will be replace by fpSize, due to changes harmonization!", DeprecationWarning)
+        return self.fpSize
+
+
+class AvalonFingerprintTransformer(FpsTransformer):
+    # Fingerprint from the Avalon toolkeit, https://doi.org/10.1021/ci050413p
+    def __init__(
+        self,
+        fpSize: int = 512,
+        isQuery: bool = False,
+        resetVect: bool = False,
+        bitFlags: int = 15761407,
+        useCounts: bool = False,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        """Transform RDKit mols into Count or bit-based Avalon Fingerprints
+
+        Parameters
+        ----------
+        fpSize : int, optional
+            Size of the fingerprint, by default 512
+        isQuery : bool, optional
+            use the fingerprint for a query structure, by default False
+        resetVect : bool, optional
+            reset vector, by default False      NB: only used in GetAvalonFP (not for GetAvalonCountFP)
+        bitFlags : int, optional
+            Substructure fingerprint (32767) or similarity fingerprint (15761407) by default 15761407
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.fpSize = fpSize
+        self.isQuery = isQuery
+        self.resetVect = resetVect
+        self.bitFlags = bitFlags
+        self.useCounts = useCounts
+
+    def _mol2fp(self, mol):
+        if self.useCounts:
+            return pyAvalonTools.GetAvalonCountFP(
+                mol,
+                nBits=int(self.fpSize),
+                isQuery=bool(self.isQuery),
+                bitFlags=int(self.bitFlags),
+            )
+        else:
+            return pyAvalonTools.GetAvalonFP(
+                mol,
+                nBits=int(self.fpSize),
+                isQuery=bool(self.isQuery),
+                resetVect=bool(self.resetVect),
+                bitFlags=int(self.bitFlags),
+            )
+
+
+class MorganFingerprintTransformer(FpsTransformer):
+    def __init__(
+        self,
+        fpSize=2048,
+        radius=2,
+        useChirality=False,
+        useBondTypes=True,
+        useFeatures=False,
+        useCounts=False,
+        parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
+        dtype: np.dtype = np.int8,
+    ):
+        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
+
+        Parameters
+        ----------
+        fpSize : int, optional
+            Size of the hashed fingerprint, by default 2048
+        radius : int, optional
+            Radius of the fingerprint, by default 2
+        useChirality : bool, optional
+            Include chirality in calculation of the fingerprint keys, by default False
+        useBondTypes : bool, optional
+            Include bondtypes in calculation of the fingerprint keys, by default True
+        useFeatures : bool, optional
+            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
+        super().__init__(
+            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+        )
+        self.fpSize = fpSize
+        self.radius = radius
+        self.useChirality = useChirality
+        self.useBondTypes = useBondTypes
+        self.useFeatures = useFeatures
+        self.useCounts = useCounts
+
+        warn("MorganFingerprintTransformer will be replace by MorganGeneratorTransformer, due to changes in RDKit!", DeprecationWarning)
+
+    def _mol2fp(self, mol):
+        if self.useCounts:
+            return rdMolDescriptors.GetHashedMorganFingerprint(
+                mol,
+                int(self.radius),
+                nBits=int(self.fpSize),
+                useFeatures=bool(self.useFeatures),
+                useChirality=bool(self.useChirality),
+                useBondTypes=bool(self.useBondTypes),
+            )
+        else:
+            return rdMolDescriptors.GetMorganFingerprintAsBitVect(
+                mol,
+                int(self.radius),
+                nBits=int(self.fpSize),
+                useFeatures=bool(self.useFeatures),
+                useChirality=bool(self.useChirality),
+                useBondTypes=bool(self.useBondTypes),
+            )
 
 
 class RDKitFingerprintTransformer(FpsTransformer):
@@ -263,14 +593,8 @@ class RDKitFingerprintTransformer(FpsTransformer):
         self.numBitsPerFeature = numBitsPerFeature
         self.atomInvariantsGenerator = atomInvariantsGenerator
 
-    @property
-    def fpSize(self):
-        return self.nBits
+        warn("RDKitFingerprintTransformer will be replace by RDKitFPGeneratorTransformer, due to changes in RDKit!", DeprecationWarning)
 
-    # Scikit-Learn expects to be able to set fpSize directly on object via .set_params(), so this updates nBits used by the abstract class
-    @fpSize.setter
-    def fpSize(self, fpSize):
-        self.nBits = fpSize
 
     def _mol2fp(self, mol):
         generator = rdFingerprintGenerator.GetRDKitFPGenerator(
@@ -300,7 +624,7 @@ class AtomPairFingerprintTransformer(FpsTransformer):
         includeChirality: bool = False,
         use2D: bool = True,
         confId: int = -1,
-        nBits=2048,
+        fpSize=2048,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
@@ -317,15 +641,17 @@ class AtomPairFingerprintTransformer(FpsTransformer):
         self.includeChirality = includeChirality
         self.use2D = use2D
         self.confId = confId
-        self.nBits = nBits
+        self.fpSize = fpSize
         self.nBitsPerEntry = nBitsPerEntry
         self.useCounts = useCounts
+
+        warn("AtomPairFingerprintTransformer will be replace by AtomPairFPGeneratorTransformer, due to changes in RDKit!", DeprecationWarning)
 
     def _mol2fp(self, mol):
         if self.useCounts:
             return rdMolDescriptors.GetHashedAtomPairFingerprint(
                 mol,
-                nBits=int(self.nBits),
+                nBits=int(self.fpSize),
                 minLength=int(self.minLength),
                 maxLength=int(self.maxLength),
                 fromAtoms=self.fromAtoms,
@@ -338,7 +664,7 @@ class AtomPairFingerprintTransformer(FpsTransformer):
         else:
             return rdMolDescriptors.GetHashedAtomPairFingerprintAsBitVect(
                 mol,
-                nBits=int(self.nBits),
+                nBits=int(self.fpSize),
                 minLength=int(self.minLength),
                 maxLength=int(self.maxLength),
                 fromAtoms=self.fromAtoms,
@@ -360,7 +686,7 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         atomInvariants=0,
         includeChirality: bool = False,
         nBitsPerEntry: int = 4,
-        nBits=2048,
+        fpSize=2048,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
@@ -375,14 +701,16 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         self.atomInvariants = atomInvariants
         self.includeChirality = includeChirality
         self.nBitsPerEntry = nBitsPerEntry
-        self.nBits = nBits
+        self.fpSize = fpSize
         self.useCounts = useCounts
+
+        warn("TopologicalTorsionFingerprintTransformer will be replace by TopologicalTorsionFPGeneatorTransformer, due to changes in RDKit!", DeprecationWarning)
 
     def _mol2fp(self, mol):
         if self.useCounts:
             return rdMolDescriptors.GetHashedTopologicalTorsionFingerprint(
                 mol,
-                nBits=int(self.nBits),
+                nBits=int(self.fpSize),
                 targetSize=int(self.targetSize),
                 fromAtoms=self.fromAtoms,
                 ignoreAtoms=self.ignoreAtoms,
@@ -392,322 +720,13 @@ class TopologicalTorsionFingerprintTransformer(FpsTransformer):
         else:
             return rdMolDescriptors.GetHashedTopologicalTorsionFingerprintAsBitVect(
                 mol,
-                nBits=int(self.nBits),
+                nBits=int(self.fpSize),
                 targetSize=int(self.targetSize),
                 fromAtoms=self.fromAtoms,
                 ignoreAtoms=self.ignoreAtoms,
                 atomInvariants=self.atomInvariants,
                 includeChirality=bool(self.includeChirality),
                 nBitsPerEntry=int(self.nBitsPerEntry),
-            )
-
-
-class MHFingerprintTransformer(FpsTransformer):
-    def __init__(
-        self,
-        radius: int = 3,
-        rings: bool = True,
-        isomeric: bool = False,
-        kekulize: bool = False,
-        min_radius: int = 1,
-        n_permutations: int = 2048,
-        seed: int = 42,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int32,
-    ):
-        """Transforms the RDKit mol into the MinHash fingerprint (MHFP)
-
-        https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
-
-        Args:
-            radius (int, optional): The MHFP radius. Defaults to 3.
-            rings (bool, optional): Whether or not to include rings in the shingling. Defaults to True.
-            isomeric (bool, optional): Whether the isomeric SMILES to be considered. Defaults to False.
-            kekulize (bool, optional): Whether or not to kekulize the extracted SMILES. Defaults to False.
-            min_radius (int, optional): The minimum radius that is used to extract n-gram. Defaults to 1.
-            n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0,
-            this is effectively the length of the FP
-            seed (int, optional): The value used to seed numpy.random. Defaults to 0.
-        """
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.radius = radius
-        self.rings = rings
-        self.isomeric = isomeric
-        self.kekulize = kekulize
-        self.min_radius = min_radius
-        # Set the .n_permutations and .seed without creating the encoder twice
-        self._n_permutations = n_permutations
-        self._seed = seed
-        # create the encoder instance
-        self._recreate_encoder()
-
-    def __getstate__(self):
-        # Get the state of the parent class
-        state = super().__getstate__()
-        # Remove the unpicklable property from the state
-        state.pop("mhfp_encoder", None)  # mhfp_encoder is not picklable
-        return state
-
-    def __setstate__(self, state):
-        # Restore the state of the parent class
-        super().__setstate__(state)
-        # Re-create the unpicklable property
-        self._recreate_encoder()
-
-    def _mol2fp(self, mol):
-        fp = self.mhfp_encoder.EncodeMol(
-            mol, self.radius, self.rings, self.isomeric, self.kekulize, self.min_radius
-        )
-        return fp
-
-    def _fp2array(self, fp):
-        return np.array(fp)
-
-    def _recreate_encoder(self):
-        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(
-            self._n_permutations, self._seed
-        )
-
-    @property
-    def seed(self):
-        return self._seed
-
-    @seed.setter
-    def seed(self, seed):
-        self._seed = seed
-        # each time the seed parameter is modified refresh an instance of the encoder
-        self._recreate_encoder()
-
-    @property
-    def n_permutations(self):
-        return self._n_permutations
-
-    @n_permutations.setter
-    def n_permutations(self, n_permutations):
-        self._n_permutations = n_permutations
-        # each time the n_permutations parameter is modified refresh an instance of the encoder
-        self._recreate_encoder()
-
-    @property
-    def nBits(self):
-        # to be compliant with the requirement of the base class
-        return self._n_permutations
-
-
-class SECFingerprintTransformer(FpsTransformer):
-    # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
-    def __init__(
-        self,
-        radius: int = 3,
-        rings: bool = True,
-        isomeric: bool = False,
-        kekulize: bool = False,
-        min_radius: int = 1,
-        length: int = 2048,
-        n_permutations: int = 0,
-        seed: int = 0,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        """Transforms the RDKit mol into the SMILES extended connectivity fingerprint (SECFP)
-
-        Args:
-            radius (int, optional): The MHFP radius. Defaults to 3.
-            rings (bool, optional): Whether or not to include rings in the shingling. Defaults to True.
-            isomeric (bool, optional): Whether the isomeric SMILES to be considered. Defaults to False.
-            kekulize (bool, optional): Whether or not to kekulize the extracted SMILES. Defaults to False.
-            min_radius (int, optional): The minimum radius that is used to extract n-gram. Defaults to 1.
-            length (int, optional): The length of the folded fingerprint. Defaults to 2048.
-            n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
-            seed (int, optional): The value used to seed numpy.random. Defaults to 0.
-        """
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.radius = radius
-        self.rings = rings
-        self.isomeric = isomeric
-        self.kekulize = kekulize
-        self.min_radius = min_radius
-        self.length = length
-        # Set the .n_permutations and seed without creating the encoder twice
-        self._n_permutations = n_permutations
-        self._seed = seed
-        # create the encoder instance
-        self._recreate_encoder()
-
-    def __getstate__(self):
-        # Get the state of the parent class
-        state = super().__getstate__()
-        # Remove the unpicklable property from the state
-        state.pop("mhfp_encoder", None)  # mhfp_encoder is not picklable
-        return state
-
-    def __setstate__(self, state):
-        # Restore the state of the parent class
-        super().__setstate__(state)
-        # Re-create the unpicklable property
-        self._recreate_encoder()
-
-    def _mol2fp(self, mol):
-        return self.mhfp_encoder.EncodeSECFPMol(
-            mol,
-            self.radius,
-            self.rings,
-            self.isomeric,
-            self.kekulize,
-            self.min_radius,
-            self.length,
-        )
-
-    def _recreate_encoder(self):
-        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(
-            self._n_permutations, self._seed
-        )
-
-    @property
-    def seed(self):
-        return self._seed
-
-    @seed.setter
-    def seed(self, seed):
-        self._seed = seed
-        # each time the seed parameter is modified refresh an instace of the encoder
-        self._recreate_encoder()
-
-    @property
-    def n_permutations(self):
-        return self._n_permutations
-
-    @n_permutations.setter
-    def n_permutations(self, n_permutations):
-        self._n_permutations = n_permutations
-        # each time the n_permutations parameter is modified refresh an instace of the encoder
-        self._recreate_encoder()
-
-    @property
-    def nBits(self):
-        # to be compliant with the requirement of the base class
-        return self.length
-
-
-class MorganFingerprintTransformer(FpsTransformer):
-    def __init__(
-        self,
-        nBits=2048,
-        radius=2,
-        useChirality=False,
-        useBondTypes=True,
-        useFeatures=False,
-        useCounts=False,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
-
-        Parameters
-        ----------
-        nBits : int, optional
-            Size of the hashed fingerprint, by default 2048
-        radius : int, optional
-            Radius of the fingerprint, by default 2
-        useChirality : bool, optional
-            Include chirality in calculation of the fingerprint keys, by default False
-        useBondTypes : bool, optional
-            Include bondtypes in calculation of the fingerprint keys, by default True
-        useFeatures : bool, optional
-            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
-        useCounts : bool, optional
-            If toggled will create the count and not bit-based fingerprint, by default False
-        """
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.nBits = nBits
-        self.radius = radius
-        self.useChirality = useChirality
-        self.useBondTypes = useBondTypes
-        self.useFeatures = useFeatures
-        self.useCounts = useCounts
-
-    def _mol2fp(self, mol):
-        if self.useCounts:
-            return rdMolDescriptors.GetHashedMorganFingerprint(
-                mol,
-                int(self.radius),
-                nBits=int(self.nBits),
-                useFeatures=bool(self.useFeatures),
-                useChirality=bool(self.useChirality),
-                useBondTypes=bool(self.useBondTypes),
-            )
-        else:
-            return rdMolDescriptors.GetMorganFingerprintAsBitVect(
-                mol,
-                int(self.radius),
-                nBits=int(self.nBits),
-                useFeatures=bool(self.useFeatures),
-                useChirality=bool(self.useChirality),
-                useBondTypes=bool(self.useBondTypes),
-            )
-
-
-class AvalonFingerprintTransformer(FpsTransformer):
-    # Fingerprint from the Avalon toolkeit, https://doi.org/10.1021/ci050413p
-    def __init__(
-        self,
-        nBits: int = 512,
-        isQuery: bool = False,
-        resetVect: bool = False,
-        bitFlags: int = 15761407,
-        useCounts: bool = False,
-        parallel: Union[bool, int] = False,
-        safe_inference_mode: bool = False,
-        dtype: np.dtype = np.int8,
-    ):
-        """Transform RDKit mols into Count or bit-based Avalon Fingerprints
-
-        Parameters
-        ----------
-        nBits : int, optional
-            Size of the fingerprint, by default 512
-        isQuery : bool, optional
-            use the fingerprint for a query structure, by default False
-        resetVect : bool, optional
-            reset vector, by default False      NB: only used in GetAvalonFP (not for GetAvalonCountFP)
-        bitFlags : int, optional
-            Substructure fingerprint (32767) or similarity fingerprint (15761407) by default 15761407
-        useCounts : bool, optional
-            If toggled will create the count and not bit-based fingerprint, by default False
-        """
-        super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
-        )
-        self.nBits = nBits
-        self.isQuery = isQuery
-        self.resetVect = resetVect
-        self.bitFlags = bitFlags
-        self.useCounts = useCounts
-
-    def _mol2fp(self, mol):
-        if self.useCounts:
-            return pyAvalonTools.GetAvalonCountFP(
-                mol,
-                nBits=int(self.nBits),
-                isQuery=bool(self.isQuery),
-                bitFlags=int(self.bitFlags),
-            )
-        else:
-            return pyAvalonTools.GetAvalonFP(
-                mol,
-                nBits=int(self.nBits),
-                isQuery=bool(self.isQuery),
-                resetVect=bool(self.resetVect),
-                bitFlags=int(self.bitFlags),
             )
 
 
@@ -720,3 +739,238 @@ def parallel_helper(args):
 
     transformer = getattr(fingerprints, classname)(**parameters)
     return transformer._transform(X_mols)
+
+
+class FpsGeneratorTransformer(FpsTransformer):
+    _regenerate_on_properties = ()
+
+    def _fp2array(self, fp):
+        raise DeprecationWarning("Generators can directly return fingerprints")
+
+    def _mol2fp(self, mol):
+        raise DeprecationWarning("use _mol2array")
+
+    def __getstate__(self):
+        # Get the state of the parent class
+        state = super().__getstate__()
+        state.update(self.get_params())
+        # Remove the unpicklable property from the state
+        state.pop("_fpgen", None) # fpgen is not picklable
+        return state
+
+    def __setstate__(self, state):
+        # Restore the state of the parent class
+        super().__setstate__(state)
+        # Re-create the unpicklable property
+        generatort_keys = inspect.signature(self._generate_fp_generator).parameters.keys()
+        params = [setattr(self, k, state["_"+k]) if "_"+k in state else setattr(self, k, state[k]) for k in generatort_keys]
+        self._generate_fp_generator()
+
+    def __setattr__(self, name: str, value):
+        super().__setattr__(name, value)
+        if (
+                not hasattr(self, "_initializing")
+                and name in self._regenerate_on_properties
+        ):
+            self._generate_fp_generator()
+
+    @abstractmethod
+    def _generate_fp_generator(self):
+        raise NotImplementedError("_generate_fp_generator not implemented")
+
+    @abstractmethod
+    def _transform_mol(self, mol) -> np.array:
+        """Generate numpy array descriptor from mol
+
+        MUST BE OVERWRITTEN
+        """
+        raise NotImplementedError("_transform_mol not implemented")
+
+
+class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
+    _regenerate_on_properties = ("radius", "fpSize", "useChirality", "useFeatures", "useBondTypes")
+
+    def __init__(self, fpSize=2048, radius=2, useChirality=False,
+                 useBondTypes=True, useFeatures=False, useCounts=False,
+                 parallel: Union[bool, int] = False, ):
+        """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
+
+        Parameters
+        ----------
+        fpsize : int, optional
+            Size of the hashed fingerprint, by default 2048
+        radius : int, optional
+            Radius of the fingerprint, by default 2
+        useChirality : bool, optional
+            Include chirality in calculation of the fingerprint keys, by default False
+        useBondTypes : bool, optional
+            Include bondtypes in calculation of the fingerprint keys, by default True
+        useFeatures : bool, optional
+            use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
+        useCounts : bool, optional
+            If toggled will create the count and not bit-based fingerprint, by default False
+        """
+
+        self._initializing = True
+        super().__init__(parallel = parallel)
+        self.fpSize = fpSize
+        self.radius = radius
+        self.useChirality = useChirality
+        self.useFeatures = useFeatures
+        self.useCounts = useCounts
+        self.useBondTypes = useBondTypes
+
+        self._generate_fp_generator()
+        delattr(self, "_initializing")
+
+
+    def _generate_fp_generator(self):
+
+        if self.useFeatures:
+            atomInvariantsGenerator = GetMorganFeatureAtomInvGen()
+        else:
+            atomInvariantsGenerator = None
+
+        self._fpgen = GetMorganGenerator(radius=self.radius,
+                                         fpSize=self.fpSize,
+                                         includeChirality=self.useChirality,
+                                         useBondTypes=self.useBondTypes,
+                                         atomInvariantsGenerator=atomInvariantsGenerator,
+                                         )
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol)
+
+
+class TopologicalTorsionFPGeneatorTransformer(FpsGeneratorTransformer):
+    _regenerate_on_properties = ("fpSize", "includeChirality", "targetSize")
+
+    def __init__(self, targetSize:int = 4, fromAtoms = None, ignoreAtoms = None, atomInvariants = None, confId=-1,
+                 includeChirality:bool = False, fpSize:int=2048,
+                 useCounts:bool=False, parallel: Union[bool, int] = False):
+
+        self._initializing = True
+        super().__init__(parallel=parallel)
+        self.fpSize = fpSize
+        self.includeChirality = includeChirality
+        self.targetSize = targetSize
+
+        self.fromAtoms = fromAtoms
+        self.ignoreAtoms = ignoreAtoms
+        self.atomInvariants = atomInvariants
+        self.confId = confId
+        self.useCounts = useCounts
+
+        self._generate_fp_generator()
+        delattr(self, "_initializing")
+
+
+    def _generate_fp_generator(self):
+        self._fpgen = GetTopologicalTorsionGenerator(torsionAtomCount=self.targetSize, includeChirality=self.includeChirality,
+                                                     fpSize=self.fpSize)
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self.ignoreAtoms, customAtomInvariants=self.atomInvariants)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self.ignoreAtoms, customAtomInvariants=self.atomInvariants)
+
+
+class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
+    _regenerate_on_properties = ("fpSize", "includeChirality", "use2D", "minLength", "maxLength")
+
+    def __init__(self, minLength:int = 1, maxLength:int = 30, fromAtoms = None, ignoreAtoms = None, atomInvariants = None,
+                 includeChirality:bool = False, use2D:bool = True, confId:int = -1, fpSize:int=2048,
+                 useCounts:bool=False, parallel: Union[bool, int] = False,):
+        self._initializing = True
+        super().__init__(parallel = parallel)
+        self.fpSize = fpSize
+        self.use2D = use2D
+        self.includeChirality = includeChirality
+        self.minLength = minLength
+        self.maxLength = maxLength
+
+        self.useCounts= useCounts
+        self.confId = confId
+        self.fromAtoms = fromAtoms
+        self.ignoreAtoms = ignoreAtoms
+        self.atomInvariants = atomInvariants
+
+        self._generate_fp_generator()
+        delattr(self, "_initializing")
+
+    def _generate_fp_generator(self):
+        self._fpgen = GetAtomPairGenerator(minDistance=self.minLength, maxDistance=self.maxLength,
+                                           includeChirality=self.includeChirality,
+                                           use2D=self.use2D, fpSize=self.fpSize)
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self.ignoreAtoms, customAtomInvariants=self.atomInvariants)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol, fromAtoms=self.fromAtoms, ignoreAtoms=self.ignoreAtoms, customAtomInvariants=self.atomInvariants)
+
+
+class RDKitFPGeneratorTransformer(FpsGeneratorTransformer):
+    _regenerate_on_properties = ("minPath", "maxPath", "useHs", "branchedPaths", "useBondOrder", "countSimulation", "fpSize", "countBounds",
+                               "numBitsPerFeature")
+
+    def __init__(self, minPath:int = 1, maxPath:int =7, useHs:bool = True, branchedPaths:bool = True,
+                 useBondOrder:bool = True, countSimulation:bool = False, countBounds = None,
+                 fpSize:int  = 2048, numBitsPerFeature:int = 2,
+                 useCounts:bool = False, parallel: Union[bool, int] = False
+                 ):
+        """Calculates the RDKit fingerprints
+
+        Parameters
+        ----------
+        minPath : int, optional
+            the minimum path length (in bonds) to be included, by default 1
+        maxPath : int, optional
+            the maximum path length (in bonds) to be included, by default 7
+        useHs : bool, optional
+            toggles inclusion of Hs in paths (if the molecule has explicit Hs), by default True
+        branchedPaths : bool, optional
+            toggles generation of branched subgraphs, not just linear paths, by default True
+        useBondOrder : bool, optional
+            toggles inclusion of bond orders in the path hashes, by default True
+        countSimulation : bool, optional
+            if set, use count simulation while generating the fingerprint, by default False
+        countBounds : _type_, optional
+            boundaries for count simulation, corresponding bit will be set if the count is higher than the number provided for that spot, by default None
+        fpSize : int, optional
+            size of the generated fingerprint, does not affect the sparse versions, by default 2048
+        numBitsPerFeature : int, optional
+            the number of bits set per path/subgraph found, by default 2
+        """
+        self._initializing = True
+        super().__init__(parallel = parallel)
+        self.minPath = minPath
+        self.maxPath = maxPath
+        self.useHs = useHs
+        self.branchedPaths = branchedPaths
+        self.useBondOrder = useBondOrder
+        self.countSimulation = countSimulation
+        self.fpSize = fpSize
+        self.numBitsPerFeature = numBitsPerFeature
+        self.countBounds = countBounds
+
+        self.useCounts = useCounts
+
+        self._generate_fp_generator()
+        delattr(self, "_initializing")
+
+    def _transform_mol(self, mol) -> np.array:
+        if self.useCounts:
+            return self._fpgen.GetCountFingerprintAsNumPy(mol)
+        else:
+            return self._fpgen.GetFingerprintAsNumPy(mol)
+
+    def _generate_fp_generator(self):
+            self._fpgen = GetRDKitFPGenerator(minPath=self.minPath, maxPath=self.maxPath, useHs=self.useHs,
+                            branchedPaths=self.branchedPaths,useBondOrder=self.useBondOrder,
+                            countSimulation=self.countSimulation, fpSize=self.fpSize,
+                            countBounds=self.countBounds, numBitsPerFeature=self.numBitsPerFeature)

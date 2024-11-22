@@ -104,12 +104,12 @@ def test_safeinference_wrapper_pandas_output(
     result = smiles_pipeline[:-1].fit_transform(X_smiles)
     assert isinstance(result, pd.DataFrame)
     assert result.shape[0] == len(X_smiles)
-    assert result.shape[1] == smiles_pipeline.named_steps["FP"].nBits
+    assert result.shape[1] == smiles_pipeline.named_steps["FP"].fpSize
 
 
 @skip_pandas_output_test
 def test_safeinference_wrapper_get_feature_names_out(smiles_pipeline):
     # Get feature names from the FP step
     feature_names = smiles_pipeline.named_steps["FP"].get_feature_names_out()
-    assert len(feature_names) == smiles_pipeline.named_steps["FP"].nBits
+    assert len(feature_names) == smiles_pipeline.named_steps["FP"].fpSize
     assert all(isinstance(name, str) for name in feature_names)

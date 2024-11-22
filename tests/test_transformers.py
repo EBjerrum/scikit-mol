@@ -15,9 +15,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestRegressor
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
-from scikit_mol.fingerprints import FpsTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer, \
-                                    TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer, \
-                                    MHFingerprintTransformer, AvalonFingerprintTransformer
+from scikit_mol.fingerprints import (FpsTransformer, MACCSKeysFingerprintTransformer, RDKitFingerprintTransformer, AtomPairFingerprintTransformer,
+                                    TopologicalTorsionFingerprintTransformer, MorganFingerprintTransformer, SECFingerprintTransformer,
+                                    MHFingerprintTransformer, AvalonFingerprintTransformer, MorganFPGeneratorTransformer,
+                                     RDKitFPGeneratorTransformer, AtomPairFPGeneratorTransformer, TopologicalTorsionFPGeneatorTransformer)
+
 from scikit_mol.descriptors import MolecularDescriptorTransformer
 
 from fixtures import SLC6A4_subset, SLC6A4_subset_with_cddd, skip_pandas_output_test, mols_container, featurizer, combined_transformer
@@ -28,6 +30,9 @@ def test_transformer(SLC6A4_subset):
     X_smiles = X_smiles.to_frame()
     X_train, X_test = X_smiles[:128], X_smiles[128:]
     Y_train, Y_test = Y[:128], Y[128:]
+
+    MorganFPGeneratorTransformer,
+    RDKitFPGeneratorTransformer, AtomPairFPGeneratorTransformer, TopologicalTorsionFPGeneatorTransformer
 
     # run FP with default parameters except when useCounts can be given as an argument
     FP_dict = {"MACCSTransformer": [MACCSKeysFingerprintTransformer, None],
@@ -40,7 +45,15 @@ def test_transformer(SLC6A4_subset):
                "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
                "SECFingerprintTransformer": [SECFingerprintTransformer, None],
                "MHFingerprintTransformer": [MHFingerprintTransformer, None],
-               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None]}
+               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer, True],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer, False],
+               'RDKitFPGeneratorTransformer': [RDKitFPGeneratorTransformer, None],
+               'AtomPairFPGeneratorTransformer': [AtomPairFPGeneratorTransformer, True],
+               'AtomPairFPGeneratorTransformer': [ AtomPairFPGeneratorTransformer, False],
+               'TopologicalTorsionFPGeneatorTransformer': [TopologicalTorsionFPGeneatorTransformer, True],
+               'TopologicalTorsionFPGeneatorTransformer': [ TopologicalTorsionFPGeneatorTransformer, False],
+               }
 
     # fit on toy data and print train/test score if successful or collect the failed FP
     failed_FP = []
@@ -81,7 +94,22 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
                "MorganTransformer useCounts": [MorganFingerprintTransformer, True],
                "SECFingerprintTransformer": [SECFingerprintTransformer, None],
                "MHFingerprintTransformer": [MHFingerprintTransformer, None],
-               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None]}
+               'AvalonFingerprintTransformer': [AvalonFingerprintTransformer, None],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer,
+                                                True],
+               'MorganFPGeneratorTransformer': [MorganFPGeneratorTransformer,
+                                                False],
+               'RDKitFPGeneratorTransformer': [RDKitFPGeneratorTransformer,
+                                               None],
+               'AtomPairFPGeneratorTransformer': [
+                   AtomPairFPGeneratorTransformer, True],
+               'AtomPairFPGeneratorTransformer': [
+                   AtomPairFPGeneratorTransformer, False],
+               'TopologicalTorsionFPGeneatorTransformer': [
+                   TopologicalTorsionFPGeneatorTransformer, True],
+               'TopologicalTorsionFPGeneatorTransformer': [
+                   TopologicalTorsionFPGeneatorTransformer, False],
+               }
 
     # fit on toy data and check that the output is a pandas dataframe
     failed_FP = []
@@ -96,11 +124,12 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
             X_transformed = pipeline.transform(X_smiles)
             assert isinstance(X_transformed, pd.DataFrame), f"the output of {FP_name} is not a pandas dataframe"
             assert X_transformed.shape[0] == len(X_smiles), f"the number of rows in the output of {FP_name} is not equal to the number of samples"
-            assert len(X_transformed.columns) == pipeline.named_steps["FP"].nBits, f"the number of columns in the output of {FP_name} is not equal to the number of bits"
+            assert len(X_transformed.columns) == pipeline.named_steps["FP"].fpSize, f"the number of columns in the output of {FP_name} is not equal to the number of bits"
             print(f"\nfitting and transforming completed")
 
-        except:
+        except Exception as err:
             print(f"\n!!!! FAILED pipeline fitting and transforming for {FP_name} with useCounts={useCounts}")
+            print("\n".join(err.args))
             failed_FP.append(FP_name)
             pass
 
@@ -136,7 +165,7 @@ def test_combined_transformer_pandas_out(combined_transformer, SLC6A4_subset_wit
     pipeline_skmol = combined_transformer.named_transformers_["pipeline-1"]
     featurizer_skmol = pipeline_skmol[-1]
     if isinstance(featurizer_skmol, FpsTransformer):
-        n_skmol_features = featurizer_skmol.nBits
+        n_skmol_features = featurizer_skmol.fpSize
     elif isinstance(featurizer_skmol, MolecularDescriptorTransformer):
         n_skmol_features = len(featurizer_skmol.desc_list)
     else:
