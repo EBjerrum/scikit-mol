@@ -127,7 +127,6 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
         if self.safe_inference_mode:
             # Use the new method with masked arrays if we're in safe inference mode
             arrays = [self._safe_transform_mol(mol) for mol in X]
-            print(arrays)
             return np.ma.stack(arrays)
         elif hasattr(
             self, "dtype"

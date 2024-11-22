@@ -98,6 +98,7 @@ class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
         useFeatures=False,
         useCounts=False,
         parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
     ):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
@@ -115,10 +116,14 @@ class MorganFPGeneratorTransformer(FpsGeneratorTransformer):
             use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
+        parallel : bool or int, optional
+            If True, will use all available cores, if int will use that many cores, by default False
+        safe_inference_mode : bool, optional
+            If True, will return masked arrays for invalid mols, by default False
         """
 
         self._initializing = True
-        super().__init__(parallel=parallel)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.fpSize = fpSize
         self.radius = radius
         self.useChirality = useChirality

@@ -80,9 +80,10 @@ class TopologicalTorsionFPGeneatorTransformer(FpsGeneratorTransformer):
         fpSize: int = 2048,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
     ):
         self._initializing = True
-        super().__init__(parallel=parallel)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.fpSize = fpSize
         self.includeChirality = includeChirality
         self.targetSize = targetSize

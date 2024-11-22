@@ -100,9 +100,10 @@ class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
         fpSize: int = 2048,
         useCounts: bool = False,
         parallel: Union[bool, int] = False,
+        safe_inference_mode: bool = False,
     ):
         self._initializing = True
-        super().__init__(parallel=parallel)
+        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
         self.fpSize = fpSize
         self.use2D = use2D
         self.includeChirality = includeChirality
@@ -114,7 +115,6 @@ class AtomPairFPGeneratorTransformer(FpsGeneratorTransformer):
         self.fromAtoms = fromAtoms
         self.ignoreAtoms = ignoreAtoms
         self.atomInvariants = atomInvariants
-
         self._generate_fp_generator()
         delattr(self, "_initializing")
 

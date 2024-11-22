@@ -9,6 +9,7 @@ from .baseclasses import FpsTransformer
 from rdkit.Chem import rdMHFPFingerprint
 
 
+# TODO move to use FpsGeneratorTransformer
 class MHFingerprintTransformer(FpsTransformer):
     def __init__(
         self,
@@ -105,6 +106,7 @@ class MHFingerprintTransformer(FpsTransformer):
         self._recreate_encoder()
 
 
+# TODO use FpsGeneratorTransformer instead
 class SECFingerprintTransformer(FpsTransformer):
     # https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
     def __init__(
