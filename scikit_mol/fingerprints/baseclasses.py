@@ -139,6 +139,7 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
             self, "dtype"
         ):  # TODO, it seems a bit of a code smell that we have to preemptively test a property from the baseclass?
             # Use the original, faster method if we're not in safe inference mode
+            # This also triggers a deprecation warning!
             arr = np.zeros((len(X), self.fpSize), dtype=self.dtype)
             for i, mol in enumerate(X):
                 arr[i, :] = self._transform_mol(mol)
