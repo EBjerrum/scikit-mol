@@ -132,19 +132,9 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
     @check_transform_input
     def _transform(self, X):
         if self.safe_inference_mode:
-            # Use the new method with masked arrays if we're in safe inference mode
             arrays = [self._safe_transform_mol(mol) for mol in X]
             return np.ma.stack(arrays)
-        elif hasattr(
-            self, "dtype"
-        ):  # TODO, it seems a bit of a code smell that we have to preemptively test a property from the baseclass?
-            # Use the original, faster method if we're not in safe inference mode
-            # This also triggers a deprecation warning!
-            arr = np.zeros((len(X), self.fpSize), dtype=self.dtype)
-            for i, mol in enumerate(X):
-                arr[i, :] = self._transform_mol(mol)
-            return arr
-        else:  # We are unsure on the dtype, so we don't use a preassigned array #TODO test time differnece to previous
+        else:
             arrays = [self._transform_mol(mol) for mol in X]
             return np.stack(arrays)
 
@@ -236,6 +226,17 @@ class FpsTransformer(BaseFpsTransformer):
             return arr
         else:
             return np.ma.masked_all((self.fpSize,), dtype=self.dtype)
+
+    @check_transform_input
+    def _transform(self, X):
+        if self.safe_inference_mode:
+            arrays = [self._safe_transform_mol(mol) for mol in X]
+            return np.ma.stack(arrays)
+        else:
+            arr = np.zeros((len(X), self.fpSize), dtype=self.dtype)
+            for i, mol in enumerate(X):
+                arr[i, :] = self._transform_mol(mol)
+            return arr
 
     # TODO, remove when finally deprecating nBits
     def _get_param_names(self):

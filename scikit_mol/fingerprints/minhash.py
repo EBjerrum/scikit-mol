@@ -75,7 +75,9 @@ class MHFingerprintTransformer(FpsTransformer):
         return np.array(fp)
 
     def _recreate_encoder(self):
-        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(self.fpSize, self._seed)
+        self.mhfp_encoder = rdMHFPFingerprint.MHFPEncoder(
+            int(self.fpSize), int(self._seed)
+        )
 
     @property
     def seed(self):
@@ -166,12 +168,12 @@ class SECFingerprintTransformer(FpsTransformer):
     def _mol2fp(self, mol):
         return self.mhfp_encoder.EncodeSECFPMol(
             mol,
-            self.radius,
-            self.rings,
-            self.isomeric,
-            self.kekulize,
-            self.min_radius,
-            self.length,
+            int(self.radius),
+            bool(self.rings),
+            bool(self.isomeric),
+            bool(self.kekulize),
+            int(self.min_radius),
+            int(self.fpSize),
         )
 
     def _recreate_encoder(self):
