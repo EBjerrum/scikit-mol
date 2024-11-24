@@ -30,11 +30,6 @@ from scikit_mol.fingerprints import (
 
 
 @pytest.fixture
-def morgan_transformer():
-    return MorganFingerprintTransformer()
-
-
-@pytest.fixture
 def rdkit_transformer():
     return RDKitFingerprintTransformer()
 
@@ -69,25 +64,26 @@ def avalon_transformer():
     return AvalonFingerprintTransformer()
 
 
-def test_fpstransformer_fp2array(morgan_transformer, fingerprint):
-    fp = morgan_transformer._fp2array(fingerprint)
-    # See that fp is the correct type, shape and bit count
-    assert type(fp) == type(np.array([0]))
-    assert fp.shape == (1000,)
-    assert fp.sum() == 25
+# morgan is no longer a fptransformer but a generator transformer, but why was this the only one to be tested here?
+# def test_fpstransformer_fp2array(morgan_transformer, fingerprint):
+#     fp = morgan_transformer._fp2array(fingerprint)
+#     # See that fp is the correct type, shape and bit count
+#     assert type(fp) == type(np.array([0]))
+#     assert fp.shape == (1000,)
+#     assert fp.sum() == 25
 
 
-def test_fpstransformer_transform_mol(morgan_transformer, mols_list):
-    fp = morgan_transformer._transform_mol(mols_list[0])
-    # See that fp is the correct type, shape and bit count
-    assert type(fp) == type(np.array([0]))
-    assert fp.shape == (2048,)
-    assert fp.sum() == 14
+# def test_fpstransformer_transform_mol(morgan_transformer, mols_list):
+#     fp = morgan_transformer._transform_mol(mols_list[0])
+#     # See that fp is the correct type, shape and bit count
+#     assert type(fp) == type(np.array([0]))
+#     assert fp.shape == (2048,)
+#     assert fp.sum() == 14
 
 
 def test_clonability(
     maccs_transformer,
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -97,7 +93,7 @@ def test_clonability(
 ):
     for t in [
         maccs_transformer,
-        morgan_transformer,
+        #   morgan_transformer,
         rdkit_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
@@ -115,7 +111,7 @@ def test_clonability(
 
 
 def test_set_params(
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -124,7 +120,7 @@ def test_set_params(
     avalon_transformer,
 ):
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         avalon_transformer,
@@ -148,7 +144,7 @@ def test_set_params(
 
 def test_transform(
     mols_container,
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -159,7 +155,7 @@ def test_transform(
 ):
     # Test the different transformers
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         maccs_transformer,
@@ -182,7 +178,7 @@ def test_transform(
 
 def test_transform_parallel(
     mols_container,
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -193,7 +189,7 @@ def test_transform_parallel(
 ):
     # Test the different transformers
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         maccs_transformer,
@@ -215,7 +211,7 @@ def test_transform_parallel(
 
 
 def test_picklable(
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -225,7 +221,7 @@ def test_picklable(
 ):
     # Test the different transformers
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         maccs_transformer,
@@ -386,7 +382,7 @@ def test_AvalonFingerprintTransformer(chiral_mols_list):
 
 def test_transform_with_safe_inference_mode(
     mols_with_invalid_container,
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -395,7 +391,7 @@ def test_transform_with_safe_inference_mode(
     avalon_transformer,
 ):
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         maccs_transformer,
@@ -418,7 +414,7 @@ def test_transform_with_safe_inference_mode(
 
 def test_transform_without_safe_inference_mode(
     mols_with_invalid_container,
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -428,7 +424,7 @@ def test_transform_without_safe_inference_mode(
     # MHFP seem to accept invalid mols and return 0,0,0,0's
 ):
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         maccs_transformer,
@@ -447,7 +443,7 @@ def test_transform_without_safe_inference_mode(
 # Add this test to check parallel processing with error handling
 def test_transform_parallel_with_safe_inference_mode(
     mols_with_invalid_container,
-    morgan_transformer,
+    # morgan_transformer,
     rdkit_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
@@ -456,7 +452,7 @@ def test_transform_parallel_with_safe_inference_mode(
     avalon_transformer,
 ):
     for t in [
-        morgan_transformer,
+        # morgan_transformer,
         atompair_transformer,
         topologicaltorsion_transformer,
         maccs_transformer,

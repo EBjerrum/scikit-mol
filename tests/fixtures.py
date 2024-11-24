@@ -197,3 +197,8 @@ def combined_transformer(featurizer):
         remainder="drop",
     )
     return transformer
+
+
+@pytest.fixture
+def morgan_transformer():
+    return MorganFingerprintTransformer()

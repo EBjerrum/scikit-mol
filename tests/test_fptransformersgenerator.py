@@ -15,12 +15,14 @@ from sklearn import clone
 
 from scikit_mol.fingerprints import (
     MorganFPGeneratorTransformer,
+    MorganFingerprintTransformer,
     RDKitFPGeneratorTransformer,
     AtomPairFPGeneratorTransformer,
     TopologicalTorsionFPGeneatorTransformer,
 )
 
 test_transformers = [
+    MorganFingerprintTransformer,
     MorganFPGeneratorTransformer,
     RDKitFPGeneratorTransformer,
     AtomPairFPGeneratorTransformer,
@@ -53,8 +55,10 @@ def test_fpstransformer_transform_mol(transformer_class, mols_list):
         assert fp.sum() == 12
     elif isinstance(transformer, MorganFPGeneratorTransformer):
         assert fp.sum() == 14
+    elif isinstance(transformer, MorganFingerprintTransformer):
+        assert fp.sum() == 14
     else:
-        raise NotImplementedError("missing Assert")
+        raise NotImplementedError(f"missing Assert for {transformer_class}")
 
 
 @pytest.mark.parametrize("transformer_class", test_transformers)
