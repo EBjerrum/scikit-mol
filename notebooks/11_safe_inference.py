@@ -26,9 +26,10 @@
 from rdkit import Chem
 from scikit_mol.conversions import SmilesToMolTransformer
 
-#We have some deprecation warnings, we are adressing them, but they just distract from this demonstration
+# We have some deprecation warnings, we are adressing them, but they just distract from this demonstration
 import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning) 
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 smiles = ["C1=CC=C(C=C1)F", "C1=CC=C(C=C1)O", "C1=CC=C(C=C1)N", "C1=CC=C(C=C1)Cl"]
 smiles_with_invalid = smiles + ["N(C)(C)(C)C", "I'm not a SMILES"]
@@ -57,7 +58,7 @@ mols_with_invalid[mask]
 # %%
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 
-mfp = MorganFingerprintTransformer(radius=2, nBits=25, safe_inference_mode=True)
+mfp = MorganFingerprintTransformer(radius=2, fpSize=25, safe_inference_mode=True)
 fps = mfp.transform(mols_with_invalid)
 fps
 
@@ -72,7 +73,7 @@ import numpy as np
 
 regressor = LogisticRegression()
 wrapper = SafeInferenceWrapper(regressor, safe_inference_mode=True)
-wrapper.fit(fps, [0,1,0,1,0,1])
+wrapper.fit(fps, [0, 1, 0, 1, 0, 1])
 wrapper.predict(fps)
 
 
@@ -90,13 +91,15 @@ wrapper.predict(fps)
 from scikit_mol.safeinference import set_safe_inference_mode
 from sklearn.pipeline import Pipeline
 
-pipe = Pipeline([
-    ("smi2mol", SmilesToMolTransformer()),
-    ("mfp", MorganFingerprintTransformer(radius=2, nBits=25)),
-    ("safe_regressor", SafeInferenceWrapper(LogisticRegression()))
-])
+pipe = Pipeline(
+    [
+        ("smi2mol", SmilesToMolTransformer()),
+        ("mfp", MorganFingerprintTransformer(radius=2, fpSize=25)),
+        ("safe_regressor", SafeInferenceWrapper(LogisticRegression())),
+    ]
+)
 
-pipe.fit(smiles, [1,0,1,0])
+pipe.fit(smiles, [1, 0, 1, 0])
 
 print("Without safe inference mode:")
 try:
@@ -133,10 +136,12 @@ fps = mfp.transform(mols_with_invalid)
 fps
 
 # %% [markdown]
-# The second output is no longer integers, but floats. As most sklearn models cast input arrays to float32 internally, this difference is likely benign, but that's not guaranteed! Thus if you want to use pandas output for your production models, do check that the final outputs are the same for the valid rows, with and without a single invalid row. Alternatively the dtype for the output of the transformer can be switched to float for consistency.
+# The second output is no longer integers, but floats. As most sklearn models cast input arrays to float32 internally, this difference is likely benign, but that's not guaranteed! Thus if you want to use pandas output for your production models, do check that the final outputs are the same for the valid rows, with and without a single invalid row. Alternatively the dtype for the output of the transformer can be switched to float for consistency if its supported by the transformer.
 
 # %%
-mfp_float = MorganFingerprintTransformer(radius=2, nBits=25, safe_inference_mode=True, dtype=np.float32)
+mfp_float = MorganFingerprintTransformer(
+    radius=2, fpSize=25, safe_inference_mode=True, dtype=np.float32
+)
 mfp_float.set_output(transform="pandas")
 fps = mfp_float.transform(mols)
 fps
