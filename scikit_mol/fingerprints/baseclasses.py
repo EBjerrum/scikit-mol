@@ -245,6 +245,8 @@ class FpsTransformer(BaseFpsTransformer):
 
 
 class FpsGeneratorTransformer(BaseFpsTransformer):
+    """Abstract base class for fingerprint transformers based on (unpicklable)fingerprint generators"""
+
     _regenerate_on_properties = ()
 
     def __getstate__(self):
@@ -286,7 +288,7 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
 
     @abstractmethod
     def _transform_mol(self, mol) -> np.array:
-        """Generate numpy array descriptor from mol
+        """Generate numpy array descriptor from RDKit molecule
 
         MUST BE OVERWRITTEN
         """
@@ -306,7 +308,6 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
     @dtype.setter
     def dtype(self, dtype):
         if dtype is not None:
-            print("Tester")
             warn(
                 "dtype is no longer supported, due to move to generator based fingerprints",
                 DeprecationWarning,
