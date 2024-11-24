@@ -14,28 +14,18 @@ from fixtures import (
 from sklearn import clone
 
 from scikit_mol.fingerprints import (
-    MorganFPGeneratorTransformer,
+    AtomPairFingerprintTransformer,
     MorganFingerprintTransformer,
-    RDKitFPGeneratorTransformer,
-    AtomPairFPGeneratorTransformer,
-    TopologicalTorsionFPGeneatorTransformer,
+    RDKitFingerprintTransformer,
+    TopologicalTorsionFingerprintTransformer,
 )
 
 test_transformers = [
+    AtomPairFingerprintTransformer,
     MorganFingerprintTransformer,
-    MorganFPGeneratorTransformer,
-    RDKitFPGeneratorTransformer,
-    AtomPairFPGeneratorTransformer,
-    TopologicalTorsionFPGeneatorTransformer,
+    RDKitFingerprintTransformer,
+    TopologicalTorsionFingerprintTransformer,
 ]
-
-
-# @pytest.mark.parametrize("transformer_class", test_transformers)
-# def test_fpstransformer_fp2array(transformer_class, fingerprint):
-#     transformer = transformer_class()
-
-#     with pytest.raises(DeprecationWarning, match='Generators can directly return fingerprints'):
-#         fp = transformer._fp2array(fingerprint)
 
 
 @pytest.mark.parametrize("transformer_class", test_transformers)
@@ -47,14 +37,12 @@ def test_fpstransformer_transform_mol(transformer_class, mols_list):
     assert type(fp) == type(np.array([0]))
     assert fp.shape == (2048,)
 
-    if isinstance(transformer, RDKitFPGeneratorTransformer):
+    if isinstance(transformer, RDKitFingerprintTransformer):
         assert fp.sum() == 104
-    elif isinstance(transformer, AtomPairFPGeneratorTransformer):
+    elif isinstance(transformer, AtomPairFingerprintTransformer):
         assert fp.sum() == 32
-    elif isinstance(transformer, TopologicalTorsionFPGeneatorTransformer):
+    elif isinstance(transformer, TopologicalTorsionFingerprintTransformer):
         assert fp.sum() == 12
-    elif isinstance(transformer, MorganFPGeneratorTransformer):
-        assert fp.sum() == 14
     elif isinstance(transformer, MorganFingerprintTransformer):
         assert fp.sum() == 14
     else:
@@ -177,7 +165,7 @@ def test_morgan_set_params(chiral_mols_list):
     }
 
     assert_transformer_set_params(
-        MorganFPGeneratorTransformer, new_params, chiral_mols_list
+        MorganFingerprintTransformer, new_params, chiral_mols_list
     )
 
 
@@ -191,13 +179,13 @@ def test_atompairs_set_params(chiral_mols_list):
         "maxLength": 3,
         "minLength": 3,
         "fpSize": 1024,
-        #'nBitsPerEntry': 3, #Todo: not setable with the generators?
+        #'nBitsPerEntry': 3, #TODO: seem deprecated with the generators?
         #'use2D': True, #TODO, understand why this can't be set different
         "useCounts": True,
     }
 
     assert_transformer_set_params(
-        AtomPairFPGeneratorTransformer, new_params, chiral_mols_list
+        AtomPairFingerprintTransformer, new_params, chiral_mols_list
     )
 
 
@@ -213,7 +201,7 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
     }
 
     assert_transformer_set_params(
-        TopologicalTorsionFPGeneatorTransformer, new_params, chiral_mols_list
+        TopologicalTorsionFingerprintTransformer, new_params, chiral_mols_list
     )
 
 
@@ -230,5 +218,5 @@ def test_RDKitFPTransformer(chiral_mols_list):
         #'useHs': False, #TODO, why doesn't this change the FP?
     }
     assert_transformer_set_params(
-        RDKitFPGeneratorTransformer, new_params, chiral_mols_list
+        RDKitFingerprintTransformer, new_params, chiral_mols_list
     )

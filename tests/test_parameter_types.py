@@ -1,11 +1,15 @@
 import pytest
 import numpy as np
 from rdkit import Chem
-from fixtures import mols_list, smiles_list, morgan_transformer
-from test_fptransformers import (
+from fixtures import (
+    mols_list,
+    smiles_list,
+    morgan_transformer,
     atompair_transformer,
     topologicaltorsion_transformer,
     rdkit_transformer,
+)
+from test_fptransformers import (
     avalon_transformer,
 )
 

@@ -202,3 +202,18 @@ def combined_transformer(featurizer):
 @pytest.fixture
 def morgan_transformer():
     return MorganFingerprintTransformer()
+
+
+@pytest.fixture
+def rdkit_transformer():
+    return RDKitFingerprintTransformer()
+
+
+@pytest.fixture
+def atompair_transformer():
+    return AtomPairFingerprintTransformer()
+
+
+@pytest.fixture
+def topologicaltorsion_transformer():
+    return TopologicalTorsionFingerprintTransformer()

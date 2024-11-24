@@ -18,30 +18,15 @@ from fixtures import (
 from sklearn import clone
 
 from scikit_mol.fingerprints import (
-    MorganFingerprintTransformer,
+    # MorganFingerprintTransformer,
     MACCSKeysFingerprintTransformer,
-    RDKitFingerprintTransformer,
-    AtomPairFingerprintTransformer,
-    TopologicalTorsionFingerprintTransformer,
+    # RDKitFingerprintTransformer,
+    # AtomPairFingerprintTransformer,
+    # TopologicalTorsionFingerprintTransformer,
     SECFingerprintTransformer,
     MHFingerprintTransformer,
     AvalonFingerprintTransformer,
 )
-
-
-@pytest.fixture
-def rdkit_transformer():
-    return RDKitFingerprintTransformer()
-
-
-@pytest.fixture
-def atompair_transformer():
-    return AtomPairFingerprintTransformer()
-
-
-@pytest.fixture
-def topologicaltorsion_transformer():
-    return TopologicalTorsionFingerprintTransformer()
 
 
 @pytest.fixture
@@ -84,9 +69,9 @@ def avalon_transformer():
 def test_clonability(
     maccs_transformer,
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     secfp_transformer,
     mhfp_transformer,
     avalon_transformer,
@@ -94,9 +79,9 @@ def test_clonability(
     for t in [
         maccs_transformer,
         #   morgan_transformer,
-        rdkit_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # rdkit_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         secfp_transformer,
         mhfp_transformer,
         avalon_transformer,
@@ -112,17 +97,17 @@ def test_clonability(
 
 def test_set_params(
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     secfp_transformer,
     mhfp_transformer,
     avalon_transformer,
 ):
     for t in [
         # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         avalon_transformer,
     ]:
         params = t.get_params()
@@ -134,7 +119,7 @@ def test_set_params(
         params_2 = t.get_params()
         assert all([params[key] == params_2[key] for key in params.keys()])
 
-    for t in [rdkit_transformer, secfp_transformer, mhfp_transformer]:
+    for t in [secfp_transformer, mhfp_transformer]:
         params = t.get_params()
         params["fpSize"] = 4242
         t.set_params(fpSize=4242)
@@ -145,9 +130,9 @@ def test_set_params(
 def test_transform(
     mols_container,
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     maccs_transformer,
     secfp_transformer,
     mhfp_transformer,
@@ -156,10 +141,10 @@ def test_transform(
     # Test the different transformers
     for t in [
         # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         maccs_transformer,
-        rdkit_transformer,
+        # rdkit_transformer,
         secfp_transformer,
         mhfp_transformer,
         avalon_transformer,
@@ -179,9 +164,9 @@ def test_transform(
 def test_transform_parallel(
     mols_container,
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     maccs_transformer,
     secfp_transformer,
     mhfp_transformer,
@@ -190,10 +175,10 @@ def test_transform_parallel(
     # Test the different transformers
     for t in [
         # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         maccs_transformer,
-        rdkit_transformer,
+        # rdkit_transformer,
         secfp_transformer,
         mhfp_transformer,
         avalon_transformer,
@@ -212,9 +197,9 @@ def test_transform_parallel(
 
 def test_picklable(
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     maccs_transformer,
     secfp_transformer,
     avalon_transformer,
@@ -222,10 +207,10 @@ def test_picklable(
     # Test the different transformers
     for t in [
         # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         maccs_transformer,
-        rdkit_transformer,
+        # rdkit_transformer,
         secfp_transformer,
         avalon_transformer,
     ]:
@@ -267,74 +252,6 @@ def assert_transformer_set_params(tr_class, new_params, mols_list):
                 )
             ]
         ), f"Assertation error, FP appears to be different, although the {key} should be changed back as well as initialized to {params[key]}"
-
-
-def test_morgan_set_params(chiral_mols_list):
-    new_params = {
-        "fpSize": 1024,
-        "radius": 1,
-        "useBondTypes": False,  # TODO, why doesn't this change the FP?
-        "useChirality": True,
-        "useCounts": True,
-        "useFeatures": True,
-    }
-
-    assert_transformer_set_params(
-        MorganFingerprintTransformer, new_params, chiral_mols_list
-    )
-
-
-def test_atompairs_set_params(chiral_mols_list):
-    new_params = {
-        #'atomInvariants': 1,
-        #'confId': -1,
-        #'fromAtoms': 1,
-        #'ignoreAtoms': 0,
-        "includeChirality": True,
-        "maxLength": 3,
-        "minLength": 3,
-        "fpSize": 1024,
-        "nBitsPerEntry": 3,
-        #'use2D': True, #TODO, understand why this can't be set different
-        "useCounts": True,
-    }
-
-    assert_transformer_set_params(
-        AtomPairFingerprintTransformer, new_params, chiral_mols_list
-    )
-
-
-def test_topologicaltorsion_set_params(chiral_mols_list):
-    new_params = {  #'atomInvariants': 0,
-        #'fromAtoms': 0,
-        #'ignoreAtoms': 0,
-        #'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
-        "fpSize": 1024,
-        "nBitsPerEntry": 3,
-        "targetSize": 5,
-        "useCounts": True,
-    }
-
-    assert_transformer_set_params(
-        TopologicalTorsionFingerprintTransformer, new_params, chiral_mols_list
-    )
-
-
-def test_RDKitFPTransformer(chiral_mols_list):
-    new_params = {  #'atomInvariantsGenerator': None,
-        #'branchedPaths': False,
-        #'countBounds': 0, #TODO: What does this do?
-        "countSimulation": True,
-        "fpSize": 1024,
-        "maxPath": 3,
-        "minPath": 2,
-        "numBitsPerFeature": 3,
-        "useBondOrder": False,  # TODO, why doesn't this change the FP?
-        #'useHs': False, #TODO, why doesn't this change the FP?
-    }
-    assert_transformer_set_params(
-        RDKitFingerprintTransformer, new_params, chiral_mols_list
-    )
 
 
 def test_SECFingerprintTransformer(chiral_mols_list):
@@ -383,19 +300,19 @@ def test_AvalonFingerprintTransformer(chiral_mols_list):
 def test_transform_with_safe_inference_mode(
     mols_with_invalid_container,
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     maccs_transformer,
     secfp_transformer,
     avalon_transformer,
 ):
     for t in [
         # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         maccs_transformer,
-        rdkit_transformer,
+        # rdkit_transformer,
         secfp_transformer,
         avalon_transformer,
     ]:
@@ -415,9 +332,9 @@ def test_transform_with_safe_inference_mode(
 def test_transform_without_safe_inference_mode(
     mols_with_invalid_container,
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     maccs_transformer,
     secfp_transformer,
     avalon_transformer,
@@ -425,10 +342,10 @@ def test_transform_without_safe_inference_mode(
 ):
     for t in [
         # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         maccs_transformer,
-        rdkit_transformer,
+        # rdkit_transformer,
         secfp_transformer,
         avalon_transformer,
     ]:
@@ -444,19 +361,19 @@ def test_transform_without_safe_inference_mode(
 def test_transform_parallel_with_safe_inference_mode(
     mols_with_invalid_container,
     # morgan_transformer,
-    rdkit_transformer,
-    atompair_transformer,
-    topologicaltorsion_transformer,
+    # rdkit_transformer,
+    # atompair_transformer,
+    # topologicaltorsion_transformer,
     maccs_transformer,
     secfp_transformer,
     avalon_transformer,
 ):
     for t in [
-        # morgan_transformer,
-        atompair_transformer,
-        topologicaltorsion_transformer,
+        # # morgan_transformer,
+        # atompair_transformer,
+        # topologicaltorsion_transformer,
         maccs_transformer,
-        rdkit_transformer,
+        # rdkit_transformer,
         secfp_transformer,
         avalon_transformer,
     ]:
