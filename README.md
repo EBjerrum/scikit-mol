@@ -91,7 +91,12 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 
   We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
-## Contributing
+## Roadmap and Contributing
+
+_Help wanted!_ Are you a PhD student that want a "side-quest" to procrastinate your thesis writing or are you simply interested in computational chemistry, cheminformatics or simply with an interest in QSAR modelling, Python Programming open-source software? Do you want to learn more about machine learning with Scikit-Learn? Or do you use scikit-mol for your current work and would like to pay a little back to the project and see it improved as well?
+With a little bit of help, this project can be improved much faster! Reach to me (Esben), for a discussion about how we can proceed.
+
+Currently we are working on fixing some deprecation warnings, its not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
 
 There are more information about how to contribute to the project in [CONTRIBUTION.md](https://github.com/EBjerrum/scikit-mol/CONTRIBUTION.md)
 
