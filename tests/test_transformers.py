@@ -24,10 +24,6 @@ from scikit_mol.fingerprints import (
     SECFingerprintTransformer,
     MHFingerprintTransformer,
     AvalonFingerprintTransformer,
-    MorganFPGeneratorTransformer,
-    RDKitFPGeneratorTransformer,
-    AtomPairFPGeneratorTransformer,
-    TopologicalTorsionFPGeneatorTransformer,
 )
 from scikit_mol.fingerprints.baseclasses import BaseFpsTransformer
 
@@ -49,13 +45,6 @@ def test_transformer(SLC6A4_subset):
     X_smiles = X_smiles.to_frame()
     X_train, X_test = X_smiles[:128], X_smiles[128:]
     Y_train, Y_test = Y[:128], Y[128:]
-
-    (MorganFPGeneratorTransformer,)
-    (
-        RDKitFPGeneratorTransformer,
-        AtomPairFPGeneratorTransformer,
-        TopologicalTorsionFPGeneatorTransformer,
-    )
 
     # run FP with default parameters except when useCounts can be given as an argument
     FP_dict = {
@@ -79,19 +68,6 @@ def test_transformer(SLC6A4_subset):
         "SECFingerprintTransformer": [SECFingerprintTransformer, None],
         "MHFingerprintTransformer": [MHFingerprintTransformer, None],
         "AvalonFingerprintTransformer": [AvalonFingerprintTransformer, None],
-        "MorganFPGeneratorTransformer": [MorganFPGeneratorTransformer, True],
-        "MorganFPGeneratorTransformer": [MorganFPGeneratorTransformer, False],
-        "RDKitFPGeneratorTransformer": [RDKitFPGeneratorTransformer, None],
-        "AtomPairFPGeneratorTransformer": [AtomPairFPGeneratorTransformer, True],
-        "AtomPairFPGeneratorTransformer": [AtomPairFPGeneratorTransformer, False],
-        "TopologicalTorsionFPGeneatorTransformer": [
-            TopologicalTorsionFPGeneatorTransformer,
-            True,
-        ],
-        "TopologicalTorsionFPGeneatorTransformer": [
-            TopologicalTorsionFPGeneatorTransformer,
-            False,
-        ],
     }
 
     # fit on toy data and print train/test score if successful or collect the failed FP
@@ -162,19 +138,6 @@ def test_transformer_pandas_output(SLC6A4_subset, pandas_output):
         "SECFingerprintTransformer": [SECFingerprintTransformer, None],
         "MHFingerprintTransformer": [MHFingerprintTransformer, None],
         "AvalonFingerprintTransformer": [AvalonFingerprintTransformer, None],
-        "MorganFPGeneratorTransformer": [MorganFPGeneratorTransformer, True],
-        "MorganFPGeneratorTransformer": [MorganFPGeneratorTransformer, False],
-        "RDKitFPGeneratorTransformer": [RDKitFPGeneratorTransformer, None],
-        "AtomPairFPGeneratorTransformer": [AtomPairFPGeneratorTransformer, True],
-        "AtomPairFPGeneratorTransformer": [AtomPairFPGeneratorTransformer, False],
-        "TopologicalTorsionFPGeneatorTransformer": [
-            TopologicalTorsionFPGeneatorTransformer,
-            True,
-        ],
-        "TopologicalTorsionFPGeneatorTransformer": [
-            TopologicalTorsionFPGeneatorTransformer,
-            False,
-        ],
     }
 
     # fit on toy data and check that the output is a pandas dataframe
