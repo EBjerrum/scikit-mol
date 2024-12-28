@@ -153,7 +153,8 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
             n_chunks = (
                 n_processes if n_processes is not None else multiprocessing.cpu_count()
             )  # TODO, tune the number of chunks per child process
-
+            if n_chunks > len(x):
+                n_chunks = len(x)
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                 params = self.get_params()
                 x_chunks = np.array_split(x, n_chunks)
