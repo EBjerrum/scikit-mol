@@ -31,6 +31,13 @@ def smiles_pipeline():
         ]
     )
 
+@pytest.fixture
+def smiles_pipeline_trained(smiles_pipeline, SLC6A4_subset):
+    X_smiles, Y = SLC6A4_subset.SMILES, SLC6A4_subset.pXC50
+    X_smiles = X_smiles.to_frame()
+    # Train the model
+    smiles_pipeline.fit(X_smiles, Y)
+    return smiles_pipeline
 
 def test_safeinference_wrapper_basic(smiles_pipeline, SLC6A4_subset):
     X_smiles, Y = SLC6A4_subset.SMILES, SLC6A4_subset.pXC50
@@ -47,6 +54,11 @@ def test_safeinference_wrapper_basic(smiles_pipeline, SLC6A4_subset):
     assert len(predictions) == len(X_smiles)
     assert not np.any(np.isnan(predictions))
 
+def test_safeinference_wrapper_with_single_invalid_smiles(smiles_pipeline_trained):
+    set_safe_inference_mode(smiles_pipeline_trained, True)
+
+    # Test prediction
+    prediction = smiles_pipeline_trained.predict(["invalid_smiles"])
 
 def test_safeinference_wrapper_with_invalid_smiles(
     smiles_pipeline, SLC6A4_subset, invalid_smiles_list
