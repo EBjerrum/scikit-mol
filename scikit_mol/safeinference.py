@@ -69,7 +69,11 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
             else:
                 reduced_y = None
 
-            result = func(obj, reduced_X, reduced_y, *args, **kwargs)
+            # handle case where all rows are masked e.g single invalid input is passed
+            if isinstance(X, np.ma.MaskedArray) and X.mask.all():
+                result = np.array([])
+            else:
+                result = func(obj, reduced_X, reduced_y, *args, **kwargs)
 
             if result is None:
                 return None
