@@ -1,6 +1,6 @@
 """Wrapper for sklearn estimators and pipelines to handle errors."""
 
-from typing import Any
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -13,13 +13,14 @@ from sklearn.utils.metaestimators import available_if
 from .utilities import set_safe_inference_mode
 
 
+__all__ = ["SafeInferenceWrapper", "MaskedArrayError", "set_safe_inference_mode"]
+
 class MaskedArrayError(ValueError):
     """Raised when a masked array is passed but safe_inference_mode is False."""
 
     pass
 
-
-def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
+def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
     def decorator(func):
         @wraps(func)
         def wrapper(obj, X, y=None, *args, **kwargs):
@@ -30,6 +31,10 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
                         "Set safe_inference_mode=True to process masked arrays for inference of production models."
                     )
                 return func(obj, X, y, *args, **kwargs)
+            if not hasattr(obj, "replace_value"):
+                raise ValueError("replace_value must be set in the SafeInferenceWrapper")
+            else:
+                replace_value = obj.replace_value
 
             # Initialize valid_mask as all True
             valid_mask = np.ones(X.shape[0], dtype=bool)
@@ -69,16 +74,19 @@ def filter_invalid_rows(fill_value=np.nan, warn_on_invalid=False):
             else:
                 reduced_y = None
 
-            result = func(obj, reduced_X, reduced_y, *args, **kwargs)
+            # handle case where all rows are masked e.g single invalid input is passed
+            if len(valid_indices) == 0:
+                result = np.array([])
+            else:
+                result = func(obj, reduced_X, reduced_y, *args, **kwargs)
 
             if result is None:
                 return None
-
             if isinstance(result, np.ndarray):
                 if result.ndim == 1:
-                    output = np.full(X.shape[0], fill_value)
+                    output = np.full(X.shape[0], replace_value)
                 else:
-                    output = np.full((X.shape[0], result.shape[1]), fill_value)
+                    output = np.full((X.shape[0], result.shape[1]), replace_value)
                 output[valid_indices] = result
                 return output
             elif isinstance(result, pd.DataFrame):
@@ -120,7 +128,7 @@ class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
         self,
         estimator: BaseEstimator,
         safe_inference_mode: bool = False,
-        replace_value=np.nan,
+        replace_value: Union[int, float, str] = np.nan,
         mask_nonfinite: bool = True,
     ):
         self.estimator = estimator

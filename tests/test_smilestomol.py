@@ -13,7 +13,7 @@ from scikit_mol.core import (
 )
 from fixtures import (
     smiles_list,
-    invalid_smiles_list,
+    smiles_list_with_invalid,
     smiles_container,
     skip_pandas_output_test,
 )
@@ -52,9 +52,9 @@ def test_smilestomol_clone(smilestomol_transformer):
     assert all([params[key] == params_2[key] for key in params.keys()])
 
 
-def test_smilestomol_unsanitzable(invalid_smiles_list, smilestomol_transformer):
+def test_smilestomol_unsanitzable(smiles_list_with_invalid, smilestomol_transformer):
     with pytest.raises(ValueError):
-        smilestomol_transformer.transform(invalid_smiles_list)
+        smilestomol_transformer.transform(smiles_list_with_invalid)
 
 
 def test_descriptor_transformer_parallel(smiles_container, smilestomol_transformer):
@@ -82,27 +82,27 @@ def test_smilestomol_inverse_transform(smilestomol_transformer, smiles_container
 
 
 def test_smilestomol_inverse_transform_with_invalid(
-    invalid_smiles_list, smilestomol_transformer
+    smiles_list_with_invalid, smilestomol_transformer
 ):
     smilestomol_transformer.set_params(safe_inference_mode=True)
 
     # Forward transform
-    mols = smilestomol_transformer.transform(invalid_smiles_list)
+    mols = smilestomol_transformer.transform(smiles_list_with_invalid)
 
     # Inverse transform
     result = smilestomol_transformer.inverse_transform(mols)
 
-    assert len(result) == len(invalid_smiles_list)
+    assert len(result) == len(smiles_list_with_invalid)
 
     # Check that all but the last element are the same as the original SMILES
-    for original, res in zip(invalid_smiles_list[:-1], result[:-1].flatten()):
+    for original, res in zip(smiles_list_with_invalid[:-1], result[:-1].flatten()):
         assert isinstance(res, str)
         assert original == res
 
     # Check that the last element is an InvalidMol instance
     assert isinstance(result[-1].item(), InvalidMol)
     assert "Invalid SMILES" in result[-1].item().error
-    assert invalid_smiles_list[-1] in result[-1].item().error
+    assert smiles_list_with_invalid[-1] in result[-1].item().error
 
 
 def test_smilestomol_get_feature_names_out(smilestomol_transformer):
@@ -110,11 +110,11 @@ def test_smilestomol_get_feature_names_out(smilestomol_transformer):
     assert feature_names == [DEFAULT_MOL_COLUMN_NAME]
 
 
-def test_smilestomol_safe_inference(invalid_smiles_list, smilestomol_transformer):
+def test_smilestomol_safe_inference(smiles_list_with_invalid, smilestomol_transformer):
     smilestomol_transformer.set_params(safe_inference_mode=True)
-    result = smilestomol_transformer.transform(invalid_smiles_list)
+    result = smilestomol_transformer.transform(smiles_list_with_invalid)
 
-    assert len(result) == len(invalid_smiles_list)
+    assert len(result) == len(smiles_list_with_invalid)
     assert isinstance(result, np.ndarray)
 
     # Check that all but the last element are valid RDKit Mol objects
@@ -128,7 +128,7 @@ def test_smilestomol_safe_inference(invalid_smiles_list, smilestomol_transformer
 
     # Check if the error message is correctly set for the invalid SMILES
     assert "Invalid SMILES" in last_mol.error
-    assert invalid_smiles_list[-1] in last_mol.error
+    assert smiles_list_with_invalid[-1] in last_mol.error
 
 
 @pytest.mark.skipif(
@@ -136,12 +136,12 @@ def test_smilestomol_safe_inference(invalid_smiles_list, smilestomol_transformer
     reason="Pandas output not supported in this sklearn version",
 )
 def test_smilestomol_safe_inference_pandas_output(
-    invalid_smiles_list, smilestomol_transformer, pandas_output
+    smiles_list_with_invalid, smilestomol_transformer, pandas_output
 ):
     smilestomol_transformer.set_params(safe_inference_mode=True)
-    result = smilestomol_transformer.transform(invalid_smiles_list)
+    result = smilestomol_transformer.transform(smiles_list_with_invalid)
 
-    assert len(result) == len(invalid_smiles_list)
+    assert len(result) == len(smiles_list_with_invalid)
     assert isinstance(result, pd.DataFrame)
     assert result.columns == [DEFAULT_MOL_COLUMN_NAME]
 
@@ -156,7 +156,7 @@ def test_smilestomol_safe_inference_pandas_output(
 
     # Check if the error message is correctly set for the invalid SMILES
     assert "Invalid SMILES" in last_mol.error
-    assert invalid_smiles_list[-1] in last_mol.error
+    assert smiles_list_with_invalid[-1] in last_mol.error
 
 
 @skip_pandas_output_test

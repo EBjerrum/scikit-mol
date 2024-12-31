@@ -29,12 +29,14 @@ from IPython.core.display import HTML
 # %%
 from rdkit import Chem
 
-smiles_strings = ["C12C([C@@H](OC(C=3C=CC(=CC3)F)C=4C=CC(=CC4)F)CC(N1CCCCCC5=CC=CC=C5)CC2)C(=O)OC", 
-"O(C1=NC=C2C(CN(CC2=C1)C)C3=CC=C(OC)C=C3)CCCN(CC)CC",
-"O=S(=O)(N(CC=1C=CC2=CC=CC=C2C1)[C@@H]3CCNC3)C",
-"C1(=C2C(CCCC2O)=NC=3C1=CC=CC3)NCC=4C=CC(=CC4)Cl",
-"C1NC[C@@H](C1)[C@H](OC=2C=CC(=NC2C)OC)CC(C)C",
-"FC(F)(F)C=1C(CN(C2CCNCC2)CC(CC)CC)=CC=CC1"]
+smiles_strings = [
+    "C12C([C@@H](OC(C=3C=CC(=CC3)F)C=4C=CC(=CC4)F)CC(N1CCCCCC5=CC=CC=C5)CC2)C(=O)OC",
+    "O(C1=NC=C2C(CN(CC2=C1)C)C3=CC=C(OC)C=C3)CCCN(CC)CC",
+    "O=S(=O)(N(CC=1C=CC2=CC=CC=C2C1)[C@@H]3CCNC3)C",
+    "C1(=C2C(CCCC2O)=NC=3C1=CC=CC3)NCC=4C=CC(=CC4)Cl",
+    "C1NC[C@@H](C1)[C@H](OC=2C=CC(=NC2C)OC)CC(C)C",
+    "FC(F)(F)C=1C(CN(C2CCNCC2)CC(CC)CC)=CC=CC1",
+]
 
 mols = [Chem.MolFromSmiles(smiles) for smiles in smiles_strings]
 
@@ -48,7 +50,7 @@ transformer = MorganFingerprintTransformer(radius=3)
 print(transformer)
 
 # %% [markdown]
-# It actually renders as a cute little interactive block in the Jupyter notebook and lists the options that are not the default values. If we print it, it also gives the information on the settings. 
+# It actually renders as a cute little interactive block in the Jupyter notebook and lists the options that are not the default values. If we print it, it also gives the information on the settings.
 #
 # ![An image of the interactive transformer widget](images/Transformer_Widget.jpg "Transformer object rendering in Jupyter")
 #
@@ -69,7 +71,7 @@ parameters
 
 # %%
 parameters["radius"] = 2
-parameters["nBits"] = 256
+parameters["fpSize"] = 256
 transformer.set_params(**parameters)
 print(transformer)
 
@@ -92,6 +94,7 @@ transformer.transform(mols, y)
 
 # %%
 from scikit_mol.conversions import SmilesToMolTransformer
+
 smi2mol = SmilesToMolTransformer()
 print(smi2mol)
 

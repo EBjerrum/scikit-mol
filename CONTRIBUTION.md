@@ -70,7 +70,7 @@ adding a new tag will trigger a release on pypi. As example:
 
 ```bash
 git tag v0.4.1
-git push origin tag v0.4.0
+git push origin tag v0.4.1
 ```
 
 _Conda_
