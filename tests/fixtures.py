@@ -88,12 +88,15 @@ def chiral_smiles_list():  # Need to be a certain size, so the fingerprints reac
         ]
     ]
 
+@pytest.fixture
+def smiles_list_with_invalid(smiles_list):
+    data = smiles_list.copy()
+    data.extend(["invalid"])
+    return data
 
 @pytest.fixture
-def invalid_smiles_list(smiles_list):
-    smiles_list = smiles_list.copy()
-    smiles_list.append("Invalid")
-    return smiles_list
+def invalid_smiles_list():
+    return ["NOT MOL", "invalid", "C(=O)OX", "XC1CCCCC1"]
 
 
 _MOLS_LIST = [Chem.MolFromSmiles(smiles) for smiles in _SMILES_LIST]
@@ -115,9 +118,9 @@ def chiral_mols_list(chiral_smiles_list):
 
 
 @pytest.fixture
-def mols_with_invalid_container(invalid_smiles_list):
+def mols_with_invalid_container(smiles_list_with_invalid):
     mols = []
-    for smiles in invalid_smiles_list:
+    for smiles in smiles_list_with_invalid:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             mols.append(InvalidMol("TestError", f"Invalid SMILES: {smiles}"))

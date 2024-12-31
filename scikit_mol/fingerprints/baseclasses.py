@@ -171,6 +171,8 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
                 n_processes if n_processes is not None else multiprocessing.cpu_count()
             )
 
+            if len((X)) < n_chunks:
+                n_chunks = len(X)
             with get_context(self.start_method).Pool(processes=n_processes) as pool:
                 x_chunks = np.array_split(X, n_chunks)
                 # TODO check what is fastest, pickle or recreate and do this only for classes that need this

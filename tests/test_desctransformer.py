@@ -12,7 +12,7 @@ from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 from fixtures import (
     mols_list,
     smiles_list,
-    invalid_smiles_list,
+    smiles_list_with_invalid,
     mols_container,
     smiles_container,
     skip_pandas_output_test,
