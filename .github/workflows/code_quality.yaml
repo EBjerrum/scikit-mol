@@ -1,7 +1,7 @@
-name: Ruff
+name: Code Quality Checks
 on: [ push, pull_request ]
 jobs:
-  ruff-format:
+  ruff-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
