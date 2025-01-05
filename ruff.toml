@@ -1,3 +1,4 @@
+required-version = "0.8.6"
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",

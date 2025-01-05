@@ -18,17 +18,17 @@ If you get issues that the editable mode install needs a setup.py, you should up
 
 ## Code Quality
 
-We use [ruff](https://github.com/astral-sh/ruff) to lint and format the code. The configuration is in the [ruff.toml](ruff.toml) file. The CI will fail if the code is not formatted correctly. You can run the linter and formatter locally with
+We use [ruff](https://github.com/astral-sh/ruff) to lint and format the code. The configuration is in the [ruff.toml](ruff.toml) file. The CI will fail if the code is not formatted correctly. You can run the linter and formatter locally with:
 
 ```sh
-    ruff format scikit_mol
-    ruff check --fix scikit_mol
+ruff format scikit_mol
+ruff check --fix scikit_mol
 ```
 
-We also have pre-commit hooks that will run the linter and formatter before you commit and we highly recommend you to use them. You can install them with
+We also have pre-commit hooks that will run the linter and formatter before you commit and we highly recommend you to use them. You can install them with:
 
 ```sh
-    pre-commit install
+pre-commit install
 ```
 For more information on pre-commit see [documentation](https://pre-commit.com/).
 
