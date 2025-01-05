@@ -1,12 +1,10 @@
 from typing import Union
-
-import numpy as np
-
 from warnings import warn
 
-from .baseclasses import FpsTransformer
-
+import numpy as np
 from rdkit.Chem import rdMHFPFingerprint
+
+from .baseclasses import FpsTransformer
 
 
 # TODO move to use FpsGeneratorTransformer

@@ -1,12 +1,12 @@
 # For a non-scikit-learn check smiles sanitizer class
 
+import warnings
+
 import pandas as pd
 from rdkit import Chem
-
 from sklearn.base import BaseEstimator
-from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.compose import ColumnTransformer
-import warnings
+from sklearn.pipeline import FeatureUnion, Pipeline
 
 
 class CheckSmilesSanitazion:
@@ -100,7 +100,7 @@ def set_safe_inference_mode(estimator, value):
         # Handle other estimators with get_params
         elif isinstance(est, BaseEstimator):
             params = est.get_params(deep=False)
-            for param_name, param_value in params.items():
+            for _, param_value in params.items():
                 if isinstance(param_value, BaseEstimator):
                     _set_safe_inference_mode_recursive(param_value, val)
 

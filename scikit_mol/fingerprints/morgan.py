@@ -1,17 +1,12 @@
-from typing import Union
-
-from rdkit.Chem import rdMolDescriptors
+from typing import Optional, Union
 
 import numpy as np
-
-from warnings import warn
-
 from rdkit.Chem.rdFingerprintGenerator import (
-    GetMorganGenerator,
     GetMorganFeatureAtomInvGen,
+    GetMorganGenerator,
 )
 
-from .baseclasses import FpsTransformer, FpsGeneratorTransformer
+from .baseclasses import FpsGeneratorTransformer
 
 
 class MorganFingerprintTransformer(FpsGeneratorTransformer):
@@ -34,7 +29,7 @@ class MorganFingerprintTransformer(FpsGeneratorTransformer):
         parallel: Union[bool, int] = False,
         safe_inference_mode: bool = False,
         dtype: np.dtype = None,
-        nBits: int = None,
+        nBits: Optional[int] = None,
     ):
         """Transform RDKit mols into Count or bit-based hashed MorganFingerprints
 
