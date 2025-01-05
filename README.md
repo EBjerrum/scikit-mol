@@ -98,7 +98,7 @@ With a little bit of help, this project can be improved much faster! Reach to me
 
 Currently we are working on fixing some deprecation warnings, its not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
 
-There are more information about how to contribute to the project in [CONTRIBUTION.md](https://github.com/EBjerrum/scikit-mol/CONTRIBUTION.md)
+There are more information about how to contribute to the project in [CONTRIBUTING](CONTRIBUTING.md)
 
 ## BUGS
 
@@ -112,6 +112,7 @@ Probably still, please check issues at GitHub and report there
 - Oh-hyeon Choung, ohhyeon.choung@gmail.com
 - Andreas Poehlmann, [@ap--](https://github.com/ap--)
 - Ya Chen, [@anya-chen](https://github.com/anya-chen)
+- Anton Siomchen [@asiomchen](https://github.com/asiomchen)
 - Rafał Bachorz [@rafalbachorz](https://github.com/rafalbachorz)
 - Adrien Chaton [@adrienchaton](https://github.com/adrienchaton)
 - [@VincentAlexanderScholz](https://github.com/VincentAlexanderScholz)
