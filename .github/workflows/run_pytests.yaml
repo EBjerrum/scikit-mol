@@ -16,6 +16,8 @@ jobs:
         include:
           # test python version compatibility on linux only
           - os: ubuntu-latest
+            python-version: 3.13
+          - os: ubuntu-latest
             python-version: 3.12
           - os: ubuntu-latest
             python-version: 3.11
