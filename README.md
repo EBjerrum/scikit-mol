@@ -48,7 +48,8 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
   - Standardizer
 
 <br>
-- safeinference
+
+- Safeinference
   - SafeInferenceWrapper
   - set_safe_inference_mode
 
