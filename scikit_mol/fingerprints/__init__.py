@@ -1,5 +1,6 @@
 from .atompair import AtomPairFingerprintTransformer
 from .avalon import AvalonFingerprintTransformer
+
 # TODO, these baseclasses needed for backwards compatibility with tests, needs to be removed when tests updated
 from .baseclasses import (
     FpsGeneratorTransformer,
