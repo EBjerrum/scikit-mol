@@ -1,14 +1,9 @@
 from typing import Union
 
 import numpy as np
-
-from warnings import warn
-
-from .baseclasses import FpsTransformer, FpsGeneratorTransformer
-
 from rdkit.Chem.rdFingerprintGenerator import GetRDKitFPGenerator
 
-from rdkit.Chem import rdFingerprintGenerator
+from .baseclasses import FpsGeneratorTransformer
 
 
 class RDKitFingerprintTransformer(FpsGeneratorTransformer):

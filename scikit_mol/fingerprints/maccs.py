@@ -1,6 +1,7 @@
 from typing import Union
-from rdkit.Chem import rdMolDescriptors
+
 import numpy as np
+from rdkit.Chem import rdMolDescriptors
 
 from .baseclasses import FpsTransformer
 

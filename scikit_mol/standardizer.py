@@ -2,13 +2,14 @@
 # Author: Son Ha
 
 import multiprocessing
+
+import numpy as np
 from rdkit import Chem
-from sklearn.base import BaseEstimator, TransformerMixin
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.rdBase import BlockLogs
-import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input, feature_names_default_mol, InvalidMol
+from scikit_mol.core import InvalidMol, check_transform_input, feature_names_default_mol
 
 
 class Standardizer(BaseEstimator, TransformerMixin):
@@ -50,7 +51,7 @@ class Standardizer(BaseEstimator, TransformerMixin):
             return uncharged_parent_clean_mol
         except Exception as e:
             if self.safe_inference_mode:
-                return InvalidMol(str(self), f"Standardization failed: {str(e)}")
+                return InvalidMol(str(self), f"Standardization failed: {e}")
             else:
                 raise
 

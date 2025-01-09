@@ -1,10 +1,9 @@
 from typing import Union
 
 import numpy as np
+from rdkit.Avalon import pyAvalonTools
 
 from .baseclasses import FpsTransformer
-
-from rdkit.Avalon import pyAvalonTools
 
 
 class AvalonFingerprintTransformer(FpsTransformer):

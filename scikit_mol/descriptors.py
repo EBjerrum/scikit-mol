@@ -1,12 +1,11 @@
-from multiprocessing import Pool, get_context
 import multiprocessing
+from multiprocessing import get_context
+from typing import List, Optional, Union
+
 import numpy as np
-from typing import List, Optional, Any, Union
-
-from rdkit.Chem.rdchem import Mol
 from rdkit.Chem import Descriptors
+from rdkit.Chem.rdchem import Mol
 from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculator
-
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from scikit_mol.core import check_transform_input
@@ -41,7 +40,7 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
         self,
         desc_list: Optional[str] = None,
         parallel: Union[bool, int] = False,
-        start_method: str = None,  # "fork",
+        start_method: Optional[str] = None,  # "fork",
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.float32,
     ):

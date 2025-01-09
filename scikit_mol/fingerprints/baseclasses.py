@@ -1,35 +1,18 @@
-from multiprocessing import Pool, get_context
+import inspect
 import multiprocessing
 import re
-import inspect
-from warnings import warn, simplefilter
-
-from typing import Union
-from rdkit import DataStructs
+from abc import ABC, abstractmethod
+from multiprocessing import get_context
+from typing import Optional, Union
+from warnings import simplefilter, warn
 
 # from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
-from rdkit.Chem import rdMolDescriptors
-from rdkit.Chem import rdFingerprintGenerator
-from rdkit.Chem import rdMHFPFingerprint
-
-
-from rdkit.Chem.rdFingerprintGenerator import (
-    GetMorganGenerator,
-    GetMorganFeatureAtomInvGen,
-    GetTopologicalTorsionGenerator,
-    GetAtomPairGenerator,
-    GetRDKitFPGenerator,
-)
-
 import numpy as np
-import pandas as pd
+from rdkit import DataStructs
 from scipy.sparse import lil_matrix
-from scipy.sparse import vstack
-
 from sklearn.base import BaseEstimator, TransformerMixin
-from scikit_mol.core import check_transform_input
 
-from abc import ABC, abstractmethod
+from scikit_mol.core import check_transform_input
 
 simplefilter("always", DeprecationWarning)
 
@@ -42,7 +25,7 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
     def __init__(
         self,
         parallel: Union[bool, int] = False,
-        start_method: str = None,
+        start_method: Optional[str] = None,
         safe_inference_mode: bool = False,
     ):
         self.parallel = parallel
@@ -265,10 +248,11 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
         # Restore the state of the parent class
         super().__setstate__(state)
         # Re-create the unpicklable property
+        # Do we need this part of code? params variable is not used and tests pass without it
         generatort_keys = inspect.signature(
             self._generate_fp_generator
         ).parameters.keys()
-        params = [
+        params = [  # noqa: F841
             setattr(self, k, state["_" + k])
             if "_" + k in state
             else setattr(self, k, state[k])

@@ -1,17 +1,16 @@
-from multiprocessing import get_context
 import multiprocessing
+from multiprocessing import get_context
 from typing import Union
-from rdkit import Chem
-from rdkit.rdBase import BlockLogs
 
 import numpy as np
+from rdkit import Chem
+from rdkit.rdBase import BlockLogs
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from scikit_mol.core import (
+    InvalidMol,
     check_transform_input,
     feature_names_default_mol,
-    DEFAULT_MOL_COLUMN_NAME,
-    InvalidMol,
 )
 
 # from scikit_mol._invalid import InvalidMol
@@ -123,9 +122,7 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
                     X_out.append(smiles)
                 except Exception as e:
                     X_out.append(
-                        InvalidMol(
-                            str(self), f"Error converting Mol to SMILES: {str(e)}"
-                        )
+                        InvalidMol(str(self), f"Error converting Mol to SMILES: {e}")
                     )
             else:
                 X_out.append(InvalidMol(str(self), f"Not a Mol: {mol}"))

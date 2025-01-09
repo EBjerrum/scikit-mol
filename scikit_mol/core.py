@@ -5,11 +5,10 @@ Users of scikit-mol should not need to use this module directly.
 Users who want to create their own transformers should use this module.
 """
 
-from dataclasses import dataclass
 import functools
+from dataclasses import dataclass
 
 import numpy as np
-import pandas as pd
 from packaging.version import Version
 
 SKLEARN_VERSION_PANDAS_OUT = Version("1.2")
