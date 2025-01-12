@@ -30,6 +30,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
+    "joblib>=1.4.2",
     "numpy",
     "packaging",
     "pandas",
@@ -40,6 +41,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "jupytext",
+    "ipykernel",
     "pre-commit",
     "pytest-cov",
     "pytest>=6",
