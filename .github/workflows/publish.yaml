@@ -1,26 +1,34 @@
-name: Publish Python🐍 distribution📦
-
-on: 
-  workflow_dispatch:
-  workflow_run:
-    workflows: [scikit_mol ci]
-    types: [completed]
+name: Publish Python🐍 distribution📦 with uv🌈
+# after releasing a new version, build the distribution and uploads signed artifacts to GitHub Release
+on:
+  workflow_call:
+    secrets:
+      pypi-password:
+        required: true
+    inputs:
+      python-version:
+        type: string
+        description: 'Python version to use'
+        required: true
+        default: '3.9'
+      is-draft:
+        type: boolean
+        description: 'Is this a draft release?'
+        required: false
+        default: false
 
 jobs:
-  build:
+  build-and-publish:
     name: Build distribution📦
     runs-on: ubuntu-latest
-    if: >- 
-      github.event.workflow_run.conclusion == 'success' &&
-      contains(github.ref, 'refs/tags/')
     steps:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
-    - name: Set up Python
+    - name: Set up Python🐍
       uses: astral-sh/setup-uv@v5
       with:
-        python-version: "3.9"
+        python-version: ${{ inputs.python-version }}
     - name: Build a binary wheel and a source tarball
       run: uv build
     - name: Store the distribution packages
@@ -28,13 +36,18 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
+    - name: Publish package📦 to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.pypi-password }}
 
   github-release:
     name: >-
       Sign the distribution📦 with Sigstore
       and upload them to GitHub Release
     needs:
-    - build
+    - build-and-publish
     runs-on: ubuntu-latest
 
     permissions:
@@ -47,7 +60,7 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: Sign the dists with Sigstore
+    - name: Sign the dists with Sigstore🔏
       uses: sigstore/gh-action-sigstore-python@v3.0.0
       with:
         inputs: >-
@@ -55,15 +68,15 @@ jobs:
           ./dist/*.whl
     - name: Create GitHub Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
       run: >-
-        gh release create
-        "$GITHUB_REF_NAME"
-        --repo "$GITHUB_REPOSITORY"
-        --notes ""
+          gh release create
+          "$GITHUB_REF_NAME"
+          --repo "$GITHUB_REPOSITORY"
+          --generate-notes ${{ inputs.is-draft && '--draft' || '' }}
     - name: Upload artifact signatures to GitHub Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
       run: >-
         gh release upload
         "$GITHUB_REF_NAME" dist/**
