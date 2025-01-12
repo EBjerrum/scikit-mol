@@ -1,0 +1,19 @@
+name: Welcome WorkFlow
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  build:
+    name: 👋 Welcome
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1.3.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: "🎉 Welcome to scikit-mol! 🧪✨ Thank you for opening your first issue! 🚀 Your feedback helps improve the project and makes a difference. 💡 If you have any questions or need guidance, don't hesitate to ask. We're here to help! 🤝"
+          pr-message:  "🎉 Welcome to scikit-mol! 🧪✨ Thank you for submitting your first pull request! 🔧 Your effort and contributions mean a lot to us. 🙌 We'll review it as soon as possible. 🚀"

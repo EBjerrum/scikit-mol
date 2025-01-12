@@ -1,7 +1,10 @@
 # scikit-mol
 
-![Fancy logo](https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_DarkBG_300px.png?raw=true#gh-dark-mode-only)
-![Fancy logo](https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true#gh-light-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_DarkBG_300px.png?raw=true">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true">
+  <img src="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true" alt="Fancy logo">
+</picture>
 
 [![python versions](https://shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)]()
 
