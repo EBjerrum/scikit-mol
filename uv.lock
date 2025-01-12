@@ -1401,10 +1401,9 @@ wheels = [
 
 [[package]]
 name = "scikit-mol"
-version = "0.0.post1.dev322"
+version = "0.0.post1.dev324"
 source = { editable = "." }
 dependencies = [
-    { name = "joblib" },
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "2.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "packaging" },
@@ -1435,7 +1434,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ipykernel", marker = "extra == 'dev'" },
-    { name = "joblib", specifier = ">=1.4.2" },
     { name = "jupytext", marker = "extra == 'dev'" },
     { name = "numpy" },
     { name = "packaging" },
