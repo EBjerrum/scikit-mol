@@ -9,12 +9,30 @@ It's not really active and Slack wan't to be paid now. Maybe we can use Discord 
 
 ## Installation
 
+We use [uv] for managing the virtual environment. You can install it with:
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+For more information and other installation methods see [documentation](https://docs.astral.sh/uv/)
+
 Clone and install in editable more like this
+```sh
+git clone git@github.com:EBjerrum/scikit-mol.git
+uv sync --dev
+```
+After that you could either activate venv and run commands as usual:
+```sh
+source .venv/bin/activate
+pytest -v --cov=scikit_mol
+```
+or use `uv run` to run commands in the venv (automaticallyc check that environment is up to date):
+```sh
+uv run pytest -v --cov=scikit_mol
+```
 
-    git clone git@github.com:EBjerrum/scikit-mol.git
-    pip install -e .[dev]
+`uv.lock` contains the pinned dependencies and is used to recreate the environment. Make sure to update it when adding new dependencies. (handled automatically when using `uv run` or manually with `uv lock`)
 
-If you get issues that the editable mode install needs a setup.py, you should update your pip
 
 ## Code Quality
 
