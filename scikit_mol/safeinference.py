@@ -44,7 +44,11 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
 
             # Handle masked arrays
             if isinstance(X, np.ma.MaskedArray):
-                valid_mask &= ~X.mask.any(axis=1)
+                try:
+                    valid_mask &= ~X.mask.any(axis=1)
+                # workaround for situation where mask is single boolean (all masked/ all unmasked) and no axis present
+                except np.exceptions.AxisError:
+                    valid_mask &= ~X.mask
 
             # Handle non-finite values if required
             if getattr(obj, "mask_nonfinite", True):
