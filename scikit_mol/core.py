@@ -16,6 +16,15 @@ SKLEARN_VERSION_PANDAS_OUT = Version("1.2")
 DEFAULT_MOL_COLUMN_NAME = "ROMol"
 
 
+class NoFitNeededMixin:
+    """
+    Mixin class to add a __sklearn_is_fitted__ method to a transformes, which does not need to be fitted.
+    """
+
+    def __sklearn_is_fitted__(self):
+        return True
+
+
 @dataclass
 class InvalidMol:
     """

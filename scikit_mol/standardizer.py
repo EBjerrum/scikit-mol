@@ -9,10 +9,15 @@ from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.rdBase import BlockLogs
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import InvalidMol, check_transform_input, feature_names_default_mol
+from scikit_mol.core import (
+    InvalidMol,
+    NoFitNeededMixin,
+    check_transform_input,
+    feature_names_default_mol,
+)
 
 
-class Standardizer(BaseEstimator, TransformerMixin):
+class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     """Input a list of rdkit mols, output the same list but standardised"""
 
     def __init__(self, neutralize=True, parallel=False, safe_inference_mode=False):

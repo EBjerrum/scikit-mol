@@ -8,6 +8,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 from scikit_mol.core import (
     InvalidMol,
+    NoFitNeededMixin,
     check_transform_input,
     feature_names_default_mol,
 )
@@ -16,7 +17,7 @@ from scikit_mol.parallel import parallelized_with_batches
 # from scikit_mol._invalid import InvalidMol
 
 
-class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
+class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     """
     Transformer for converting SMILES strings to RDKit mol objects.
 

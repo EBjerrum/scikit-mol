@@ -7,11 +7,11 @@ from rdkit.Chem.rdchem import Mol
 from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculator
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input
+from scikit_mol.core import NoFitNeededMixin, check_transform_input
 from scikit_mol.parallel import parallelized_with_batches
 
 
-class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
+class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     """Descriptor calculation transformer
 
     Parameters
@@ -161,5 +161,4 @@ def parallel_helper(params, mols):
 
     transformer = MolecularDescriptorTransformer(**params)
     y = transformer._transform(mols)
-    print(f"y shape: {y.shape}")
     return y

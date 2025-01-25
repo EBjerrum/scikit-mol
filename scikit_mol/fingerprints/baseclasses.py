@@ -11,7 +11,7 @@ from rdkit import DataStructs
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input
+from scikit_mol.core import NoFitNeededMixin, check_transform_input
 from scikit_mol.parallel import parallelized_with_batches
 
 simplefilter("always", DeprecationWarning)
@@ -21,7 +21,7 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
 )
 
 
-class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
+class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator):
     def __init__(
         self,
         parallel: Optional[int] = None,
