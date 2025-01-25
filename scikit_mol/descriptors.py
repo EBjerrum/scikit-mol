@@ -18,12 +18,9 @@ class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEst
     ----------
     desc_list : (List of descriptor names)
         A list of RDKit descriptors to include in the calculation
-    parallel : boolean, int
-        if True, multiprocessing will be used. If set to an int > 1, that specified number of processes
-        will be used, otherwise it's autodetected.
-    start_method : str
-        The method to start child processes when parallel=True. can be 'fork', 'spawn' or 'forkserver'.
-        If None, the OS and Pythons default will be used.
+    n_jobs : int optional default: None
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
     safe_inference_mode : bool
         If True, enables safeguards for handling invalid data during inference.
         This should only be set to True when deploying models to production.
@@ -39,14 +36,12 @@ class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEst
     def __init__(
         self,
         desc_list: Optional[str] = None,
-        parallel: Optional[int] = None,
-        start_method: Optional[str] = None,  # "fork",
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.float32,
     ):
         self.desc_list = desc_list
-        self.parallel = parallel
-        self.start_method = start_method
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
         self.dtype = dtype
 
@@ -144,7 +139,7 @@ class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEst
 
         """
         fn = functools.partial(parallel_helper, self.get_params())
-        arrays = parallelized_with_batches(fn, x, self.parallel)
+        arrays = parallelized_with_batches(fn, x, self.n_jobs)
         if self.safe_inference_mode:
             arrays = np.ma.concatenate(arrays)
         else:

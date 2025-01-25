@@ -24,10 +24,10 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
 class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator):
     def __init__(
         self,
-        parallel: Optional[int] = None,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
-        self.parallel = parallel
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
 
     # TODO, remove when finally deprecating nBits and dtype
@@ -146,7 +146,7 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
             classname=self.__class__.__name__,
             parameters=self.get_params(),
         )
-        arrays = parallelized_with_batches(func, X, self.parallel)
+        arrays = parallelized_with_batches(func, X, self.n_jobs)
         if self.safe_inference_mode:
             arr = np.ma.concatenate(arrays)
             return arr
@@ -159,11 +159,11 @@ class FpsTransformer(BaseFpsTransformer):
 
     def __init__(
         self,
-        parallel: Optional[int] = None,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
     ):
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode)
         self.dtype = dtype
 
     def _transform_mol(self, mol):

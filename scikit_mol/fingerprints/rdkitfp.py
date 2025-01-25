@@ -31,7 +31,7 @@ class RDKitFingerprintTransformer(FpsGeneratorTransformer):
         fpSize: int = 2048,
         numBitsPerFeature: int = 2,
         useCounts: bool = False,
-        parallel: Optional[int] = None,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         """Calculates the RDKit fingerprints
@@ -58,7 +58,7 @@ class RDKitFingerprintTransformer(FpsGeneratorTransformer):
             the number of bits set per path/subgraph found, by default 2
         """
         self._initializing = True
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode)
         self.minPath = minPath
         self.maxPath = maxPath
         self.useHs = useHs

@@ -28,7 +28,7 @@ def equal_val(value, expected_value):
 
 @pytest.fixture(params=[1, 2])
 def transformer(request):
-    return MorganFingerprintTransformer(fpSize=5, parallel=request.param)
+    return MorganFingerprintTransformer(fpSize=5, n_jobs=request.param)
 
 
 @pytest.fixture(params=[np.nan, None, np.inf, 0, -100])

@@ -130,7 +130,7 @@ def test_transform_parallel(
         mhfp_transformer,
         avalon_transformer,
     ]:
-        t.set_params(parallel=2)
+        t.set_params(n_jobs=2)
         params = t.get_params()
         fps = t.transform(mols_container)
         # Assert that the same length of input and output
@@ -292,7 +292,7 @@ def test_transform_parallel_with_safe_inference_mode(
         secfp_transformer,
         avalon_transformer,
     ]:
-        t.set_params(safe_inference_mode=True, parallel=2)
+        t.set_params(safe_inference_mode=True, n_jobs=2)
         fps = t.transform(mols_with_invalid_container)
 
         assert len(fps) == len(mols_with_invalid_container)

@@ -26,17 +26,18 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
 
     Parameters:
     -----------
-    parallel : Union[bool, int], default=False
-        If True or int > 1, enables parallel processing.
+    n_jobs : int, optional default=None
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
     safe_inference_mode : bool, default=False
         If True, enables safeguards for handling invalid data during inference.
         This should only be set to True when deploying models to production.
     """
 
     def __init__(
-        self, parallel: Optional[None] = None, safe_inference_mode: bool = False
+        self, n_jobs: Optional[None] = None, safe_inference_mode: bool = False
     ):
-        self.parallel = parallel
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
 
     @feature_names_default_mol
@@ -65,9 +66,7 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
         ValueError
             Raises ValueError if a SMILES string is unparsable by RDKit and safe_inference_mode is False
         """
-        arrays = parallelized_with_batches(
-            self._transform, X_smiles_list, self.parallel
-        )
+        arrays = parallelized_with_batches(self._transform, X_smiles_list, self.n_jobs)
         arr = np.concatenate(arrays)
         return arr
 

@@ -15,7 +15,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
         resetVect: bool = False,
         bitFlags: int = 15761407,
         useCounts: bool = False,
-        parallel: Optional[int] = None,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
     ):
@@ -35,7 +35,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
             If toggled will create the count and not bit-based fingerprint, by default False
         """
         super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, dtype=dtype
         )
         self.fpSize = fpSize
         self.isQuery = isQuery

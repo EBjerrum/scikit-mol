@@ -26,7 +26,7 @@ class MorganFingerprintTransformer(FpsGeneratorTransformer):
         useBondTypes=True,
         useFeatures=False,
         useCounts=False,
-        parallel: Optional[int] = None,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = None,
         nBits: Optional[int] = None,
@@ -47,14 +47,15 @@ class MorganFingerprintTransformer(FpsGeneratorTransformer):
             use chemical features, rather than atom-type in calculation of the fingerprint keys, by default False
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
-        parallel : bool or int, optional
-            If True, will use all available cores, if int will use that many cores, by default False
+        n_jobs : int, optional default=None
+            The maximum number of concurrently running jobs.
+            None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
         safe_inference_mode : bool, optional
             If True, will return masked arrays for invalid mols, by default False
         """
 
         self._initializing = True
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode)
         self.fpSize = fpSize
         self.radius = radius
         self.useChirality = useChirality

@@ -3,6 +3,7 @@
 
 
 import functools
+from typing import Optional
 
 import numpy as np
 from rdkit import Chem
@@ -20,11 +21,28 @@ from scikit_mol.parallel import parallelized_with_batches
 
 
 class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
-    """Input a list of rdkit mols, output the same list but standardised"""
+    """Standardize molecules with RDKit
 
-    def __init__(self, neutralize=True, parallel=None, safe_inference_mode=False):
+    Parameters
+    ----------
+    neutralize : bool, optional
+        If True, neutralizes the molecule, by default True
+    n_jobs : Optional[int], optional
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs., by default None
+    safe_inference_mode : bool, optional
+        If True, enables safeguards for handling invalid data during inference.
+        This should only be set to True when deploying models to production, by default False
+    """
+
+    def __init__(
+        self,
+        neutralize: bool = True,
+        n_jobs: Optional[int] = None,
+        safe_inference_mode: bool = False,
+    ):
         self.neutralize = neutralize
-        self.parallel = parallel
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
 
     def fit(self, X, y=None):
@@ -72,7 +90,7 @@ class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     def transform(self, X, y=None):
         parameters = self.get_params()
         func = functools.partial(parallel_helper, self.__class__.__name__, parameters)
-        arrays = parallelized_with_batches(func, X, self.parallel)
+        arrays = parallelized_with_batches(func, X, self.n_jobs)
         arr = np.concatenate(arrays)
         return arr
 
