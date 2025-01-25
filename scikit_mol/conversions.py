@@ -1,6 +1,5 @@
-from typing import Union
+from typing import Optional
 
-import joblib
 import numpy as np
 from rdkit import Chem
 from rdkit.rdBase import BlockLogs
@@ -35,10 +34,9 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     """
 
     def __init__(
-        self, parallel: Union[bool, int] = False, safe_inference_mode: bool = False
+        self, parallel: Optional[None] = None, safe_inference_mode: bool = False
     ):
         self.parallel = parallel
-        self.start_method = None  # TODO implement handling of start_method
         self.safe_inference_mode = safe_inference_mode
 
     @feature_names_default_mol
@@ -67,26 +65,11 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
         ValueError
             Raises ValueError if a SMILES string is unparsable by RDKit and safe_inference_mode is False
         """
-
-        if not self.parallel:
-            return self._transform(X_smiles_list)
-        elif self.parallel:
-            n_processes = (
-                self.parallel if self.parallel > 1 else None
-            )  # Pool(processes=None) autodetects
-            n_chunks = (
-                n_processes * 2 if n_processes is not None else joblib.cpu_count() * 2
-            )  # TODO, tune the number of chunks per child process
-            # with get_context(self.start_method).Pool(processes=n_processes) as pool:
-            #     x_chunks = np.array_split(X_smiles_list, n_chunks)
-            #     arrays = pool.map(
-            #         self._transform, x_chunks
-            #     )  # is the helper function a safer way of handling the picklind and child process communication
-            #     arr = np.concatenate(arrays)
-            #     return arr
-            arrays = parallelized_with_batches(self._transform, X_smiles_list, n_chunks)
-            arr = np.concatenate(arrays)
-            return arr
+        arrays = parallelized_with_batches(
+            self._transform, X_smiles_list, self.parallel
+        )
+        arr = np.concatenate(arrays)
+        return arr
 
     @check_transform_input
     def _transform(self, X):
