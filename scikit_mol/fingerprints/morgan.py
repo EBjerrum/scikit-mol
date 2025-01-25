@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 from rdkit.Chem.rdFingerprintGenerator import (
@@ -26,7 +26,7 @@ class MorganFingerprintTransformer(FpsGeneratorTransformer):
         useBondTypes=True,
         useFeatures=False,
         useCounts=False,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = None,
         nBits: Optional[int] = None,

@@ -1,26 +1,28 @@
 import time
-import pytest
+
+import joblib
 import numpy as np
-import pandas as pd
 import numpy.ma as ma
-from rdkit.Chem import Descriptors
+import pandas as pd
+import pytest
 import sklearn
-from packaging.version import Version
-from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.descriptors import MolecularDescriptorTransformer
-from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 from fixtures import (
+    mols_container,
     mols_list,
+    mols_with_invalid_container,
+    skip_pandas_output_test,
+    smiles_container,
     smiles_list,
     smiles_list_with_invalid,
-    mols_container,
-    smiles_container,
-    skip_pandas_output_test,
-    mols_with_invalid_container,
 )
+from packaging.version import Version
+from rdkit.Chem import Descriptors
 from sklearn import clone
 from sklearn.pipeline import Pipeline
-import joblib
+
+from scikit_mol.conversions import SmilesToMolTransformer
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 
 
 @pytest.fixture

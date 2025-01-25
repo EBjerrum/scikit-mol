@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 from warnings import warn
 
 import numpy as np
@@ -18,7 +18,7 @@ class MHFingerprintTransformer(FpsTransformer):
         min_radius: int = 1,
         fpSize: int = 2048,
         seed: int = 42,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int32,
     ):
@@ -119,7 +119,7 @@ class SECFingerprintTransformer(FpsTransformer):
         fpSize: int = 2048,
         n_permutations: int = 0,
         seed: int = 0,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
     ):

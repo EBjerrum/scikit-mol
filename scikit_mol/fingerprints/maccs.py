@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 import numpy as np
 from rdkit.Chem import rdMolDescriptors
@@ -9,7 +9,7 @@ from .baseclasses import FpsTransformer
 class MACCSKeysFingerprintTransformer(FpsTransformer):
     def __init__(
         self,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
         fpSize=167,

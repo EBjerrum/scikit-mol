@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 import numpy as np
 from rdkit.Avalon import pyAvalonTools
@@ -15,7 +15,7 @@ class AvalonFingerprintTransformer(FpsTransformer):
         resetVect: bool = False,
         bitFlags: int = 15761407,
         useCounts: bool = False,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
     ):

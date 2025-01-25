@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 import numpy as np
 from rdkit.Chem.rdFingerprintGenerator import GetRDKitFPGenerator
@@ -31,7 +31,7 @@ class RDKitFingerprintTransformer(FpsGeneratorTransformer):
         fpSize: int = 2048,
         numBitsPerFeature: int = 2,
         useCounts: bool = False,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         """Calculates the RDKit fingerprints

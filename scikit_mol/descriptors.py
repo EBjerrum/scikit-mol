@@ -1,5 +1,4 @@
-import multiprocessing
-from multiprocessing import get_context
+import functools
 from typing import List, Optional, Union
 
 import numpy as np
@@ -9,6 +8,7 @@ from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculat
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from scikit_mol.core import check_transform_input
+from scikit_mol.parallel import parallelized_with_batches
 
 
 class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
@@ -39,7 +39,7 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         desc_list: Optional[str] = None,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         start_method: Optional[str] = None,  # "fork",
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.float32,
@@ -143,36 +143,23 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
             Descriptors, shape (samples, length of .selected_descriptors)
 
         """
-        if not self.parallel:
-            return self._transform(x)
-        elif self.parallel:
-            n_processes = (
-                self.parallel if self.parallel > 1 else None
-            )  # Pool(processes=None) autodetects
-            n_chunks = (
-                n_processes if n_processes is not None else multiprocessing.cpu_count()
-            )  # TODO, tune the number of chunks per child process
-            if n_chunks > len(x):
-                n_chunks = len(x)
-            with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                params = self.get_params()
-                x_chunks = np.array_split(x, n_chunks)
-                arrays = pool.map(parallel_helper, [(params, x) for x in x_chunks])
-                if self.safe_inference_mode:
-                    arr = np.ma.concatenate(arrays)
-                else:
-                    arr = np.concatenate(arrays)
-            return arr
+        fn = functools.partial(parallel_helper, self.get_params())
+        arrays = parallelized_with_batches(fn, x, self.parallel)
+        if self.safe_inference_mode:
+            arrays = np.ma.concatenate(arrays)
+        else:
+            arrays = np.concatenate(arrays)
+        return arrays
 
 
 # May be safer to instantiate the transformer object in the child process, and only transfer the parameters
 # There were issues with freezing when using RDKit 2022.3
-def parallel_helper(args):
+def parallel_helper(params, mols):
     """Will get a tuple with Desc2DTransformer parameters and mols to transform.
     Will then instantiate the transformer and transform the molecules"""
     from scikit_mol.descriptors import MolecularDescriptorTransformer
 
-    params, mols = args
     transformer = MolecularDescriptorTransformer(**params)
     y = transformer._transform(mols)
+    print(f"y shape: {y.shape}")
     return y

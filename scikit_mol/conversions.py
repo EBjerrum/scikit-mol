@@ -1,7 +1,6 @@
-import multiprocessing
-from multiprocessing import get_context
 from typing import Union
 
+import joblib
 import numpy as np
 from rdkit import Chem
 from rdkit.rdBase import BlockLogs
@@ -12,6 +11,7 @@ from scikit_mol.core import (
     check_transform_input,
     feature_names_default_mol,
 )
+from scikit_mol.parallel import parallelized_with_batches
 
 # from scikit_mol._invalid import InvalidMol
 
@@ -74,17 +74,18 @@ class SmilesToMolTransformer(BaseEstimator, TransformerMixin):
                 self.parallel if self.parallel > 1 else None
             )  # Pool(processes=None) autodetects
             n_chunks = (
-                n_processes * 2
-                if n_processes is not None
-                else multiprocessing.cpu_count() * 2
+                n_processes * 2 if n_processes is not None else joblib.cpu_count() * 2
             )  # TODO, tune the number of chunks per child process
-            with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                x_chunks = np.array_split(X_smiles_list, n_chunks)
-                arrays = pool.map(
-                    self._transform, x_chunks
-                )  # is the helper function a safer way of handling the picklind and child process communication
-                arr = np.concatenate(arrays)
-                return arr
+            # with get_context(self.start_method).Pool(processes=n_processes) as pool:
+            #     x_chunks = np.array_split(X_smiles_list, n_chunks)
+            #     arrays = pool.map(
+            #         self._transform, x_chunks
+            #     )  # is the helper function a safer way of handling the picklind and child process communication
+            #     arr = np.concatenate(arrays)
+            #     return arr
+            arrays = parallelized_with_batches(self._transform, X_smiles_list, n_chunks)
+            arr = np.concatenate(arrays)
+            return arr
 
     @check_transform_input
     def _transform(self, X):

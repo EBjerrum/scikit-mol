@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 import numpy as np
 from rdkit.Chem.rdFingerprintGenerator import GetTopologicalTorsionGenerator
@@ -19,7 +19,7 @@ class TopologicalTorsionFingerprintTransformer(FpsGeneratorTransformer):
         includeChirality: bool = False,
         fpSize: int = 2048,
         useCounts: bool = False,
-        parallel: Union[bool, int] = False,
+        parallel: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         self._initializing = True
