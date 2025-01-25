@@ -138,7 +138,6 @@ tests/data/
 
 # setuptools_scm version
 scikit_mol/_version.py
-.vscode
 notebooks/SLC6A4_active_excape_export.csv
 sandbox/
 scikit_mol/_version.py
