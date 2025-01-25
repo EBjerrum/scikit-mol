@@ -1,15 +1,16 @@
 import pickle
 import tempfile
-import pytest
+
 import numpy as np
+import pytest
 from fixtures import (
-    mols_list,
-    smiles_list,
-    mols_container,
-    smiles_container,
-    fingerprint,
-    chiral_smiles_list,
     chiral_mols_list,
+    chiral_smiles_list,
+    fingerprint,
+    mols_container,
+    mols_list,
+    smiles_container,
+    smiles_list,
 )
 from sklearn import clone
 
@@ -93,7 +94,7 @@ def test_transform(mols_container, transformer_class):
 def test_transform_parallel(mols_container, transformer_class):
     transformer = transformer_class()
     # Test the different transformers
-    transformer.set_params(parallel=True)
+    transformer.set_params(n_jobs=2)
     params = transformer.get_params()
     fps = transformer.transform(mols_container)
     # Assert that the same length of input and output

@@ -9,6 +9,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import check_array
 from sklearn.utils.metaestimators import available_if
+from sklearn.utils.validation import NotFittedError, check_is_fitted
 
 from .utilities import set_safe_inference_mode
 
@@ -44,7 +45,11 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
 
             # Handle masked arrays
             if isinstance(X, np.ma.MaskedArray):
-                valid_mask &= ~X.mask.any(axis=1)
+                try:
+                    valid_mask &= ~X.mask.any(axis=1)
+                # workaround for situation where mask is single boolean (all masked/ all unmasked) and no axis present
+                except np.exceptions.AxisError:
+                    valid_mask &= ~X.mask
 
             # Handle non-finite values if required
             if getattr(obj, "mask_nonfinite", True):
@@ -108,7 +113,7 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
     return decorator
 
 
-class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
+class SafeInferenceWrapper(TransformerMixin, BaseEstimator):
     """
     Wrapper for sklearn estimators to ensure safe inference in production environments.
 
@@ -181,3 +186,10 @@ class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
     @filter_invalid_rows(warn_on_invalid=True)
     def get_feature_names_out(self, *args, **kwargs):
         return self.estimator.get_feature_names_out(*args, **kwargs)
+
+    def __sklearn_is_fitted__(self):
+        try:
+            check_is_fitted(self.estimator)
+            return True
+        except NotFittedError:
+            return False

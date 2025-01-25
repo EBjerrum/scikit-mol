@@ -1,9 +1,8 @@
+import functools
 import inspect
-import multiprocessing
 import re
 from abc import ABC, abstractmethod
-from multiprocessing import get_context
-from typing import Optional, Union
+from typing import Optional
 from warnings import simplefilter, warn
 
 # from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
@@ -12,7 +11,8 @@ from rdkit import DataStructs
 from scipy.sparse import lil_matrix
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input
+from scikit_mol.core import NoFitNeededMixin, check_transform_input
+from scikit_mol.parallel import parallelized_with_batches
 
 simplefilter("always", DeprecationWarning)
 
@@ -21,15 +21,13 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
 )
 
 
-class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
+class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator):
     def __init__(
         self,
-        parallel: Union[bool, int] = False,
-        start_method: Optional[str] = None,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
-        self.parallel = parallel
-        self.start_method = start_method
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
 
     # TODO, remove when finally deprecating nBits and dtype
@@ -143,39 +141,17 @@ class BaseFpsTransformer(ABC, BaseEstimator, TransformerMixin):
         np.array
             Fingerprints, shape (samples, fingerprint size)
         """
-        if not self.parallel:
-            return self._transform(X)
-
-        elif self.parallel:
-            n_processes = (
-                self.parallel if self.parallel > 1 else None
-            )  # Pool(processes=None) autodetects
-            n_chunks = (
-                n_processes if n_processes is not None else multiprocessing.cpu_count()
-            )
-
-            if len((X)) < n_chunks:
-                n_chunks = len(X)
-            with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                x_chunks = np.array_split(X, n_chunks)
-                # TODO check what is fastest, pickle or recreate and do this only for classes that need this
-                # arrays = pool.map(self._transform, x_chunks)
-                parameters = self.get_params()
-                # TODO: create "transform_parallel" function in the core module,
-                # and use it here and in the descriptors transformer
-                # x_chunks = [np.array(x).reshape(-1, 1) for x in x_chunks]
-                arrays = pool.map(
-                    parallel_helper,
-                    [
-                        (self.__class__.__name__, parameters, x_chunk)
-                        for x_chunk in x_chunks
-                    ],
-                )
-                if self.safe_inference_mode:
-                    arr = np.ma.concatenate(arrays)
-                else:
-                    arr = np.concatenate(arrays)
+        func = functools.partial(
+            parallel_helper,
+            classname=self.__class__.__name__,
+            parameters=self.get_params(),
+        )
+        arrays = parallelized_with_batches(func, X, self.n_jobs)
+        if self.safe_inference_mode:
+            arr = np.ma.concatenate(arrays)
             return arr
+        else:
+            return np.concatenate(arrays)
 
 
 class FpsTransformer(BaseFpsTransformer):
@@ -183,11 +159,11 @@ class FpsTransformer(BaseFpsTransformer):
 
     def __init__(
         self,
-        parallel: Union[bool, int] = False,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
     ):
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode)
         self.dtype = dtype
 
     def _transform_mol(self, mol):
@@ -311,11 +287,10 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
         return [p for p in params if p not in ("dtype", "nBits")]
 
 
-def parallel_helper(args):
+def parallel_helper(X_mols, classname, parameters):
     """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
     Then instantiates the class with the parameters and processes the mol.
     Intention is to be able to do this in child processes as some classes can't be pickled"""
-    classname, parameters, X_mols = args
     from scikit_mol import fingerprints
 
     transformer = getattr(fingerprints, classname)(**parameters)

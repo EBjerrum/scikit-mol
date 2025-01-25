@@ -1,26 +1,28 @@
 import time
-import pytest
+
+import joblib
 import numpy as np
-import pandas as pd
 import numpy.ma as ma
-from rdkit.Chem import Descriptors
+import pandas as pd
+import pytest
 import sklearn
-from packaging.version import Version
-from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.descriptors import MolecularDescriptorTransformer
-from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 from fixtures import (
+    mols_container,
     mols_list,
+    mols_with_invalid_container,
+    skip_pandas_output_test,
+    smiles_container,
     smiles_list,
     smiles_list_with_invalid,
-    mols_container,
-    smiles_container,
-    skip_pandas_output_test,
-    mols_with_invalid_container,
 )
+from packaging.version import Version
+from rdkit.Chem import Descriptors
 from sklearn import clone
 from sklearn.pipeline import Pipeline
-import joblib
+
+from scikit_mol.conversions import SmilesToMolTransformer
+from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 
 
 @pytest.fixture
@@ -98,7 +100,7 @@ def test_descriptor_transformer_wrong_descriptors():
 
 
 def test_descriptor_transformer_parallel(mols_list, default_descriptor_transformer):
-    default_descriptor_transformer.set_params(parallel=True)
+    default_descriptor_transformer.set_params(n_jobs=2)
     features = default_descriptor_transformer.transform(mols_list)
     assert len(features) == len(mols_list)
     assert len(features[0]) == len(Descriptors._descList)
@@ -151,9 +153,7 @@ def test_transform_without_safe_inference_mode(mols_with_invalid_container):
 
 
 def test_transform_parallel_with_safe_inference_mode(mols_with_invalid_container):
-    transformer = MolecularDescriptorTransformer(
-        safe_inference_mode=True, parallel=True
-    )
+    transformer = MolecularDescriptorTransformer(safe_inference_mode=True, n_jobs=2)
     descriptors = transformer.transform(mols_with_invalid_container)
 
     assert isinstance(descriptors, ma.MaskedArray)
@@ -167,9 +167,7 @@ def test_transform_parallel_with_safe_inference_mode(mols_with_invalid_container
 
 
 def test_transform_parallel_without_safe_inference_mode(mols_with_invalid_container):
-    transformer = MolecularDescriptorTransformer(
-        safe_inference_mode=False, parallel=True
-    )
+    transformer = MolecularDescriptorTransformer(safe_inference_mode=False, n_jobs=2)
     with pytest.raises(
         Exception
     ):  # You might want to be more specific about the exception type
