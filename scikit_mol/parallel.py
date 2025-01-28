@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import Any, Callable, Optional
 
 import numpy as np
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, effective_n_jobs
 
 
 def parallelized_with_batches(
@@ -28,12 +28,10 @@ def parallelized_with_batches(
     Sequence[Optional[Any]]
         A sequence of results from the function executed in parallel.
     """
-
-    pool = Parallel(n_jobs=n_jobs, **job_kwargs)
-    n_jobs = pool._effective_n_jobs()
+    n_jobs = effective_n_jobs(n_jobs)
     if n_jobs > len(inputs_list):
         n_jobs = len(inputs_list)
-        pool = Parallel(n_jobs=n_jobs, **job_kwargs)
+    pool = Parallel(n_jobs=n_jobs, **job_kwargs)
 
     input_chunks = np.array_split(inputs_list, n_jobs)
     results = pool(delayed(fn)(chunk) for chunk in input_chunks)
