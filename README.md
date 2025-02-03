@@ -6,7 +6,7 @@
   <img src="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true" alt="Fancy logo">
 </picture>
 
-[![python versions](https://shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)]()
+[![python versions](https://shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)]()
 
 [![pypi version](https://img.shields.io/pypi/v/scikit-mol.svg)](https://pypi.org/project/scikit-mol/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/scikit-mol.svg)](https://anaconda.org/conda-forge/scikit-mol)
