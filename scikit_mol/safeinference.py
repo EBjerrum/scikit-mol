@@ -1,24 +1,26 @@
 """Wrapper for sklearn estimators and pipelines to handle errors."""
 
+import warnings
+from functools import wraps
 from typing import Union
 
 import numpy as np
 import pandas as pd
-from functools import wraps
-import warnings
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import check_array
 from sklearn.utils.metaestimators import available_if
+from sklearn.utils.validation import NotFittedError, check_is_fitted
 
 from .utilities import set_safe_inference_mode
 
+__all__ = ["MaskedArrayError", "SafeInferenceWrapper", "set_safe_inference_mode"]
 
-__all__ = ["SafeInferenceWrapper", "MaskedArrayError", "set_safe_inference_mode"]
 
 class MaskedArrayError(ValueError):
     """Raised when a masked array is passed but safe_inference_mode is False."""
 
     pass
+
 
 def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
     def decorator(func):
@@ -32,7 +34,9 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
                     )
                 return func(obj, X, y, *args, **kwargs)
             if not hasattr(obj, "replace_value"):
-                raise ValueError("replace_value must be set in the SafeInferenceWrapper")
+                raise ValueError(
+                    "replace_value must be set in the SafeInferenceWrapper"
+                )
             else:
                 replace_value = obj.replace_value
 
@@ -41,7 +45,11 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
 
             # Handle masked arrays
             if isinstance(X, np.ma.MaskedArray):
-                valid_mask &= ~X.mask.any(axis=1)
+                try:
+                    valid_mask &= ~X.mask.any(axis=1)
+                # workaround for situation where mask is single boolean (all masked/ all unmasked) and no axis present
+                except np.exceptions.AxisError:
+                    valid_mask &= ~X.mask
 
             # Handle non-finite values if required
             if getattr(obj, "mask_nonfinite", True):
@@ -105,7 +113,7 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
     return decorator
 
 
-class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
+class SafeInferenceWrapper(TransformerMixin, BaseEstimator):
     """
     Wrapper for sklearn estimators to ensure safe inference in production environments.
 
@@ -178,3 +186,10 @@ class SafeInferenceWrapper(BaseEstimator, TransformerMixin):
     @filter_invalid_rows(warn_on_invalid=True)
     def get_feature_names_out(self, *args, **kwargs):
         return self.estimator.get_feature_names_out(*args, **kwargs)
+
+    def __sklearn_is_fitted__(self):
+        try:
+            check_is_fitted(self.estimator)
+            return True
+        except NotFittedError:
+            return False

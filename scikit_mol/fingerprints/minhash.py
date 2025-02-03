@@ -1,12 +1,10 @@
-from typing import Union
-
-import numpy as np
-
+from typing import Optional
 from warnings import warn
 
-from .baseclasses import FpsTransformer
-
+import numpy as np
 from rdkit.Chem import rdMHFPFingerprint
+
+from .baseclasses import FpsTransformer
 
 
 # TODO move to use FpsGeneratorTransformer
@@ -20,7 +18,7 @@ class MHFingerprintTransformer(FpsTransformer):
         min_radius: int = 1,
         fpSize: int = 2048,
         seed: int = 42,
-        parallel: Union[bool, int] = False,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int32,
     ):
@@ -39,7 +37,7 @@ class MHFingerprintTransformer(FpsTransformer):
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
         super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, dtype=dtype
         )
         self.radius = radius
         self.rings = rings
@@ -121,7 +119,7 @@ class SECFingerprintTransformer(FpsTransformer):
         fpSize: int = 2048,
         n_permutations: int = 0,
         seed: int = 0,
-        parallel: Union[bool, int] = False,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.int8,
     ):
@@ -138,7 +136,7 @@ class SECFingerprintTransformer(FpsTransformer):
             seed (int, optional): The value used to seed numpy.random. Defaults to 0.
         """
         super().__init__(
-            parallel=parallel, safe_inference_mode=safe_inference_mode, dtype=dtype
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, dtype=dtype
         )
         self.radius = radius
         self.rings = rings

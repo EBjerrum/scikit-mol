@@ -1,14 +1,9 @@
-from typing import Union
+from typing import Optional
 
 import numpy as np
-
-from warnings import warn
-
-from .baseclasses import FpsTransformer, FpsGeneratorTransformer
-
 from rdkit.Chem.rdFingerprintGenerator import GetRDKitFPGenerator
 
-from rdkit.Chem import rdFingerprintGenerator
+from .baseclasses import FpsGeneratorTransformer
 
 
 class RDKitFingerprintTransformer(FpsGeneratorTransformer):
@@ -36,7 +31,7 @@ class RDKitFingerprintTransformer(FpsGeneratorTransformer):
         fpSize: int = 2048,
         numBitsPerFeature: int = 2,
         useCounts: bool = False,
-        parallel: Union[bool, int] = False,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         """Calculates the RDKit fingerprints
@@ -63,7 +58,7 @@ class RDKitFingerprintTransformer(FpsGeneratorTransformer):
             the number of bits set per path/subgraph found, by default 2
         """
         self._initializing = True
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode)
         self.minPath = minPath
         self.maxPath = maxPath
         self.useHs = useHs

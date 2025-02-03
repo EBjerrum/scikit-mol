@@ -1,23 +1,48 @@
 # A scikit-learn compatible molecule standardizer
 # Author: Son Ha
 
-import multiprocessing
+
+import functools
+from typing import Optional
+
+import numpy as np
 from rdkit import Chem
-from sklearn.base import BaseEstimator, TransformerMixin
 from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.rdBase import BlockLogs
-import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input, feature_names_default_mol, InvalidMol
+from scikit_mol.core import (
+    InvalidMol,
+    NoFitNeededMixin,
+    check_transform_input,
+    feature_names_default_mol,
+)
+from scikit_mol.parallel import parallelized_with_batches
 
 
-class Standardizer(BaseEstimator, TransformerMixin):
-    """Input a list of rdkit mols, output the same list but standardised"""
+class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
+    """Standardize molecules with RDKit
 
-    def __init__(self, neutralize=True, parallel=False, safe_inference_mode=False):
+    Parameters
+    ----------
+    neutralize : bool, optional
+        If True, neutralizes the molecule, by default True
+    n_jobs : Optional[int], optional
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs., by default None
+    safe_inference_mode : bool, optional
+        If True, enables safeguards for handling invalid data during inference.
+        This should only be set to True when deploying models to production, by default False
+    """
+
+    def __init__(
+        self,
+        neutralize: bool = True,
+        n_jobs: Optional[int] = None,
+        safe_inference_mode: bool = False,
+    ):
         self.neutralize = neutralize
-        self.parallel = parallel
-        self.start_method = None  # TODO implement handling of start_method
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
 
     def fit(self, X, y=None):
@@ -50,7 +75,7 @@ class Standardizer(BaseEstimator, TransformerMixin):
             return uncharged_parent_clean_mol
         except Exception as e:
             if self.safe_inference_mode:
-                return InvalidMol(str(self), f"Standardization failed: {str(e)}")
+                return InvalidMol(str(self), f"Standardization failed: {e}")
             else:
                 raise
 
@@ -63,40 +88,17 @@ class Standardizer(BaseEstimator, TransformerMixin):
 
     @check_transform_input
     def transform(self, X, y=None):
-        if not self.parallel:
-            return self._transform(X)
-
-        elif self.parallel:
-            n_processes = (
-                self.parallel if self.parallel > 1 else None
-            )  # Pool(processes=None) autodetects
-            n_chunks = (
-                n_processes * 2
-                if n_processes is not None
-                else multiprocessing.cpu_count() * 2
-            )  # TODO, tune the number of chunks per child process
-
-            with multiprocessing.get_context(self.start_method).Pool(
-                processes=n_processes
-            ) as pool:
-                x_chunks = np.array_split(X, n_chunks)
-                parameters = self.get_params()
-                arrays = pool.map(
-                    parallel_helper,
-                    [
-                        (self.__class__.__name__, parameters, x_chunk)
-                        for x_chunk in x_chunks
-                    ],
-                )
-                arr = np.concatenate(arrays)
-            return arr
+        parameters = self.get_params()
+        func = functools.partial(parallel_helper, self.__class__.__name__, parameters)
+        arrays = parallelized_with_batches(func, X, self.n_jobs)
+        arr = np.concatenate(arrays)
+        return arr
 
 
-def parallel_helper(args):
+def parallel_helper(classname, parameters, X_mols):
     """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
     Then instantiates the class with the parameters and processes the mol.
     Intention is to be able to do this in child processes as some classes can't be pickled"""
-    classname, parameters, X_mols = args
     from scikit_mol import standardizer
 
     transformer = getattr(standardizer, classname)(**parameters)

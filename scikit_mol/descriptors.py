@@ -1,30 +1,26 @@
-from multiprocessing import Pool, get_context
-import multiprocessing
+import functools
+from typing import List, Optional, Union
+
 import numpy as np
-from typing import List, Optional, Any, Union
-
-from rdkit.Chem.rdchem import Mol
 from rdkit.Chem import Descriptors
+from rdkit.Chem.rdchem import Mol
 from rdkit.ML.Descriptors.MoleculeDescriptors import MolecularDescriptorCalculator
-
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from scikit_mol.core import check_transform_input
+from scikit_mol.core import NoFitNeededMixin, check_transform_input
+from scikit_mol.parallel import parallelized_with_batches
 
 
-class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
+class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     """Descriptor calculation transformer
 
     Parameters
     ----------
     desc_list : (List of descriptor names)
         A list of RDKit descriptors to include in the calculation
-    parallel : boolean, int
-        if True, multiprocessing will be used. If set to an int > 1, that specified number of processes
-        will be used, otherwise it's autodetected.
-    start_method : str
-        The method to start child processes when parallel=True. can be 'fork', 'spawn' or 'forkserver'.
-        If None, the OS and Pythons default will be used.
+    n_jobs : int optional default: None
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
     safe_inference_mode : bool
         If True, enables safeguards for handling invalid data during inference.
         This should only be set to True when deploying models to production.
@@ -40,14 +36,12 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         desc_list: Optional[str] = None,
-        parallel: Union[bool, int] = False,
-        start_method: str = None,  # "fork",
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
         dtype: np.dtype = np.float32,
     ):
         self.desc_list = desc_list
-        self.parallel = parallel
-        self.start_method = start_method
+        self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
         self.dtype = dtype
 
@@ -144,36 +138,22 @@ class MolecularDescriptorTransformer(BaseEstimator, TransformerMixin):
             Descriptors, shape (samples, length of .selected_descriptors)
 
         """
-        if not self.parallel:
-            return self._transform(x)
-        elif self.parallel:
-            n_processes = (
-                self.parallel if self.parallel > 1 else None
-            )  # Pool(processes=None) autodetects
-            n_chunks = (
-                n_processes if n_processes is not None else multiprocessing.cpu_count()
-            )  # TODO, tune the number of chunks per child process
-            if n_chunks > len(x):
-                n_chunks = len(x)
-            with get_context(self.start_method).Pool(processes=n_processes) as pool:
-                params = self.get_params()
-                x_chunks = np.array_split(x, n_chunks)
-                arrays = pool.map(parallel_helper, [(params, x) for x in x_chunks])
-                if self.safe_inference_mode:
-                    arr = np.ma.concatenate(arrays)
-                else:
-                    arr = np.concatenate(arrays)
-            return arr
+        fn = functools.partial(parallel_helper, self.get_params())
+        arrays = parallelized_with_batches(fn, x, self.n_jobs)
+        if self.safe_inference_mode:
+            arrays = np.ma.concatenate(arrays)
+        else:
+            arrays = np.concatenate(arrays)
+        return arrays
 
 
 # May be safer to instantiate the transformer object in the child process, and only transfer the parameters
 # There were issues with freezing when using RDKit 2022.3
-def parallel_helper(args):
+def parallel_helper(params, mols):
     """Will get a tuple with Desc2DTransformer parameters and mols to transform.
     Will then instantiate the transformer and transform the molecules"""
     from scikit_mol.descriptors import MolecularDescriptorTransformer
 
-    params, mols = args
     transformer = MolecularDescriptorTransformer(**params)
     y = transformer._transform(mols)
     return y

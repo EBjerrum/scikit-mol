@@ -1,21 +1,22 @@
-import pytest
 import numpy as np
 import pandas as pd
-from packaging.version import Version
-from sklearn import clone
-from rdkit import Chem
+import pytest
 import sklearn
-from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.core import (
-    SKLEARN_VERSION_PANDAS_OUT,
-    DEFAULT_MOL_COLUMN_NAME,
-    InvalidMol,
-)
 from fixtures import (
+    skip_pandas_output_test,
+    smiles_container,
     smiles_list,
     smiles_list_with_invalid,
-    smiles_container,
-    skip_pandas_output_test,
+)
+from packaging.version import Version
+from rdkit import Chem
+from sklearn import clone
+
+from scikit_mol.conversions import SmilesToMolTransformer
+from scikit_mol.core import (
+    DEFAULT_MOL_COLUMN_NAME,
+    SKLEARN_VERSION_PANDAS_OUT,
+    InvalidMol,
 )
 
 
@@ -58,7 +59,7 @@ def test_smilestomol_unsanitzable(smiles_list_with_invalid, smilestomol_transfor
 
 
 def test_descriptor_transformer_parallel(smiles_container, smilestomol_transformer):
-    smilestomol_transformer.set_params(parallel=True)
+    smilestomol_transformer.set_params(n_jobs=2)
     mol_list = smilestomol_transformer.transform(smiles_container)
     if isinstance(smiles_container, pd.DataFrame):
         expected_smiles = smiles_container.iloc[:, 0].tolist()

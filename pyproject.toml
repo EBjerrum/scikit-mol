@@ -1,13 +1,74 @@
 [build-system]
-requires = [
-  "setuptools >= 64",
-  "setuptools_scm[toml]>=6.2",
-]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-write_to = "scikit_mol/_version.py"
-version_scheme = "post-release"
+[project]
+name = "scikit-mol"
+dynamic = ["version"]
+description = "scikit-learn classes for molecule transformation"
+readme = "README.md"
+license = "LGPL-3.0"
+requires-python = ">=3.9,<3.14"
+authors = [
+    { name = "Esben Jannik Bjerrum", email = "esben@cheminformania.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "numpy",
+    "packaging",
+    "pandas",
+    "rdkit",
+    "scikit-learn",
+]
+
+
+[project.urls]
+Download = "https://github.com/EBjerrum/scikit-mol"
+Homepage = "https://github.com/EBjerrum/scikit-mol"
+
+[tool.hatch]
+build.hooks.vcs.version-file = "scikit_mol/_version.py"
+version.source = "vcs"  # Get the version from git, eg: 0.0.6.dev0+g1234567
+# Drop the local version part (eg: +g1234567) or pypi will reject package
+version.raw-options.local_scheme = "no-local-version"
+# A manually triggered github release workflow may generate a new tag
+# with .devN suffix. We need to tell setuptools_scm to ignore past tags with
+# this suffix when calculating the version number else it refuses to
+# bump the version number.
+version.raw-options.git_describe_command = [
+    "git", "describe", "--dirty", "--tags", "--long",
+    "--match", "v*.[0-9]",
+    "--match", "v*.[0-9][0-9]",
+    "--match", "v*.[0-9][0-9][0-9]",
+]
+version.raw-options.version_scheme = "no-guess-dev"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/scikit_mol",
+]
+
+[tool.hatch.build.targets.wheel]
+include = [
+    "/scikit_mol",
+]
+
 
 [tool.pytest.ini_options]
 addopts = [
@@ -24,4 +85,15 @@ exclude_lines = [
   "if TYPE_CHECKING:",
   "if MYPY:",
   "^\\s+[.][.][.]$",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "jupytext>=1.16.6",
+    "pre-commit>=3.5.0",
+    "pytest>6",
+    "pytest-cov>=5.0.0",
+    "ruff==0.8.6",
+    "seaborn>=0.13.2",
 ]

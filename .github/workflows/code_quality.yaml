@@ -1,0 +1,22 @@
+name: Code Quality Checks
+on: [ push, pull_request ]
+jobs:
+  ruff-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check code formatting
+        uses: astral-sh/ruff-action@v3
+        with:
+          version: 0.8.6
+          args: "format --check"
+          src: "./scikit_mol"
+
+      - name: Check code style
+        uses: astral-sh/ruff-action@v3
+        with:
+          version: 0.8.6
+          args: "check"
+          src: "./scikit_mol"
+
+        

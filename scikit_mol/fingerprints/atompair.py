@@ -1,13 +1,9 @@
-from typing import Union
+from typing import Optional
 
 import numpy as np
-
-from warnings import warn
-
-from .baseclasses import FpsTransformer, FpsGeneratorTransformer
-
 from rdkit.Chem.rdFingerprintGenerator import GetAtomPairGenerator
-from rdkit.Chem import rdMolDescriptors
+
+from .baseclasses import FpsGeneratorTransformer
 
 
 class AtomPairFingerprintTransformer(FpsGeneratorTransformer):
@@ -31,11 +27,11 @@ class AtomPairFingerprintTransformer(FpsGeneratorTransformer):
         confId: int = -1,
         fpSize: int = 2048,
         useCounts: bool = False,
-        parallel: Union[bool, int] = False,
+        n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         self._initializing = True
-        super().__init__(parallel=parallel, safe_inference_mode=safe_inference_mode)
+        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode)
         self.fpSize = fpSize
         self.use2D = use2D
         self.includeChirality = includeChirality
