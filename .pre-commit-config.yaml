@@ -17,5 +17,6 @@ repos:
     # Run the linter.
     - id: ruff
       args: [ --fix ]
+      types_or: [ python, pyi ]
     # Run the formatter.
     - id: ruff-format
