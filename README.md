@@ -60,6 +60,7 @@ The first draft for the project was created at the [RDKIT UGM 2022 hackathon](ht
   - Standardizer
 
 <br>
+
 - safeinference
   - SafeInferenceWrapper
   - set_safe_inference_mode
@@ -102,6 +103,19 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/11_safe_inference.ipynb)
 
   We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
+
+## Other use-examples
+
+Scikit-Mol has been featured in blog-posts or used in research, some examples which are listed below:
+
+- [Useful ML package for cheminformatics iwatobipen.wordpress.com](https://iwatobipen.wordpress.com/2023/11/12/useful-ml-package-for-cheminformatics-rdkit-cheminformatics-ml/)
+- [Boosted trees Data_in_life_blog](https://jhylin.github.io/Data_in_life_blog/posts/19_ML2-3_Boosted_trees/1_adaboost_xgb.html)
+- [Konnektor: A Framework for Using Graph Theory to Plan Networks for Free Energy Calculations](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.4c01710)
+- [Moldrug algorithm for an automated ligand binding site exploration by 3D aware molecular enumerations](https://chemrxiv.org/engage/chemrxiv/article-details/67688633fa469535b97c1b73)
+- [RandomNets Improve Neural Network Regression Performance via Implicit Ensembling](https://chemrxiv.org/engage/chemrxiv/article-details/67656cfa81d2151a02603f48)
+- [WAE-DTI: Ensemble-based architecture for drug–target interaction prediction using descriptors and embeddings](https://www.sciencedirect.com/science/article/pii/S2352914824001618)
+- [Data Driven Estimation of Molecular Log-Likelihood using Fingerprint Key Counting](https://chemrxiv.org/engage/chemrxiv/article-details/661402ee21291e5d1d646651)
+- [AUTONOMOUS DRUG DISCOVERY](https://www.proquest.com/openview/3e830e36bc618f263905a99e787c66c6/1?pq-origsite=gscholar&cbl=18750&diss=y)
 
 ## Roadmap and Contributing
 
