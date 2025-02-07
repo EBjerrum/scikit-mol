@@ -2,9 +2,6 @@ name: Publish Python🐍 distribution📦 with uv🌈
 # after releasing a new version, build the distribution and uploads signed artifacts to GitHub Release
 on:
   workflow_call:
-    secrets:
-      pypi-password:
-        required: true
     inputs:
       python-version:
         type: string
@@ -16,6 +13,11 @@ on:
         description: "Is this a draft release?"
         required: false
         default: false
+      dist-artifact-name:
+        type: string
+        description: "Name of the created distribution artifact"
+        required: false
+        default: "python-package-distributions"
 
 jobs:
   build-and-publish:
@@ -39,11 +41,9 @@ jobs:
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
-          name: python-package-distributions
+          name: ${{ inputs.dist-artifact-name }}
           path: dist/
-      - name: Publish package📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-
+      
   github-release:
     name: >-
       Sign the distribution📦 with Sigstore
@@ -60,7 +60,7 @@ jobs:
       - name: Download all the dists
         uses: actions/download-artifact@v4
         with:
-          name: python-package-distributions
+          name: ${{ inputs.dist-artifact-name }}
           path: dist/
       - name: Sign the dists with Sigstore🔏
         uses: sigstore/gh-action-sigstore-python@v3.0.0
@@ -83,3 +83,4 @@ jobs:
           gh release upload
           "$GITHUB_REF_NAME" dist/**
           --repo "$GITHUB_REPOSITORY"
+          
