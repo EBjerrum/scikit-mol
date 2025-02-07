@@ -132,6 +132,10 @@ Probably still, please check issues at GitHub and report there
 
 ## Contributers:
 
+Scikit-Mol has been developed as a community effort with contributions from people from many different companies, consortia, foundations and academic institutions.
+
+[Cheminformania Consulting](https://www.cheminformania.com), [Aptuit](https://www.linkedin.com/company/aptuit/), [BASF](https://www.basf.com), [Bayer AG](https://www.bayer.com), [Boehringer Ingelheim](https://www.boehringer-ingelheim.com/), [Chodera Lab (MSKCC)](https://www.choderalab.org/), [EPAM Systems](https://www.epam.com/),[ETH Zürich](https://ethz.ch/en.html), [Evotec](https://www.evotec.com/), [Johannes Gutenberg University](https://www.uni-mainz.de/en/), [Martin Luther University](https://www.uni-halle.de/?lang=en), [Odyssey Therapeutics](https://odysseytx.com/), [Open Molecular Software Foundation](https://omsf.io/), [Openfree.energy](https://openfree.energy/), [Polish Academy of Sciences](https://pasific.pan.pl/polish-academy-of-sciences/), [Productivista](https://www.productivista.com), [Simulations-Plus Inc.](https://www.simulations-plus.com/), [University of Vienna](https://www.univie.ac.at/en/)
+
 - Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esbenbjerrum+scikit_mol@gmail.com
 - Carmen Esposito [@cespos](https://github.com/cespos)
 - Son Ha, sonha@uni-mainz.de
