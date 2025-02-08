@@ -4,12 +4,17 @@ repo_url: "https://github.com/EBjerrum/scikit-mol"
 repo_name: "EBjerrum/scikit-mol"
 copyright: Copyright 2022 - 2025
 
-site_url: ""
-remote_branch: "gh-pages"
 use_directory_urls: false
 docs_dir: "docs"
 
-theme: material
+theme: 
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.expand
+
+extra_javascript:
+    - assets/js/readthedocs.js
 
 watch:
   - "scikit_mol"
@@ -25,9 +30,9 @@ plugins:
             - https://scikit-learn.org/stable/objects.inv
             - https://docs.python.org/objects.inv
             - https://www.rdkit.org/docs/objects.inv
-  # - mkdocs-jupyter:
-  #     execute: false
-  #     include: ["*.ipynb"]
+  - mkdocs-jupyter:
+      execute: false
+      include: ["*.ipynb"]
 
 nav:
   - Overview: index.md
@@ -42,7 +47,7 @@ nav:
     - scikit-mol.safeinference: api/scikit_mol.safeinference.md
     - scikit-mol.standarizer: api/scikit_mol.standarizer.md
     
-  - Notebooks: 
+  - Notebooks:
     - Basic Usage and fingerprint transformers: notebooks/01_basic_usage.ipynb
     - Descriptor transformer: notebooks/02_descriptor_transformer.ipynb
     - Pipelining with Scikit-Learn classes: notebooks/03_example_pipeline.py
@@ -54,3 +59,5 @@ nav:
     - Testing different fingerprints as part of the hyperparameter optimization: notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers.ipynb
     - Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations: notebooks/10_pipeline_pandas_output.ipynb
     - Working with pipelines and estimators in safe inference mode: notebooks/11_safe_inference.ipynb
+
+  - Contributing: CONTRIBUTING.md

@@ -32,60 +32,26 @@ The scikit-learn compatibility should also make it easier to include the fingerp
 
 The first draft for the project was created at the [RDKIT UGM 2022 hackathon](https://github.com/rdkit/UGM_2022) 2022-October-14
 
-## Implemented
-
-- Descriptors
-  - MolecularDescriptorTransformer
-
-<br>
-
-- Fingerprints
-  - MorganFingerprintTransformer
-  - MACCSKeysFingerprintTransformer
-  - RDKitFingerprintTransformer
-  - AtomPairFingerprintTransformer
-  - TopologicalTorsionFingerprintTransformer
-  - MHFingerprintTransformer
-  - SECFingerprintTransformer
-  - AvalonFingerprintTransformer
-
-<br>
-
-- Conversions
-  - SmilesToMol
-
-<br>
-
-- Standardizer
-  - Standardizer
-
-<br>
-
-- safeinference
-  - SafeInferenceWrapper
-  - set_safe_inference_mode
-
-<br>
-
-- Utilities
-  - CheckSmilesSanitazion
-
 ## Installation
 
 Users can install latest tagged release from pip
 
-    pip install scikit-mol
+```sh
+pip install scikit-mol
+```
 
 or from conda-forge
 
-    conda install -c conda-forge scikit-mol
-
+```sh
+conda install -c conda-forge scikit-mol
+```
 The conda forge package should get updated shortly after a new tagged release on pypi.
 
 Bleeding edge
 
-    pip install git+https://github.com:EBjerrum/scikit-mol.git
-
+```sh
+pip install git+https://github.com:EBjerrum/scikit-mol.git
+```
 ## Documentation
 
 There are a collection of notebooks in the notebooks directory which demonstrates some different aspects and use cases
@@ -102,7 +68,7 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 - [Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/10_pipeline_pandas_output.ipynb)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/11_safe_inference.ipynb)
 
-  We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
+We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
 ## Other use-examples
 
