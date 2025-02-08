@@ -9,6 +9,8 @@ from .baseclasses import FpsTransformer
 
 # TODO move to use FpsGeneratorTransformer
 class MHFingerprintTransformer(FpsTransformer):
+    "Transforms the RDKit mol into the [MinHash fingerprint (MHFP)](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8)."
+
     def __init__(
         self,
         radius: int = 3,
@@ -23,8 +25,6 @@ class MHFingerprintTransformer(FpsTransformer):
         dtype: np.dtype = np.int32,
     ):
         """
-        Transforms the RDKit mol into the [MinHash fingerprint (MHFP)](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8).
-
         Parameters
         ----------
         radius : int, optional
@@ -38,15 +38,16 @@ class MHFingerprintTransformer(FpsTransformer):
         min_radius : int, optional
             The minimum radius that is used to extract n-gram.
         fpSize : int, optional
-            The number of permutations used for hashing. Defaults to 2048, this is effectively the length of the FP.
+            The number of permutations used for hashing. Defaults to `2048`, this is effectively the length of the FP.
         seed : int, optional
             The value used to seed numpy.random.
         n_jobs : int or None, optional
-            The number of jobs to run in parallel.
+            The maximum number of concurrently running jobs.
+            `None` is a marker for 'unset' that will be interpreted as `n_jobs=1` unless the call is performed under a `parallel_config()` context manager that sets another value for `n_jobs`.
         safe_inference_mode : bool, optional
             Whether to use safe inference mode.
         dtype : numpy.dtype, optional
-            The data type of the fingerprint. Defaults to numpy.int32.
+            The data type of the fingerprint. Defaults to `numpy.int32`.
         """
         super().__init__(
             n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, dtype=dtype

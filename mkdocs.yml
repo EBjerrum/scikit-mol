@@ -21,6 +21,7 @@ watch:
 
 plugins:
   - search
+  - autorefs
   - mkdocstrings:
       handlers:
         python:
@@ -50,7 +51,7 @@ nav:
   - Notebooks:
     - Basic Usage and fingerprint transformers: notebooks/01_basic_usage.ipynb
     - Descriptor transformer: notebooks/02_descriptor_transformer.ipynb
-    - Pipelining with Scikit-Learn classes: notebooks/03_example_pipeline.py
+    - Pipelining with Scikit-Learn classes: notebooks/03_example_pipeline.ipynb
     - Molecular standardization: notebooks/04_standardizer.ipynb
     - Sanitizing SMILES input: notebooks/05_smiles_sanitaztion.ipynb
     - Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer: notebooks/06_hyperparameter_tuning.ipynb
@@ -60,4 +61,4 @@ nav:
     - Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations: notebooks/10_pipeline_pandas_output.ipynb
     - Working with pipelines and estimators in safe inference mode: notebooks/11_safe_inference.ipynb
 
-  - Contributing: CONTRIBUTING.md
+  - Contributing: contributing.md

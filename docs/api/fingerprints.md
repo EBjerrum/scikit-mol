@@ -2,5 +2,4 @@
     options:
       filters: ["!Fps"]
       inherited_members:
-        - fit
         - transform
