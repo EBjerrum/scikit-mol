@@ -3,57 +3,44 @@ import platform
 import re
 import subprocess
 import time
-from typing import Optional
+from typing import TYPE_CHECKING, Optional, Sequence
 
 import joblib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+if TYPE_CHECKING:
+    from rdkit import Chem
+
 
 class ParallelTester:
     """
-    A class to test the performance of a transformer on a set of molecules using parallel processing.
-    Parameters
-    ----------
-    transformer : object
-        The transformer object that has a `transform` method to apply to the molecules.
-    mols : list
-        A list of molecules to be transformed.
-    n_mols : tuple, optional
-        A tuple of integers specifying the number of molecules to test with. Default is (10, 100, 1000, 10000, 100000).
-    n_jobs : tuple, optional
-        A tuple of integers specifying the number of parallel jobs to test with. Default is (1, 2, 4, 8).
-    backend : str, optional
-        The parallel backend to use. Default is 'loky'.
-    Attributes
-    ----------
-    mols : list
-        The list of molecules to be transformed.
-    n_mols : list
-        The sorted list of number of molecules to test with.
-    n_jobs : list
-        The sorted list of number of parallel jobs to test with.
-    transformer : object
-        The transformer object.
-    backend : str
-        The parallel backend to use.
-    Methods
-    -------
-    _test_single(mols, n_jobs)
-        Tests the transformer on a subset of molecules with a specified number of parallel jobs.
-    test()
-        Tests the transformer on various subsets of molecules with different numbers of parallel jobs and returns the results as a DataFrame.
+    A class to test the performance of a transformer on a set of molecules using parallel processing.\
     """
 
     def __init__(
         self,
-        transformer,
-        mols,
-        n_mols=(10, 100, 100, 1000, 10000, 100000),
-        n_jobs=(1, 2, 4, 8),
-        backend="loky",
+        transformer: object,
+        mols: list[Chem.Mol],
+        n_mols: Sequence[int] = (10, 100, 100, 1000, 10000, 100000),
+        n_jobs: Sequence[int] = (1, 2, 4, 8),
+        backend: str = "loky",
     ):
+        """
+        Parameters
+        ----------
+        transformer : object
+            The transformer object that has a `transform` method to apply to the molecules
+        mols : Sequence[Chem.Mol]
+            A list of molecules to be transformed
+        n_mols : Sequence[int], optional
+            A tuple of integers specifying the number of molecules to test with
+        n_jobs : Sequence[int], optional
+            A tuple of integers specifying the number of parallel jobs to test with
+        backend : str, optional
+            The parallel backend to use
+        """
         self.mols = mols
         n_mols = sorted(n_mols)
         if max(n_mols) > len(mols):
@@ -76,7 +63,14 @@ class ParallelTester:
             self.transformer.transform(mols)
         return time.perf_counter() - start
 
-    def test(self):
+    def test(self) -> pd.DataFrame:
+        """Tests the transformer on various subsets of molecules with different numbers of parallel jobs and returns the results as a DataFrame.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing the time taken to transform the molecules with different numbers of molecules and parallel jobs.
+        """
         results = pd.DataFrame(columns=self.n_mols, index=self.n_jobs)
         for n_mol in self.n_mols:
             for n_job in self.n_jobs:
@@ -116,22 +110,25 @@ def get_processor_name() -> str:
     return ""
 
 
-def plot_heatmap(df: pd.DataFrame, name: Optional[str] = None, normalize: bool = True):
+def plot_heatmap(
+    df: pd.DataFrame, name: Optional[str] = None, normalize: bool = True
+) -> plt.Axes:
     """
-    Plots a heatmap of the given DataFrame from the parallel tester.
+    Plots a heatmap of the given DataFrame from [ParallelTester][scikit_mol.plotting.ParallelTester].
 
     Parameters
     ----------
     df : pandas.DataFrame
-        The DataFrame containing the data to be plotted.
+        The DataFrame containing the data to be plotted
     name : str, optional
-        The name to be used in the title of the plot. Default is None.
+        The name to be used in the title of the plot
     normalize : bool, optional
-        If True, normalize the DataFrame by the first row. Default is True.
-
+        If True, normalize the DataFrame by the first row
     Returns
     -------
-        The heatmap plot.
+    matplotlib.axes.Axes
+        The Axes object of the plot
+
 
     Notes
     -----

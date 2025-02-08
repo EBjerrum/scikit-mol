@@ -20,9 +20,9 @@ def parallelized_with_batches(
     inputs_list : np.ndarray
         The list of inputs to be processed in parallel.
     n_jobs : Optional[int], default=None
-        The number of jobs to run in parallel. If None, it will be determined automatically.
+        The number of jobs to run in parallel. If `None`, it will be determined automatically.
     **job_kwargs : Any
-        Additional keyword arguments to pass to the Parallel object.
+        Additional keyword arguments to pass to the `joblib.Parallel` object.
     Returns
     -------
     Sequence[Optional[Any]]

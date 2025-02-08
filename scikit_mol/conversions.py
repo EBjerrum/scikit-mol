@@ -1,6 +1,8 @@
-from typing import Optional
+from collections.abc import Sequence
+from typing import Optional, Union
 
 import numpy as np
+from numpy.typing import NDArray
 from rdkit import Chem
 from rdkit.rdBase import BlockLogs
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -23,20 +25,21 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     This transformer can be included in pipelines during development and training,
     but the safe inference mode should only be enabled when deploying models for
     inference in production environments.
-
-    Parameters:
-    -----------
-    n_jobs : int, optional default=None
-        The maximum number of concurrently running jobs.
-        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
-    safe_inference_mode : bool, default=False
-        If True, enables safeguards for handling invalid data during inference.
-        This should only be set to True when deploying models to production.
     """
 
     def __init__(
         self, n_jobs: Optional[None] = None, safe_inference_mode: bool = False
     ):
+        """
+        Parameters
+        -----------
+        n_jobs : int, optional default=None
+            The maximum number of concurrently running jobs.
+            `None` is a marker for 'unset' that will be interpreted as `n_jobs=1` unless the call is performed under a `parallel_config()` context manager that sets another value for `n_jobs`.
+        safe_inference_mode : bool, default=False
+            If `True`, enables safeguards for handling invalid data during inference.
+            This should only be set to `True` when deploying models to production.
+        """
         self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
 
@@ -48,24 +51,26 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
         """Included for scikit-learn compatibility, does nothing"""
         return self
 
-    def transform(self, X_smiles_list, y=None):
+    def transform(
+        self, X_smiles_list: Sequence[str], y=None
+    ) -> NDArray[Union[Chem.Mol, InvalidMol]]:
         """Converts SMILES into RDKit mols
 
         Parameters
         ----------
-        X_smiles_list : list-like
-            A list of RDKit parsable strings
+        X_smiles_list : Sequence[str]
+            sequence of SMILES strings to transform
 
         Returns
         -------
-        List
-            List of RDKit mol objects
-
+        NDArray[Union[Chem.Mol, InvalidMol]]
+            Array of RDKit mol objects or InvalidMol objects if a SMILES string is invalid and `safe_inference_mode=True`
         Raises
         ------
         ValueError
-            Raises ValueError if a SMILES string is unparsable by RDKit and safe_inference_mode is False
+            Raises ValueError if a SMILES string is unparsable by RDKit and `safe_inference_mode=False`
         """
+
         arrays = parallelized_with_batches(self._transform, X_smiles_list, self.n_jobs)
         arr = np.concatenate(arrays)
         return arr
