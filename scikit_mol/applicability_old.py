@@ -1,11 +1,8 @@
 import numpy as np
+from scipy import linalg, stats
 from scipy.sparse import csr_matrix
-from sklearn.neighbors import NearestNeighbors
 from sklearn.base import BaseEstimator, TransformerMixin, check_array, check_is_fitted
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_is_fitted, check_array
-import numpy as np
-from scipy import linalg
+from sklearn.neighbors import NearestNeighbors
 
 
 class NearestNeighborsDistance(BaseEstimator, TransformerMixin):
@@ -231,7 +228,9 @@ class MahalanobisDistance(BaseEstimator, TransformerMixin):
 
         # Set threshold based on strategy
         if self.threshold_strategy == "chi2":
-            self.threshold_ = chi2.ppf(self.threshold_quantile, df=self.n_features_in_)
+            self.threshold_ = stats.chi2.ppf(
+                self.threshold_quantile, df=self.n_features_in_
+            )
         elif self.threshold_strategy == "empirical":
             self.threshold_ = np.quantile(train_distances, self.threshold_quantile)
         elif self.threshold_strategy is None:
