@@ -92,15 +92,12 @@ Scikit-Learn has a check_estimator that we should strive to get to work, some cl
 
 ## Notebooks
 
-Another way of contributing is by providing notebooks with examples on how to use the project to build models together with Scikit-Learn and other tools. There is both .ipynb and #%% delimited .py files in the notebook directory as the first are useful for online rendering on github, whereas the later is useful for sub version control.
+Another way of contributing is by providing notebooks with examples on how to use the project to build models together with Scikit-Learn and other tools. There are .ipynb files inthe `docs/notebooks` and .py files in the `script` subfolder as the first are useful for online rendering in the documentation, whereas the later is useful for sub version control.
+If you want to create new notebook you can create .ipynb file and when you are doen run `make sync-notebooks` to create the corresponding .py file for the commit.
 
-There are three scripts for handling the notebooks and their associated python:percent scripts (with much nicer diff for git).
+`make sync-notebooks` will sync all the notebooks with the .py files in the `scripts` folder.
 
-`pair_notebook.sh` create a pair of a notebook or percent:py script
-
-`sync_notebooks.sh` uses jupytext to sync .py and ipynb. Jupytext is available via conda-forge or pip
-
-`update_notebooks.sh` will sync, run and save the notebooks, expects a ipython kernel with scikit-mol installed called Python3.
+`make run-notebooks` will sync, run and save the notebooks, expects a ipython kernel with scikit-mol installed called Python3.
 
 ## Release
 

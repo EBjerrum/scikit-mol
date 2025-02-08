@@ -1,8 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     cell_metadata_filter: -all
-#     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -30,12 +28,18 @@ from sklearn.linear_model import Ridge
 # For demonstration let's create some molecules with different protonation states. The two first molecules are Benzoic acid and Sodium benzoate.
 
 # %%
-smiles_strings = ('c1ccccc1C(=O)[OH]','c1ccccc1C(=O)[O-].[Na+]','CC[NH+](C)C','CC[N+](C)(C)C',
-       '[O-]CC(C(=O)[O-])C[NH+](C)C','[O-]CC(C(=O)[O-])C[N+](C)(C)C')
+smiles_strings = (
+    "c1ccccc1C(=O)[OH]",
+    "c1ccccc1C(=O)[O-].[Na+]",
+    "CC[NH+](C)C",
+    "CC[N+](C)(C)C",
+    "[O-]CC(C(=O)[O-])C[NH+](C)C",
+    "[O-]CC(C(=O)[O-])C[N+](C)(C)C",
+)
 
 smi2mol = SmilesToMolTransformer()
 
-mols  = smi2mol.transform(smiles_strings)
+mols = smi2mol.transform(smiles_strings)
 for mol in mols[0:2]:
     display(mol)
 
@@ -55,19 +59,26 @@ standard_smiles
 # A typical usecase would be to add the standardizer to a pipeline for prediction
 
 # %%
-# Typical use case is to use it in an sklearn pipeline, like below 
+# Typical use case is to use it in an sklearn pipeline, like below
 predictor = Ridge()
 
-std_pipe = make_pipeline(SmilesToMolTransformer(), Standardizer(), MorganFingerprintTransformer(useCounts=True), predictor)
-nonstd_pipe = make_pipeline(SmilesToMolTransformer(), MorganFingerprintTransformer(useCounts=True), predictor)
+std_pipe = make_pipeline(
+    SmilesToMolTransformer(),
+    Standardizer(),
+    MorganFingerprintTransformer(useCounts=True),
+    predictor,
+)
+nonstd_pipe = make_pipeline(
+    SmilesToMolTransformer(), MorganFingerprintTransformer(useCounts=True), predictor
+)
 
 fake_y = range(len(smiles_strings))
 
 std_pipe.fit(smiles_strings, fake_y)
 
 
-print(f'Predictions with no standardization: {nonstd_pipe.predict(smiles_strings)}')
-print(f'Predictions with standardization:    {std_pipe.predict(smiles_strings)}')
+print(f"Predictions with no standardization: {nonstd_pipe.predict(smiles_strings)}")
+print(f"Predictions with standardization:    {std_pipe.predict(smiles_strings)}")
 
 
 # %% [markdown]
@@ -79,5 +90,5 @@ print(f'Predictions with standardization:    {std_pipe.predict(smiles_strings)}'
 
 # %%
 nonstd_pipe.fit(smiles_strings, fake_y)
-print(f'Predictions with no standardization: {nonstd_pipe.predict(smiles_strings)}')
-print(f'Predictions with standardization:    {std_pipe.predict(smiles_strings)}')
+print(f"Predictions with no standardization: {nonstd_pipe.predict(smiles_strings)}")
+print(f"Predictions with standardization:    {std_pipe.predict(smiles_strings)}")

@@ -1,8 +1,6 @@
-sync-py:
+sync-notebooks:
+	uv run ruff format "docs/notebooks/"
 	uv run jupytext --sync "docs/notebooks/*.ipynb"
-
-sync-ipynb:
-	uv run jupytext --sync "docs/notebooks/*.py"
 
 run-notebooks:
 	# Execute the notebooks, gives a .nbconvert.ipynb extension

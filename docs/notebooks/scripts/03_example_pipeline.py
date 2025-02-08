@@ -1,8 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     cell_metadata_filter: title,-all
-#     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -32,7 +30,7 @@ from time import time
 import numpy as np
 
 # %%
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv" # Hmm, maybe better to download directly
+csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
 data = pd.read_csv(csv_file)
 # %% [markdown]
 # The dataset is a subset of the SLC6A4 actives from ExcapeDB. They are hand selected to give test set performance despite the small size, and are provided as example data only and should not be used to build serious QSAR models.
@@ -51,14 +49,19 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 from scikit_mol.conversions import SmilesToMolTransformer
+
 # %%
-mol_list_train, mol_list_test, y_train, y_test = train_test_split(data.ROMol, data.pXC50, random_state=0)
+mol_list_train, mol_list_test, y_train, y_test = train_test_split(
+    data.ROMol, data.pXC50, random_state=0
+)
 
 # %% [markdown]
 # After a split into train and test, we'll build the first pipeline
 
 # %%
-pipe = Pipeline([('mol_transformer', MorganFingerprintTransformer()), ('Regressor', Ridge())])
+pipe = Pipeline(
+    [("mol_transformer", MorganFingerprintTransformer()), ("Regressor", Ridge())]
+)
 print(pipe)
 
 # %% [markdown]
@@ -72,21 +75,22 @@ print(f"Test score is  :{pipe.score(mol_list_test, y_test):0.2F}")
 # Nevermind the performance, or the exact value of the prediction, this is for demonstration purpures. We can easily predict on lists of molecules
 
 # %%
-pipe.predict([Chem.MolFromSmiles('c1ccccc1C(=O)[OH]')])
+pipe.predict([Chem.MolFromSmiles("c1ccccc1C(=O)[OH]")])
 
 # %% [markdown]
 # We can also expand the already fitted pipeline, how about creating a pipeline that can predict directly from SMILES? With scikit-mol that is easy!
 
 # %%
-smiles_pipe = Pipeline([('smiles_transformer', SmilesToMolTransformer()), ('pipe', pipe)])
+smiles_pipe = Pipeline(
+    [("smiles_transformer", SmilesToMolTransformer()), ("pipe", pipe)]
+)
 print(smiles_pipe)
 
 # %%
-smiles_pipe.predict(['c1ccccc1C(=O)[OH]'])
+smiles_pipe.predict(["c1ccccc1C(=O)[OH]"])
 
 # %% [markdown]
 # From here, the pipelines could be pickled, and later loaded for easy prediction on RDKit molecule objects or SMILES in other scripts. The transformation with the MorganTransformer will be the same as during fitting, so no need to remember if radius 2 or 3 was used for this or that model, as it is already in the pipeline itself. If we need to see the parameters for a particular pipeline of model, we can always get the non default settings via print or all settings with .get_params().
 
 # %%
 smiles_pipe.get_params()
-

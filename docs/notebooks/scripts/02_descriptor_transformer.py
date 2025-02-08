@@ -1,8 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     cell_metadata_filter: -all
-#     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -47,7 +45,9 @@ _ = plt.plot(np.array(features).T)
 # If we only want some of them, this can be specified at object instantiation.
 
 # %%
-some_descriptors = MolecularDescriptorTransformer(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount', 'MolLogP', 'MolWt'])
+some_descriptors = MolecularDescriptorTransformer(
+    desc_list=["HeavyAtomCount", "FractionCSP3", "RingCount", "MolLogP", "MolWt"]
+)
 print(f"Selected descriptors are {some_descriptors.selected_descriptors}")
 features = some_descriptors.transform(mols)
 
@@ -55,6 +55,10 @@ features = some_descriptors.transform(mols)
 # If we want to update the selected descriptors on an already existing object, this can be done via the .set_params() method
 
 # %%
-print(some_descriptors.set_params(desc_list=['HeavyAtomCount', 'FractionCSP3', 'RingCount']))
+print(
+    some_descriptors.set_params(
+        desc_list=["HeavyAtomCount", "FractionCSP3", "RingCount"]
+    )
+)
 
 # %%

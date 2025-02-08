@@ -1,7 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -21,21 +20,20 @@
 import pandas as pd
 from rdkit.Chem import PandasTools
 
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv" # Hmm, maybe better to download directly
+csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
 data = pd.read_csv(csv_file)
-
 
 
 # %% [markdown]
 # Now, this example dataset contain all sanitizable SMILES, so for demonstration purposes, we will corrupt one of them
 
 # %%
-data.loc[1,'SMILES'] = 'CN(C)(C)(C)'
+data.loc[1, "SMILES"] = "CN(C)(C)(C)"
 
 # %%
 
 PandasTools.AddMoleculeColumnToFrame(data, smilesCol="SMILES")
-print(f'Dataset contains {data.ROMol.isna().sum()} unparsable mols')
+print(f"Dataset contains {data.ROMol.isna().sum()} unparsable mols")
 
 
 # %% [markdown]
@@ -43,9 +41,12 @@ print(f'Dataset contains {data.ROMol.isna().sum()} unparsable mols')
 
 # %%
 from scikit_mol.utilities import CheckSmilesSanitazion
+
 smileschecker = CheckSmilesSanitazion()
 
-smiles_list_valid, y_valid, smiles_errors, y_errors = smileschecker.sanitize(list(data.SMILES), list(data.pXC50))
+smiles_list_valid, y_valid, smiles_errors, y_errors = smileschecker.sanitize(
+    list(data.SMILES), list(data.pXC50)
+)
 
 # %% [markdown]
 # Now the smiles_list_valid should be all valid and the y_values filtered as well. Errors are returned, but also accesible after the call to .sanitize() in the .errors property

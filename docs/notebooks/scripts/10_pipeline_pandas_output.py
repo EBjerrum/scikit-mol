@@ -1,7 +1,6 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -107,14 +106,14 @@ df_fingerprints
 
 # %%
 params_random_forest = {
-    "max_depth": 5, # Setting a low maximum depth to avoid overfitting
+    "max_depth": 5,  # Setting a low maximum depth to avoid overfitting
 }
 
 regression_pipeline = make_pipeline(
     SmilesToMolTransformer(),
     Standardizer(),
     MolecularDescriptorTransformer(),
-    StandardScaler(), # Scale the descriptors
+    StandardScaler(),  # Scale the descriptors
     RandomForestRegressor(**params_random_forest),
 )
 regression_pipeline.set_output(transform="pandas")
@@ -127,6 +126,7 @@ pred_test = regression_pipeline.predict(smis_test)
 # %% [markdown]
 # Let's define a simple function to compute regression metrics, and use it to evaluate the test set performance of the pipeline.
 
+
 # %%
 def compute_metrics(y_true, y_pred):
     result = {
@@ -135,6 +135,7 @@ def compute_metrics(y_true, y_pred):
         "R2": r2_score(y_true=y_true, y_pred=y_pred),
     }
     return result
+
 
 performance = compute_metrics(y_true=target_test, y_pred=pred_test)
 performance
@@ -147,14 +148,21 @@ regressor
 # Since we used `set_output(transform="pandas")` on the pipeline, the last step of the pipeline (the regression model) has the descriptor names in the `feature_names_in_` attribute. We can use them and the `feature_importances_` attribute to easily analyze the feature importances.
 
 # %%
-df_importance = pd.DataFrame({"feature": regressor.feature_names_in_, "importance": regressor.feature_importances_})
+df_importance = pd.DataFrame(
+    {
+        "feature": regressor.feature_names_in_,
+        "importance": regressor.feature_importances_,
+    }
+)
 df_importance
 
 # %% [markdown]
 # Sort the features by most to least important:
 
 # %%
-df_importance.sort_values(by="importance", ascending=False, inplace=True, ignore_index=True)
+df_importance.sort_values(
+    by="importance", ascending=False, inplace=True, ignore_index=True
+)
 df_importance
 
 # %%
@@ -187,6 +195,7 @@ df_cddd
 # %% [markdown]
 # The CDDD features are stored in columns `cddd_1`, `cddd_2`, ..., `cddd_512`. The file has the identifier column `Ambit_InchiKey` that we can use to combine the CDDD features with the rest of the data:
 
+
 # %%
 def combine_datasets(data, cddd):
     data_combined = pd.merge(
@@ -197,6 +206,7 @@ def combine_datasets(data, cddd):
         validate="one_to_one",
     )
     return data_combined
+
 
 data_combined_train = combine_datasets(data_train, df_cddd)
 data_combined_test = combine_datasets(data_test, df_cddd)
@@ -251,7 +261,9 @@ performance_combined
 # Let's combine the performance metrics obtained using only the scikit-mol descriptors as input features, and the performance metrics obtained using also the CDDD features:
 
 # %%
-df_performance = pd.DataFrame([performance, performance_combined], index=["descriptors", "combined"])
+df_performance = pd.DataFrame(
+    [performance, performance_combined], index=["descriptors", "combined"]
+)
 df_performance
 
 # %% [markdown]
@@ -260,7 +272,12 @@ df_performance
 
 # %%
 regressor = pipeline_combined[-1]
-df_importance = pd.DataFrame({"feature": regressor.feature_names_in_, "importance": regressor.feature_importances_}).sort_values(by="importance", ascending=False, ignore_index=True)
+df_importance = pd.DataFrame(
+    {
+        "feature": regressor.feature_names_in_,
+        "importance": regressor.feature_importances_,
+    }
+).sort_values(by="importance", ascending=False, ignore_index=True)
 df_importance
 
 # %%
