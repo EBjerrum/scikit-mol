@@ -7,49 +7,116 @@ Modifications Copyright (c) 2025 scikit-mol contributors (LGPL License)
 See LICENSE.MIT in this directory for the original MIT license.
 """
 
+from typing import Callable, ClassVar, Optional, Union
+
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+from numpy.typing import ArrayLike
 from sklearn.neighbors import NearestNeighbors
-from sklearn.utils.validation import check_array, check_is_fitted
+
+from .base import BaseApplicabilityDomain
 
 
-class KNNApplicabilityDomain(BaseEstimator, TransformerMixin):
+class KNNApplicabilityDomain(BaseApplicabilityDomain):
     """Applicability domain defined using K-nearest neighbors.
+
+    Determines domain membership based on the mean distance to k nearest neighbors
+    in the training set. Higher distances indicate samples further from the
+    training distribution.
 
     Parameters
     ----------
     n_neighbors : int, default=5
         Number of neighbors to use for distance calculation.
-    percentile : float, default=99
-        Percentile of training set distances to use as threshold.
-        Samples with distances above this percentile are considered outside
-        the applicability domain. The fit_threshold method can be used to update
-        the threshold using new data without refitting the model (e.g. validation data).
-    metric : str, default='euclidean'
-        Distance metric to use for nearest neighbor calculation.
-        Any metric supported by sklearn.neighbors.NearestNeighbors can be used.
+    percentile : float or None, default=None
+        Percentile of training set distances to use as threshold (0-100).
+        If None, uses 99.0 (include 99% of training samples).
+    distance_metric : str or callable, default='euclidean'
+        Distance metric to use. Options:
+        - 'euclidean': Euclidean distance (default)
+        - 'manhattan': Manhattan distance
+        - 'cosine': Cosine distance
+        - 'tanimoto': Tanimoto distance for binary fingerprints (same as 'jaccard')
+        - 'jaccard': Jaccard distance for binary fingerprints
+        - callable: Custom distance metric function(X, Y) -> array-like
+        Any distance metric supported by sklearn.neighbors.NearestNeighbors can also be used.
+        Note: Only distance metrics are supported (higher values = more distant) currently.
     n_jobs : int, default=None
         Number of parallel jobs to run for neighbors search.
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
+    feature_prefix : str, default='KNN'
+        Prefix for feature names in output.
+
+    Notes
+    -----
+    For binary fingerprints, the Tanimoto distance is equivalent to the Jaccard distance.
+    Both 'tanimoto' and 'jaccard' options use scipy's implementation of the Jaccard
+    distance metric.
 
     Attributes
     ----------
     n_features_in_ : int
         Number of features seen during fit.
     threshold_ : float
-        Distance threshold for the applicability domain.
+        Distance threshold for domain membership.
     nn_ : NearestNeighbors
         Fitted nearest neighbors model.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scikit_mol.applicability import KNNApplicabilityDomain
+    >>>
+    >>> # Generate example data
+    >>> rng = np.random.RandomState(0)
+    >>> X_train = rng.normal(0, 1, (100, 5))
+    >>> X_test = rng.normal(0, 2, (20, 5))  # More spread out than training
+    >>>
+    >>> # Fit AD model
+    >>> ad = KNNApplicabilityDomain(n_neighbors=5, percentile=95)
+    >>> ad.fit(X_train)
+    >>>
+    >>> # Get raw distance scores (higher = more distant)
+    >>> distances = ad.transform(X_test)
+    >>>
+    >>> # Get domain membership predictions
+    >>> predictions = ad.predict(X_test)  # 1 = inside, -1 = outside
+    >>>
+    >>> # Get probability-like scores
+    >>> scores = ad.score_transform(X_test)  # Higher = more likely inside
     """
 
-    def __init__(self, n_neighbors=5, percentile=95, metric="euclidean", n_jobs=None):
+    _scoring_convention: ClassVar[str] = (
+        "high_outside"  # Higher distance = outside domain
+    )
+
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        percentile: Optional[float] = None,
+        distance_metric: Union[str, Callable] = "euclidean",
+        n_jobs: Optional[int] = None,
+        feature_prefix: str = "KNN",
+    ) -> None:
+        super().__init__(percentile=percentile, feature_prefix=feature_prefix)
         self.n_neighbors = n_neighbors
-        self.percentile = percentile
-        self.metric = metric
+        self.distance_metric = distance_metric
         self.n_jobs = n_jobs
 
-    def fit(self, X, y=None):
+    @property
+    def distance_metric(self) -> Union[Callable, str]:
+        return self._distance_metric
+
+    @distance_metric.setter
+    def distance_metric(self, value: Union[str, Callable]) -> None:
+        if not isinstance(value, (str, Callable)):
+            raise ValueError("distance_metric must be a string or callable")
+        if value == "tanimoto":
+            self._distance_metric = "jaccard"  # Use scipy's jaccard metric
+        else:
+            self._distance_metric = value
+
+    def fit(self, X: ArrayLike, y=None) -> "KNNApplicabilityDomain":
         """Fit the KNN applicability domain.
 
         Parameters
@@ -61,20 +128,19 @@ class KNNApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        self : object
+        self : KNNApplicabilityDomain
             Returns the instance itself.
         """
-        if not 0 <= self.percentile <= 100:
-            raise ValueError("percentile must be between 0 and 100")
+        if not isinstance(self.n_neighbors, int) or self.n_neighbors < 1:
+            raise ValueError("n_neighbors must be a positive integer")
 
-        X = check_array(X, accept_sparse=True)
-
+        X = self._validate_data(X)
         self.n_features_in_ = X.shape[1]
 
         # Fit nearest neighbors model
         self.nn_ = NearestNeighbors(
             n_neighbors=self.n_neighbors + 1,  # +1 because point is its own neighbor
-            metric=self.metric,
+            metric=self.distance_metric,
             n_jobs=self.n_jobs,
         )
         self.nn_.fit(X)
@@ -84,38 +150,13 @@ class KNNApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         return self
 
-    def fit_threshold(self, X):
-        """Update the threshold using new data without refitting the model.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Data to compute threshold from.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        check_is_fitted(self)
-        X = check_array(X, accept_sparse=True)
-
-        # Calculate distances to k nearest neighbors
-        distances, _ = self.nn_.kneighbors(X)
-        mean_distances = distances[:, 1:].mean(axis=1)
-
-        # Set threshold based on distance distribution
-        self.threshold_ = np.percentile(mean_distances, self.percentile)
-
-        return self
-
-    def transform(self, X):
+    def _transform(self, X: np.ndarray) -> np.ndarray:
         """Calculate mean distance to k nearest neighbors in training set.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
-            The data to transform.
+        X : ndarray of shape (n_samples, n_features)
+            Validated input data.
 
         Returns
         -------
@@ -123,28 +164,6 @@ class KNNApplicabilityDomain(BaseEstimator, TransformerMixin):
             Mean distance to k nearest neighbors. Higher values indicate samples
             further from the training set.
         """
-        check_is_fitted(self)
-        X = check_array(X, accept_sparse=True)
-
-        # Calculate distances to k nearest neighbors
         distances, _ = self.nn_.kneighbors(X)
-        mean_distances = distances.mean(axis=1)
-
+        mean_distances = distances[:, 1:].mean(axis=1)  # Skip first (self) neighbor
         return mean_distances.reshape(-1, 1)
-
-    def predict(self, X):
-        """Predict whether samples are within the applicability domain.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The samples to predict.
-
-        Returns
-        -------
-        y_pred : ndarray of shape (n_samples,)
-            Returns 1 for samples inside the domain and -1 for samples outside
-            (following scikit-learn's convention for outlier detection).
-        """
-        scores = self.transform(X).ravel()
-        return np.where(scores <= self.threshold_, 1, -1)

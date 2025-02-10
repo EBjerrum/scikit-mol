@@ -27,6 +27,24 @@ class _ADOutputMixin(_SetOutputMixin):
             setattr(cls, method, wrapped_method)
 
 
+def _safe_flatten(X: Union[ArrayLike, pd.DataFrame]) -> NDArray[np.float64]:
+    """Safely flatten numpy arrays or pandas DataFrames to 1D array.
+
+    Parameters
+    ----------
+    X : array-like or DataFrame of shape (n_samples, n_features)
+        Input data to flatten
+
+    Returns
+    -------
+    flattened : ndarray of shape (n_samples,)
+        Flattened 1D array
+    """
+    if hasattr(X, "to_numpy"):  # pandas DataFrame
+        return X.to_numpy().ravel()
+    return np.asarray(X).ravel()
+
+
 class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, ABC):
     """Base class for applicability domain estimators.
 
@@ -103,25 +121,11 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
         raise NotImplementedError("Subclasses should implement fit")
 
     def fit_threshold(
-        self, X: ArrayLike, target_percentile: Optional[float] = None
+        self,
+        X: Union[ArrayLike, pd.DataFrame],
+        target_percentile: Optional[float] = None,
     ) -> "BaseApplicabilityDomain":
-        """Update threshold estimation using new data.
-
-        Parameters
-        ----------
-        X : array-like
-            Data to compute threshold from.
-        target_percentile : float, optional (default=None)
-            If provided: Use this percentile and update self.percentile
-            If None: Use current self.percentile setting
-            - For methods with statistical thresholds: use statistical method if percentile=None
-            - For percentile-only methods: use 99.0 if percentile=None
-
-        Returns
-        -------
-        self : BaseApplicabilityDomain
-            Returns the instance itself.
-        """
+        """Update threshold estimation using new data."""
         check_is_fitted(self)
         X = check_array(X, **self._check_params)
 
@@ -131,30 +135,24 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
             self.percentile = target_percentile
 
         # Use statistical threshold if available and percentile is None
+        if self.percentile is None and hasattr(self, "_set_statistical_threshold"):
+            self._set_statistical_threshold(X)
+            return self
+
+        # Otherwise use percentile-based threshold
+        scores = _safe_flatten(self.transform(X))
+
         if self.percentile is None:
-            if hasattr(self, "_set_statistical_threshold"):
-                self._set_statistical_threshold(X)
-            else:
-                # Use 99th percentile for methods without statistical thresholds
-                scores = self.transform(X).ravel()
-                if self._scoring_convention == "high_outside":
-                    self.threshold_ = np.percentile(
-                        scores, 99.0
-                    )  # Only 1% above threshold (outside)
-                else:  # high_inside
-                    self.threshold_ = np.percentile(
-                        scores, 1.0
-                    )  # Only 1% below threshold (outside)
-        else:
-            scores = self.transform(X).ravel()
+            # Default percentile for methods without statistical thresholds
             if self._scoring_convention == "high_outside":
-                self.threshold_ = np.percentile(
-                    scores, self.percentile
-                )  # percentile% below = inside
+                self.threshold_ = np.percentile(scores, 99.0)
             else:  # high_inside
-                self.threshold_ = np.percentile(
-                    scores, 100 - self.percentile
-                )  # percentile% above = inside
+                self.threshold_ = np.percentile(scores, 1.0)
+        else:
+            if self._scoring_convention == "high_outside":
+                self.threshold_ = np.percentile(scores, self.percentile)
+            else:  # high_inside
+                self.threshold_ = np.percentile(scores, 100 - self.percentile)
 
         return self
 
@@ -204,40 +202,37 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
         self, X: Union[ArrayLike, pd.DataFrame]
     ) -> Union[NDArray[np.int_], pd.DataFrame]:
         """Predict whether samples are within the applicability domain."""
-
         check_is_fitted(self)
         X = check_array(X, **self._check_params)
 
         # Calculate predictions
-        scores = self._transform(X).ravel()
+        scores = _safe_flatten(self.transform(X))
         if self._scoring_convention == "high_outside":
             predictions = np.where(scores <= self.threshold_, 1, -1)
         else:  # high_inside
             predictions = np.where(scores >= self.threshold_, 1, -1)
 
-        return predictions
+        return predictions.ravel()
 
-    def score_transform(self, X: ArrayLike) -> NDArray[np.float64]:
+    def score_transform(
+        self, X: Union[ArrayLike, pd.DataFrame]
+    ) -> Union[NDArray[np.float64], pd.DataFrame]:
         """Transform raw scores to [0,1] range using sigmoid.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : array-like or DataFrame of shape (n_samples, n_features)
             The samples to transform.
 
         Returns
         -------
-        scores : ndarray of shape (n_samples, 1)
+        scores : ndarray or DataFrame of shape (n_samples, 1)
             Transformed scores in [0,1] range. Higher values indicate
             samples more likely to be within domain, regardless of
             the method's raw score convention.
         """
-
         check_is_fitted(self)
-        scores = self.transform(
-            X
-        )  # May be pandas dataframe returned if that is set as output transform.
-        scores = check_array(scores, **self._check_params).ravel()
+        scores = _safe_flatten(self.transform(X))
 
         # TODO: the sharpness ought to somehow be fitted to the range of the raw_scores
         if self._scoring_convention == "high_outside":
