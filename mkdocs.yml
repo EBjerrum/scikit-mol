@@ -46,7 +46,7 @@ nav:
     - scikit-mol.parallel: api/scikit_mol.parallel.md
     - scikit-mol.plotting: api/scikit_mol.plotting.md
     - scikit-mol.safeinference: api/scikit_mol.safeinference.md
-    - scikit-mol.standarizer: api/scikit_mol.standarizer.md
+    - scikit-mol.standardizer: api/scikit_mol.standardizer.md
     
   - Notebooks:
     - Basic Usage and fingerprint transformers: notebooks/01_basic_usage.ipynb
