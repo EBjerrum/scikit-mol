@@ -34,8 +34,8 @@ class IsolationForestApplicabilityDomain(BaseApplicabilityDomain):
     percentile : float or None, default=None
         Percentile of training set scores to use as threshold (0-100).
         If None, uses contamination-based threshold from IsolationForest.
-    feature_prefix : str, default="IsolationForest"
-        Prefix for feature names in output.
+    feature_name : str, default="IsolationForest"
+        Name for feature names in output.
 
     Attributes
     ----------
@@ -66,11 +66,11 @@ class IsolationForestApplicabilityDomain(BaseApplicabilityDomain):
         contamination: float = 0.01,
         random_state: Optional[int] = None,
         percentile: Optional[float] = None,
-        feature_prefix: str = "IsolationForest",
+        feature_name: str = "IsolationForest",
     ) -> None:
         if not 0 < contamination < 1:
             raise ValueError("contamination must be between 0 and 1")
-        super().__init__(percentile=percentile, feature_prefix=feature_prefix)
+        super().__init__(percentile=percentile, feature_name=feature_name)
         self.n_estimators = n_estimators
         self.contamination = contamination
         self.random_state = random_state

@@ -82,9 +82,9 @@ class LeverageApplicabilityDomain(BaseApplicabilityDomain):
         self,
         threshold_factor: float = 3,
         percentile: Optional[float] = None,
-        feature_prefix: str = "Leverage",
+        feature_name: str = "Leverage",
     ) -> None:
-        super().__init__(percentile=percentile, feature_prefix=feature_prefix)
+        super().__init__(percentile=percentile, feature_name=feature_name)
         self.threshold_factor = threshold_factor
 
     def _set_statistical_threshold(self, X: NDArray) -> None:

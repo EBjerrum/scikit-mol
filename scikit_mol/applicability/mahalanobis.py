@@ -2,13 +2,17 @@
 Mahalanobis distance applicability domain.
 """
 
+from typing import Any, Optional
+
 import numpy as np
-from scipy import stats
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_array, check_is_fitted
+from numpy.typing import ArrayLike, NDArray
+from scipy import linalg, stats
+from sklearn.utils.validation import check_array
+
+from .base import BaseApplicabilityDomain
 
 
-class MahalanobisApplicabilityDomain(BaseEstimator, TransformerMixin):
+class MahalanobisApplicabilityDomain(BaseApplicabilityDomain):
     """Applicability domain based on Mahalanobis distance.
 
     Uses Mahalanobis distance to measure how many standard deviations a sample
@@ -18,9 +22,11 @@ class MahalanobisApplicabilityDomain(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
-    percentile : float, default=95.0
-        Percentile for the confidence region (0-100).
-        Default 95.0 corresponds to ~2 standard deviations.
+    percentile : float or None, default=None
+        Percentile of training set scores to use as threshold (0-100).
+        If None, uses 95.0 (exclude top 5% of training samples).
+    feature_name : str, default="Mahalanobis"
+        Name for the output feature column.
 
     Attributes
     ----------
@@ -30,129 +36,107 @@ class MahalanobisApplicabilityDomain(BaseEstimator, TransformerMixin):
         Mean of training data.
     covariance_ : ndarray of shape (n_features, n_features)
         Covariance matrix of training data.
-    inv_covariance_ : ndarray of shape (n_features, n_features)
-        Inverse covariance matrix.
     threshold_ : float
-        Current threshold for Mahalanobis distances.
+        Current threshold for domain membership.
 
-    Examples
-    --------
-    >>> from scikit_mol.applicability import MahalanobisApplicabilityDomain
-    >>> ad = MahalanobisApplicabilityDomain(percentile=95)
-    >>> ad.fit(X_train)
-    >>> # Using chi-square threshold (default)
-    >>> predictions = ad.predict(X_test)
-    >>>
-    >>> # Adjusting threshold using validation set
-    >>> ad.fit_threshold(X_val, target_percentile=95)
-    >>> predictions = ad.predict(X_test)
-
-    References
-    ----------
-    .. [1] De Maesschalck, R., Jouan-Rimbaud, D., & Massart, D. L. (2000).
-           The Mahalanobis distance. Chemometrics and intelligent laboratory
-           systems, 50(1), 1-18.
+    Notes
+    -----
+    The scoring convention is 'high_outside' because higher Mahalanobis
+    distances indicate samples further from the training data mean.
     """
 
-    def __init__(self, percentile=95.0):
-        if not 0 <= percentile <= 100:
-            raise ValueError("percentile must be between 0 and 100")
-        self.percentile = percentile
+    _scoring_convention = "high_outside"
 
-    def fit(self, X, y=None):
+    def __init__(
+        self,
+        percentile: Optional[float] = None,
+        feature_name: str = "Mahalanobis",
+    ) -> None:
+        super().__init__(percentile=percentile or 95.0, feature_name=feature_name)
+
+    def _set_statistical_threshold(self, X: NDArray) -> None:
+        """Set threshold based on chi-square distribution.
+
+        For multivariate normal data, squared Mahalanobis distances follow
+        a chi-square distribution with degrees of freedom equal to the
+        number of features.
+        """
+        df = self.n_features_in_
+        self.threshold_ = np.sqrt(stats.chi2.ppf(0.95, df))
+
+    def fit(
+        self, X: ArrayLike, y: Optional[Any] = None
+    ) -> "MahalanobisApplicabilityDomain":
         """Fit the Mahalanobis distance applicability domain.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data.
-        y : Ignored
+        y : Any, optional (default=None)
             Not used, present for API consistency.
 
         Returns
         -------
-        self : object
+        self : MahalanobisApplicabilityDomain
             Returns the instance itself.
-        """
-        X = check_array(X)
-        self.n_features_in_ = X.shape[1]
 
-        # Compute mean and covariance
+        Raises
+        ------
+        ValueError
+            If X has fewer samples than features, making covariance estimation unstable.
+        """
+        X = check_array(X, **self._check_params)
+        n_samples, n_features = X.shape
+        self.n_features_in_ = n_features
+
+        if n_samples <= n_features:
+            raise ValueError(
+                f"n_samples ({n_samples}) must be greater than n_features ({n_features}) "
+                "for stable covariance estimation."
+            )
+
+        # Calculate mean and covariance
         self.mean_ = np.mean(X, axis=0)
-        self.covariance_ = np.cov(X, rowvar=False)
-        self.inv_covariance_ = np.linalg.inv(self.covariance_)
+        self.covariance_ = np.cov(X, rowvar=False, ddof=1)
 
-        # Set initial threshold using chi-square distribution
-        self.threshold_ = stats.chi2.ppf(self.percentile / 100, df=self.n_features_in_)
+        # Add small regularization to ensure positive definiteness
+        min_eig = np.min(linalg.eigvalsh(self.covariance_))
+        if min_eig < 1e-6:
+            self.covariance_ += (abs(min_eig) + 1e-6) * np.eye(n_features)
 
-        return self
-
-    def fit_threshold(self, X, target_percentile=95):
-        """Update the threshold using new data without refitting the model.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Data to compute threshold from.
-        target_percentile : float, default=95
-            Target percentile of samples to include within domain.
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        check_is_fitted(self)
-        X = check_array(X)
-
-        if not 0 <= target_percentile <= 100:
-            raise ValueError("target_percentile must be between 0 and 100")
-
-        # Calculate distances for validation set
-        scores = self.transform(X).ravel()
-
-        # Set threshold to achieve desired percentile (lower distances = inside domain)
-        self.threshold_ = np.percentile(scores, 100 - target_percentile)
+        # Set initial threshold based on training data
+        self.fit_threshold(X)
 
         return self
 
-    def transform(self, X):
-        """Calculate Mahalanobis distances for samples.
+    def _transform(self, X: NDArray) -> NDArray[np.float64]:
+        """Calculate Mahalanobis distances.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : ndarray of shape (n_samples, n_features)
             The data to transform.
 
         Returns
         -------
         distances : ndarray of shape (n_samples, 1)
-            The Mahalanobis distances. Higher values indicate samples
-            further from the training data center.
+            The Mahalanobis distances of the samples. Higher distances indicate
+            samples further from the training data mean.
         """
-        check_is_fitted(self)
-        X = check_array(X)
+        # Calculate Mahalanobis distances using stable computation
+        diff = X - self.mean_
+        try:
+            # Try Cholesky decomposition first (more stable)
+            L = linalg.cholesky(self.covariance_, lower=True)
+            mahal_dist = np.sqrt(
+                np.sum(linalg.solve_triangular(L, diff.T, lower=True) ** 2, axis=0)
+            )
+        except linalg.LinAlgError:
+            # Fallback to standard computation if Cholesky fails
+            inv_covariance = linalg.pinv(
+                self.covariance_
+            )  # Use pseudo-inverse for stability
+            mahal_dist = np.sqrt(np.sum(diff @ inv_covariance * diff, axis=1))
 
-        # Center the data
-        X_centered = X - self.mean_
-
-        # Calculate Mahalanobis distances
-        distances = np.sum(X_centered @ self.inv_covariance_ * X_centered, axis=1)
-        return distances.reshape(-1, 1)
-
-    def predict(self, X):
-        """Predict whether samples are within the applicability domain.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The samples to predict.
-
-        Returns
-        -------
-        y_pred : ndarray of shape (n_samples,)
-            Returns 1 for samples inside the domain and -1 for samples outside
-            (following scikit-learn's convention for outlier detection).
-        """
-        scores = self.transform(X).ravel()
-        return np.where(scores <= self.threshold_, 1, -1)
+        return mahal_dist.reshape(-1, 1)

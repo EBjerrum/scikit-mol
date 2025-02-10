@@ -55,6 +55,8 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
         If None:
         - For methods with statistical thresholds: use statistical method
         - For percentile-only methods: use 99.0 (include 99% of training samples)
+    feature_name : str, default="AD_estimator"
+        Name for the output feature column.
 
     Notes
     -----
@@ -78,7 +80,7 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
     _scoring_convention: ClassVar[str]  # Must be set by subclasses
 
     def __init__(
-        self, percentile: Optional[float] = None, feature_prefix: str = "AD_estimator"
+        self, percentile: Optional[float] = None, feature_name: str = "AD_estimator"
     ) -> None:
         if not hasattr(self, "_scoring_convention"):
             raise TypeError(
@@ -93,7 +95,7 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
         if percentile is not None and not 0 <= percentile <= 100:
             raise ValueError("percentile must be between 0 and 100")
         self.percentile = percentile
-        self.feature_prefix = feature_prefix
+        self.feature_name = feature_name
         self._check_params = {
             "estimator": self,
             "accept_sparse": False,
@@ -244,5 +246,4 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
 
     def get_feature_names_out(self) -> NDArray[np.str_]:
         """Get feature name for output column."""
-
-        return np.array([f"{self.feature_prefix}"])
+        return np.array([f"{self.feature_name}"])

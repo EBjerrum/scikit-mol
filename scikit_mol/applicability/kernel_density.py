@@ -7,13 +7,17 @@ Modifications Copyright (c) 2025 scikit-mol contributors (LGPL License)
 See LICENSE.MIT in this directory for the original MIT license.
 """
 
+from typing import Any, Optional
+
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+from numpy.typing import ArrayLike, NDArray
 from sklearn.neighbors import KernelDensity
-from sklearn.utils.validation import check_array, check_is_fitted
+from sklearn.utils.validation import check_array
+
+from .base import BaseApplicabilityDomain
 
 
-class KernelDensityApplicabilityDomain(BaseEstimator, TransformerMixin):
+class KernelDensityApplicabilityDomain(BaseApplicabilityDomain):
     """Applicability domain based on kernel density estimation.
 
     Uses kernel density estimation to model the distribution of the training data.
@@ -27,9 +31,11 @@ class KernelDensityApplicabilityDomain(BaseEstimator, TransformerMixin):
     kernel : str, default='gaussian'
         The kernel to use. Options: ['gaussian', 'tophat', 'epanechnikov',
         'exponential', 'linear', 'cosine'].
-    percentile : float, default=1.0
-        The percentile of training set densities to use as threshold.
-        Must be between 0 and 100.
+    percentile : float or None, default=None
+        The percentile of training set densities to use as threshold (0-100).
+        If None, uses 1.0 (exclude bottom 1% of training samples).
+    feature_name : str, default="KernelDensity"
+        Name for the output feature column.
 
     Attributes
     ----------
@@ -40,6 +46,11 @@ class KernelDensityApplicabilityDomain(BaseEstimator, TransformerMixin):
     threshold_ : float
         Density threshold for domain membership.
 
+    Notes
+    -----
+    The scoring convention is 'high_inside' because higher density scores
+    indicate samples more similar to the training data.
+
     Examples
     --------
     >>> from scikit_mol.applicability import KernelDensityApplicabilityDomain
@@ -48,30 +59,37 @@ class KernelDensityApplicabilityDomain(BaseEstimator, TransformerMixin):
     >>> predictions = ad.predict(X_test)
     """
 
-    def __init__(self, bandwidth=1.0, kernel="gaussian", percentile=1.0):
-        if not 0 <= percentile <= 100:
-            raise ValueError("percentile must be between 0 and 100")
+    _scoring_convention = "high_inside"
 
+    def __init__(
+        self,
+        bandwidth: float = 1.0,
+        kernel: str = "gaussian",
+        percentile: Optional[float] = None,
+        feature_name: str = "KernelDensity",
+    ) -> None:
+        super().__init__(percentile=percentile or 1.0, feature_name=feature_name)
         self.bandwidth = bandwidth
         self.kernel = kernel
-        self.percentile = percentile
 
-    def fit(self, X, y=None):
+    def fit(
+        self, X: ArrayLike, y: Optional[Any] = None
+    ) -> "KernelDensityApplicabilityDomain":
         """Fit the kernel density applicability domain.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data.
-        y : Ignored
+        y : Any, optional (default=None)
             Not used, present for API consistency.
 
         Returns
         -------
-        self : object
+        self : KernelDensityApplicabilityDomain
             Returns the instance itself.
         """
-        X = check_array(X)
+        X = check_array(X, **self._check_params)
         self.n_features_in_ = X.shape[1]
 
         # Fit KDE
@@ -83,12 +101,12 @@ class KernelDensityApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, X):
+    def _transform(self, X: NDArray) -> NDArray[np.float64]:
         """Calculate log density scores for samples.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : ndarray of shape (n_samples, n_features)
             The data to transform.
 
         Returns
@@ -97,47 +115,40 @@ class KernelDensityApplicabilityDomain(BaseEstimator, TransformerMixin):
             The log density scores of the samples. Higher scores indicate samples
             more similar to the training data.
         """
-        check_is_fitted(self)
-        X = check_array(X)
-
         scores = self.kde_.score_samples(X)
         return scores.reshape(-1, 1)
 
-    def predict(self, X):
-        """Predict whether samples are within the applicability domain.
+    # def predict(self, X):
+    #     """Predict whether samples are within the applicability domain.
 
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The samples to predict.
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape (n_samples, n_features)
+    #         The samples to predict.
 
-        Returns
-        -------
-        y_pred : ndarray of shape (n_samples,)
-            Returns 1 for samples inside the domain and -1 for samples outside
-            (following scikit-learn's convention for outlier detection).
-        """
-        scores = self.transform(X).ravel()
-        return np.where(scores >= self.threshold_, 1, -1)
+    #     Returns
+    #     -------
+    #     y_pred : ndarray of shape (n_samples,)
+    #         Returns 1 for samples inside the domain and -1 for samples outside
+    #         (following scikit-learn's convention for outlier detection).
+    #     """
+    #     scores = self._transform(X).ravel()
+    #     return np.where(scores >= self.threshold_, 1, -1)
 
-    def fit_threshold(self, X):
-        """Update the threshold using new data without refitting the model.
+    # def fit_threshold(self, X):
+    #     """Update the threshold using new data without refitting the model.
 
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Data to compute threshold from.
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape (n_samples, n_features)
+    #         Data to compute threshold from.
 
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-        """
-        check_is_fitted(self)
-        X = check_array(X)
+    #     Returns
+    #     -------
+    #     self : object
+    #         Returns the instance itself.
+    #     """
+    #     densities = self._transform(X).ravel()
+    #     self.threshold_ = np.percentile(densities, self.percentile)
 
-        # Calculate density threshold from provided data
-        densities = self.kde_.score_samples(X)
-        self.threshold_ = np.percentile(densities, self.percentile)
-
-        return self
+    #     return self

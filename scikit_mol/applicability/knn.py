@@ -12,6 +12,7 @@ from typing import Callable, ClassVar, Optional, Union
 import numpy as np
 from numpy.typing import ArrayLike
 from sklearn.neighbors import NearestNeighbors
+from sklearn.utils import check_array
 
 from .base import BaseApplicabilityDomain
 
@@ -44,7 +45,7 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
         Number of parallel jobs to run for neighbors search.
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
-    feature_prefix : str, default='KNN'
+    feature_name : str, default='KNN'
         Prefix for feature names in output.
 
     Notes
@@ -96,9 +97,9 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
         percentile: Optional[float] = None,
         distance_metric: Union[str, Callable] = "euclidean",
         n_jobs: Optional[int] = None,
-        feature_prefix: str = "KNN",
+        feature_name: str = "KNN",
     ) -> None:
-        super().__init__(percentile=percentile, feature_prefix=feature_prefix)
+        super().__init__(percentile=percentile, feature_name=feature_name)
         self.n_neighbors = n_neighbors
         self.distance_metric = distance_metric
         self.n_jobs = n_jobs
@@ -134,7 +135,7 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
         if not isinstance(self.n_neighbors, int) or self.n_neighbors < 1:
             raise ValueError("n_neighbors must be a positive integer")
 
-        X = self._validate_data(X)
+        X = check_array(X, **self._check_params)
         self.n_features_in_ = X.shape[1]
 
         # Fit nearest neighbors model

@@ -31,7 +31,7 @@ class HotellingT2ApplicabilityDomain(BaseApplicabilityDomain):
     percentile : float or None, default=None
         If not None, overrides significance-based threshold.
         Must be between 0 and 100.
-    feature_prefix : str, default="HotellingT2"
+    feature_name : str, default="HotellingT2"
         Prefix for feature names in output.
 
     Notes
@@ -62,11 +62,11 @@ class HotellingT2ApplicabilityDomain(BaseApplicabilityDomain):
         self,
         significance: float = 0.05,
         percentile: Optional[float] = None,
-        feature_prefix: str = "HotellingT2",
+        feature_name: str = "HotellingT2",
     ) -> None:
         if not 0 < significance < 1:
             raise ValueError("significance must be between 0 and 1")
-        super().__init__(percentile=percentile, feature_prefix=feature_prefix)
+        super().__init__(percentile=percentile, feature_name=feature_name)
         self.significance = significance
 
     def _set_statistical_threshold(self, X: NDArray) -> None:

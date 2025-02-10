@@ -8,8 +8,13 @@ from scikit_mol.applicability import (
     ConvexHullApplicabilityDomain,
     HotellingT2ApplicabilityDomain,
     IsolationForestApplicabilityDomain,
+    KernelDensityApplicabilityDomain,
     KNNApplicabilityDomain,
     LeverageApplicabilityDomain,
+    LocalOutlierFactorApplicabilityDomain,
+    MahalanobisApplicabilityDomain,
+    StandardizationApplicabilityDomain,
+    TopkatApplicabilityDomain,
 )
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 
@@ -31,6 +36,19 @@ from ..fixtures import mols_list
                 random_state=42,  # Add fixed random state
             ),
         ),
+        (
+            KernelDensityApplicabilityDomain,
+            dict(bandwidth=1.0, kernel="gaussian"),
+        ),
+        (
+            LocalOutlierFactorApplicabilityDomain,
+            dict(
+                n_neighbors=3, contamination=0.1
+            ),  # Reduced from 20 to 3 for small test datasets
+        ),
+        (MahalanobisApplicabilityDomain, dict()),  # No special parameters needed
+        (StandardizationApplicabilityDomain, dict()),  # No special parameters needed
+        (TopkatApplicabilityDomain, dict()),  # No special parameters needed
     ]
 )
 def ad_estimator(request):

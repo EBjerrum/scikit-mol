@@ -8,16 +8,27 @@ See LICENSE.MIT in this directory for the original MIT license.
 
 """
 
+from typing import Any, Optional
+
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_array, check_is_fitted
+from numpy.typing import ArrayLike, NDArray
+from sklearn.utils.validation import check_array
+
+from .base import BaseApplicabilityDomain
 
 
-class TopkatApplicabilityDomain(BaseEstimator, TransformerMixin):
+class TopkatApplicabilityDomain(BaseApplicabilityDomain):
     """Applicability domain defined using TOPKAT's Optimal Prediction Space (OPS).
 
     The method transforms the input space (P-space) to a normalized space (S-space),
     then projects it to the Optimal Prediction Space using eigendecomposition.
+
+    Parameters
+    ----------
+    percentile : float or None, default=None
+        Not used, present for API consistency.
+    feature_name : str, default="TOPKAT"
+        Name for the output feature column.
 
     Attributes
     ----------
@@ -31,13 +42,13 @@ class TopkatApplicabilityDomain(BaseEstimator, TransformerMixin):
         Eigenvalues of the S-space transformation.
     eigen_vec_ : ndarray of shape (n_features + 1, n_features + 1)
         Eigenvectors of the S-space transformation.
+    threshold_ : float
+        Fixed threshold based on dimensionality.
 
-    Examples
-    --------
-    >>> from scikit_mol.applicability import TopkatApplicabilityDomain
-    >>> ad = TopkatApplicabilityDomain()
-    >>> ad.fit(X_train)
-    >>> predictions = ad.predict(X_test)
+    Notes
+    -----
+    The scoring convention is 'high_outside' because higher OPS distances
+    indicate samples further from the training data.
 
     References
     ----------
@@ -45,22 +56,32 @@ class TopkatApplicabilityDomain(BaseEstimator, TransformerMixin):
            predictions (US Patent No. 6-036-349) USPTO.
     """
 
-    def fit(self, X, y=None):
+    _scoring_convention = "high_outside"
+    _supports_threshold_fitting = False
+
+    def __init__(
+        self,
+        percentile: Optional[float] = None,
+        feature_name: str = "TOPKAT",
+    ) -> None:
+        super().__init__(percentile=None, feature_name=feature_name)
+
+    def fit(self, X: ArrayLike, y: Optional[Any] = None) -> "TopkatApplicabilityDomain":
         """Fit the TOPKAT applicability domain.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data.
-        y : Ignored
+        y : Any, optional (default=None)
             Not used, present for API consistency.
 
         Returns
         -------
-        self : object
+        self : TopkatApplicabilityDomain
             Returns the instance itself.
         """
-        X = check_array(X)
+        X = check_array(X, **self._check_params)
         self.n_features_in_ = X.shape[1]
         n_samples = X.shape[0]
 
@@ -84,14 +105,17 @@ class TopkatApplicabilityDomain(BaseEstimator, TransformerMixin):
         self.eigen_val_ = np.real(self.eigen_val_)
         self.eigen_vec_ = np.real(self.eigen_vec_)
 
+        # Set fixed threshold based on dimensionality
+        self.threshold_ = 5 * (self.n_features_in_ + 1) / (2 * self.n_features_in_)
+
         return self
 
-    def transform(self, X):
+    def _transform(self, X: NDArray) -> NDArray[np.float64]:
         """Calculate OPS distance scores for samples.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : ndarray of shape (n_samples, n_features)
             The data to transform.
 
         Returns
@@ -100,9 +124,6 @@ class TopkatApplicabilityDomain(BaseEstimator, TransformerMixin):
             OPS distance scores. Higher values indicate samples further
             from the training data.
         """
-        check_is_fitted(self)
-        X = check_array(X)
-
         # Transform to S-space
         denom = np.where(
             (self.X_max_ - self.X_min_) != 0, (self.X_max_ - self.X_min_), 1
@@ -129,20 +150,20 @@ class TopkatApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         return distances.reshape(-1, 1)
 
-    def predict(self, X):
-        """Predict whether samples are within the applicability domain.
+    # def predict(self, X):
+    #     """Predict whether samples are within the applicability domain.
 
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The samples to predict.
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape (n_samples, n_features)
+    #         The samples to predict.
 
-        Returns
-        -------
-        y_pred : ndarray of shape (n_samples,)
-            Returns 1 for samples inside the domain and -1 for samples outside
-            (following scikit-learn's convention for outlier detection).
-        """
-        scores = self.transform(X).ravel()
-        threshold = 5 * (self.n_features_in_ + 1) / (2 * self.n_features_in_)
-        return np.where(scores < threshold, 1, -1)
+    #     Returns
+    #     -------
+    #     y_pred : ndarray of shape (n_samples,)
+    #         Returns 1 for samples inside the domain and -1 for samples outside
+    #         (following scikit-learn's convention for outlier detection).
+    #     """
+    #     scores = self._transform(X).ravel()
+    #     threshold = self.threshold_
+    #     return np.where(scores < threshold, 1, -1)

@@ -79,10 +79,10 @@ def test_feature_names(ad_estimator, reduced_fingerprints):
     """Test feature names are properly handled."""
     ad_estimator.fit(reduced_fingerprints)
 
-    # Check feature names exist and match prefix
+    # Check feature names exist and match name
     feature_names = ad_estimator.get_feature_names_out()
     assert len(feature_names) == 1
-    assert feature_names[0].startswith(ad_estimator.feature_prefix)
+    assert feature_names[0] == ad_estimator.feature_name
 
 
 def test_pandas_output(ad_estimator, reduced_fingerprints):
@@ -94,7 +94,7 @@ def test_pandas_output(ad_estimator, reduced_fingerprints):
     scores_df = ad_estimator.transform(reduced_fingerprints)
     assert hasattr(scores_df, "columns")
     assert len(scores_df.columns) == 1
-    assert scores_df.columns[0].startswith(ad_estimator.feature_prefix)
+    assert scores_df.columns[0] == ad_estimator.feature_name
 
     # Test predict output
     pred_df = ad_estimator.predict(reduced_fingerprints)

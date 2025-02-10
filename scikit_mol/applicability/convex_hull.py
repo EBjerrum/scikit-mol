@@ -27,7 +27,7 @@ class ConvexHullApplicabilityDomain(BaseApplicabilityDomain):
     ----------
     percentile : float or None, default=None
         Not used, present for API consistency.
-    feature_prefix : str, default="ConvexHull"
+    feature_name : str, default="ConvexHull"
         Prefix for feature names in output.
 
     Notes
@@ -54,9 +54,9 @@ class ConvexHullApplicabilityDomain(BaseApplicabilityDomain):
     _supports_threshold_fitting = False
 
     def __init__(
-        self, percentile: Optional[float] = None, feature_prefix: str = "ConvexHull"
+        self, percentile: Optional[float] = None, feature_name: str = "ConvexHull"
     ) -> None:
-        super().__init__(percentile=None, feature_prefix=feature_prefix)
+        super().__init__(percentile=None, feature_name=feature_name)
         self.threshold_ = 0.5  # Fixed threshold since output is binary
 
     def fit(
@@ -115,19 +115,19 @@ class ConvexHullApplicabilityDomain(BaseApplicabilityDomain):
 
         return np.array(distances).reshape(-1, 1)
 
-    def predict(self, X):
-        """Predict whether samples are within the applicability domain.
+    # def predict(self, X):
+    #     """Predict whether samples are within the applicability domain.
 
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The samples to predict.
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape (n_samples, n_features)
+    #         The samples to predict.
 
-        Returns
-        -------
-        y_pred : ndarray of shape (n_samples,)
-            Returns 1 for samples inside the domain and -1 for samples outside
-            (following scikit-learn's convention for outlier detection).
-        """
-        scores = self._transform(X).ravel()
-        return np.where(scores == 0, 1, -1)
+    #     Returns
+    #     -------
+    #     y_pred : ndarray of shape (n_samples,)
+    #         Returns 1 for samples inside the domain and -1 for samples outside
+    #         (following scikit-learn's convention for outlier detection).
+    #     """
+    #     scores = self._transform(X).ravel()
+    #     return np.where(scores == 0, 1, -1)

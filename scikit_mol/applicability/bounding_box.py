@@ -27,7 +27,7 @@ class BoundingBoxApplicabilityDomain(BaseApplicabilityDomain):
     percentile : float or tuple of float, default=(0.1, 99.9)
         Percentile(s) of the training set distribution used to define
         the bounding box. If float, uses (percentile, 100-percentile).
-    feature_prefix : str, default="BoundingBox"
+    feature_name : str, default="BoundingBox"
         Prefix for feature names in output.
 
     Attributes
@@ -73,9 +73,9 @@ class BoundingBoxApplicabilityDomain(BaseApplicabilityDomain):
     def __init__(
         self,
         percentile: Union[float, Tuple[float, float]] = (0.1, 99.9),
-        feature_prefix: str = "BoundingBox",
+        feature_name: str = "BoundingBox",
     ) -> None:
-        super().__init__(percentile=None, feature_prefix=feature_prefix)
+        super().__init__(percentile=None, feature_name=feature_name)
 
         if isinstance(percentile, (int, float)):
             if not 0 <= percentile <= 100:
