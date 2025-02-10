@@ -54,8 +54,12 @@ def test_score_transform(ad_estimator, ad_test_data):
     assert mean_in > mean_out  # Inside domain should have higher scores
 
 
+@pytest.mark.threshold_fitting
 def test_threshold_setting(ad_estimator, reduced_fingerprints):
     """Test threshold setting and percentile behavior."""
+    if not ad_estimator._supports_threshold_fitting:
+        pytest.skip("Estimator does not support threshold fitting")
+
     # Test default threshold
     ad_estimator.fit(reduced_fingerprints)
     pred_default = ad_estimator.predict(reduced_fingerprints)
@@ -107,10 +111,11 @@ def test_input_validation(ad_estimator):
     with pytest.raises(ValueError):
         ad_estimator.fit([[1], [2, 3]])  # Inconsistent dimensions
 
-    # Test invalid percentile
-    with pytest.raises(ValueError):
-        ad_estimator.percentile = 101
-        ad_estimator.fit([[1, 2]])
+    # Test invalid percentile only if threshold fitting is supported
+    if ad_estimator._supports_threshold_fitting:
+        with pytest.raises(ValueError):
+            ad_estimator.percentile = 101
+            ad_estimator.fit([[1, 2]])
 
 
 def test_refit_consistency(ad_estimator, reduced_fingerprints):
@@ -122,6 +127,3 @@ def test_refit_consistency(ad_estimator, reduced_fingerprints):
     scores2 = ad_estimator.transform(reduced_fingerprints)
 
     assert_array_almost_equal(scores1, scores2)
-
-
-# ... other common tests ...

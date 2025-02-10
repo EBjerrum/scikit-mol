@@ -7,21 +7,38 @@ Modifications Copyright (c) 2025 scikit-mol contributors (LGPL License)
 See LICENSE.MIT in this directory for the original MIT license.
 """
 
+from typing import Any, Optional
+
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 from scipy import optimize
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_array, check_is_fitted
+
+from .base import BaseApplicabilityDomain
 
 
-class ConvexHullApplicabilityDomain(BaseEstimator, TransformerMixin):
+class ConvexHullApplicabilityDomain(BaseApplicabilityDomain):
     """Applicability domain defined as the convex hull of the training data.
 
     The convex hull approach determines if a point belongs to the convex hull of the
     training set by checking if it can be represented as a convex combination of
     training points.
 
-    The method is based on the `highs` solver from the `scipy.optimize` module, but is still
-    slow at inference time.
+    Parameters
+    ----------
+    percentile : float or None, default=None
+        Not used, present for API consistency.
+    feature_prefix : str, default="ConvexHull"
+        Prefix for feature names in output.
+
+    Notes
+    -----
+    The method is based on the `highs` solver from `scipy.optimize`. Note that this
+    method can be computationally expensive for high-dimensional data or large
+    training sets, as it requires solving a linear programming problem for each
+    test point.
+
+    For high-dimensional data (e.g., fingerprints), consider using dimensionality
+    reduction before applying this method.
 
     Attributes
     ----------
@@ -29,9 +46,22 @@ class ConvexHullApplicabilityDomain(BaseEstimator, TransformerMixin):
         Number of features seen during fit.
     points_ : ndarray of shape (n_features + 1, n_samples)
         Transformed training points used for convex hull calculations.
+    threshold_ : float
+        Fixed at 0.5 since output is binary (inside/outside hull).
     """
 
-    def fit(self, X, y=None):
+    _scoring_convention = "high_outside"
+    _supports_threshold_fitting = False
+
+    def __init__(
+        self, percentile: Optional[float] = None, feature_prefix: str = "ConvexHull"
+    ) -> None:
+        super().__init__(percentile=None, feature_prefix=feature_prefix)
+        self.threshold_ = 0.5  # Fixed threshold since output is binary
+
+    def fit(
+        self, X: ArrayLike, y: Optional[Any] = None
+    ) -> "ConvexHullApplicabilityDomain":
         """Fit the convex hull applicability domain.
 
         Parameters
@@ -43,10 +73,10 @@ class ConvexHullApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        self : object
+        self : ConvexHullApplicabilityDomain
             Returns the instance itself.
         """
-        X = check_array(X)
+        X = self._validate_data(X)
         self.n_features_in_ = X.shape[1]
 
         # Add ones column and transpose for convex hull calculations
@@ -54,15 +84,12 @@ class ConvexHullApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, X):
+    def _transform(self, X: NDArray) -> NDArray[np.float64]:
         """Calculate distance from convex hull for each sample.
-
-        A distance of 0 indicates the sample lies within the convex hull.
-        Positive values indicate distance outside the hull.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : ndarray of shape (n_samples, n_features)
             The data to transform.
 
         Returns
@@ -71,17 +98,10 @@ class ConvexHullApplicabilityDomain(BaseEstimator, TransformerMixin):
             Distance from convex hull. Zero for points inside the hull,
             positive for points outside.
         """
-        check_is_fitted(self)
-        X = check_array(X)
-
-        # Calculate distances
-        if X.ndim == 1:
-            X = X.reshape(1, -1)
-
         distances = []
         for sample in X:
             # Append 1 to sample vector
-            sample_ext = np.r_[sample, 1].astype(np.float16)
+            sample_ext = np.r_[sample, 1].astype(np.float32)
 
             # Try to solve the linear programming problem
             result = optimize.linprog(
@@ -109,5 +129,5 @@ class ConvexHullApplicabilityDomain(BaseEstimator, TransformerMixin):
             Returns 1 for samples inside the domain and -1 for samples outside
             (following scikit-learn's convention for outlier detection).
         """
-        scores = self.transform(X).ravel()
+        scores = self._transform(X).ravel()
         return np.where(scores == 0, 1, -1)

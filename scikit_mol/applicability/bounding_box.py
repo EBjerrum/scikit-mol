@@ -7,22 +7,28 @@ Modifications Copyright (c) 2025 scikit-mol contributors (LGPL License)
 See LICENSE.MIT in this directory for the original MIT license.
 """
 
+from typing import Any, Optional, Tuple, Union
+
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_array, check_is_fitted
+from numpy.typing import ArrayLike, NDArray
+
+from .base import BaseApplicabilityDomain
 
 
-class BoundingBoxApplicabilityDomain(BaseEstimator, TransformerMixin):
+class BoundingBoxApplicabilityDomain(BaseApplicabilityDomain):
     """Applicability domain defined by feature value ranges.
 
     Samples falling outside the allowed range for any feature are considered
-    outside the domain.
+    outside the domain. The range for each feature is defined by percentiles
+    of the training set distribution.
 
     Parameters
     ----------
     percentile : float or tuple of float, default=(0.1, 99.9)
         Percentile(s) of the training set distribution used to define
         the bounding box. If float, uses (percentile, 100-percentile).
+    feature_prefix : str, default="BoundingBox"
+        Prefix for feature names in output.
 
     Attributes
     ----------
@@ -32,42 +38,49 @@ class BoundingBoxApplicabilityDomain(BaseEstimator, TransformerMixin):
         Minimum allowed value for each feature.
     max_ : ndarray of shape (n_features,)
         Maximum allowed value for each feature.
+    threshold_ : float
+        Current threshold for domain membership (always 0.5).
+
+    Notes
+    -----
+    The bounding box method is simple but effective, especially for chemical
+    descriptors with clear physical interpretations. For high-dimensional or
+    correlated features, other methods may be more appropriate.
 
     Examples
     --------
     >>> from sklearn.pipeline import make_pipeline
     >>> from sklearn.preprocessing import StandardScaler
-    >>> from sklearn.decomposition import PCA
     >>> from scikit_mol.applicability import BoundingBoxApplicabilityDomain
-
-    Basic usage:
+    >>>
+    >>> # Basic usage
     >>> ad = BoundingBoxApplicabilityDomain(percentile=1)
     >>> ad.fit(X_train)
     >>> predictions = ad.predict(X_test)
-
-    With preprocessing:
+    >>>
+    >>> # With preprocessing
     >>> pipe = make_pipeline(
     ...     StandardScaler(),
-    ...     BoundingBoxApplicabilityDomain(percentile=1)
-    ... )
-    >>> pipe.fit(X_train)
-    >>> predictions = pipe.predict(X_test)
-
-    With PCA preprocessing:
-    >>> pipe = make_pipeline(
-    ...     StandardScaler(),
-    ...     PCA(n_components=0.9),
     ...     BoundingBoxApplicabilityDomain(percentile=1)
     ... )
     >>> pipe.fit(X_train)
     >>> predictions = pipe.predict(X_test)
     """
 
-    def __init__(self, percentile=(0.1, 99.9)):
+    _scoring_convention = "high_outside"
+    _supports_threshold_fitting = False
+
+    def __init__(
+        self,
+        percentile: Union[float, Tuple[float, float]] = (0.1, 99.9),
+        feature_prefix: str = "BoundingBox",
+    ) -> None:
+        super().__init__(percentile=None, feature_prefix=feature_prefix)
+
         if isinstance(percentile, (int, float)):
             if not 0 <= percentile <= 100:
                 raise ValueError("percentile must be between 0 and 100")
-            self.percentile = (percentile, 100 - percentile)
+            self.box_percentile = (percentile, 100 - percentile)
         else:
             if not all(0 <= p <= 100 for p in percentile):
                 raise ValueError("percentiles must be between 0 and 100")
@@ -75,9 +88,11 @@ class BoundingBoxApplicabilityDomain(BaseEstimator, TransformerMixin):
                 raise ValueError("percentile must be a float or tuple of 2 floats")
             if percentile[0] >= percentile[1]:
                 raise ValueError("first percentile must be less than second")
-            self.percentile = percentile
+            self.box_percentile = percentile
 
-    def fit(self, X, y=None):
+    def fit(
+        self, X: ArrayLike, y: Optional[Any] = None
+    ) -> "BoundingBoxApplicabilityDomain":
         """Fit the bounding box applicability domain.
 
         Parameters
@@ -89,24 +104,27 @@ class BoundingBoxApplicabilityDomain(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        self : object
+        self : BoundingBoxApplicabilityDomain
             Returns the instance itself.
         """
-        X = check_array(X)
+        X = self._validate_data(X)
         self.n_features_in_ = X.shape[1]
 
         # Calculate bounds
-        self.min_ = np.percentile(X, self.percentile[0], axis=0)
-        self.max_ = np.percentile(X, self.percentile[1], axis=0)
+        self.min_ = np.percentile(X, self.box_percentile[0], axis=0)
+        self.max_ = np.percentile(X, self.box_percentile[1], axis=0)
+
+        # Fixed threshold since we count violations
+        self.threshold_ = 0.5
 
         return self
 
-    def transform(self, X):
-        """Calculate the number of features outside their bounds for each sample.
+    def _transform(self, X: NDArray) -> NDArray[np.float64]:
+        """Calculate the number of features outside their bounds.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : ndarray of shape (n_samples, n_features)
             The data to transform.
 
         Returns
@@ -115,25 +133,5 @@ class BoundingBoxApplicabilityDomain(BaseEstimator, TransformerMixin):
             Number of features outside their bounds for each sample.
             Zero indicates all features within bounds.
         """
-        check_is_fitted(self)
-        X = check_array(X)
-
         violations = np.sum((X < self.min_) | (X > self.max_), axis=1)
         return violations.reshape(-1, 1)
-
-    def predict(self, X):
-        """Predict whether samples are within the applicability domain.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The samples to predict.
-
-        Returns
-        -------
-        y_pred : ndarray of shape (n_samples,)
-            Returns 1 for samples inside the domain and -1 for samples outside
-            (following scikit-learn's convention for outlier detection).
-        """
-        violations = self.transform(X).ravel()
-        return np.where(violations == 0, 1, -1)

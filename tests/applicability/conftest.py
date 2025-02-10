@@ -3,7 +3,14 @@ import pytest
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from scikit_mol.applicability import KNNApplicabilityDomain, LeverageApplicabilityDomain
+from scikit_mol.applicability import (
+    BoundingBoxApplicabilityDomain,
+    ConvexHullApplicabilityDomain,
+    HotellingT2ApplicabilityDomain,
+    IsolationForestApplicabilityDomain,
+    KNNApplicabilityDomain,
+    LeverageApplicabilityDomain,
+)
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 
 from ..fixtures import mols_list
@@ -13,6 +20,17 @@ from ..fixtures import mols_list
     params=[
         (KNNApplicabilityDomain, dict(n_neighbors=3)),
         (LeverageApplicabilityDomain, dict(threshold_factor=3)),
+        (BoundingBoxApplicabilityDomain, dict(percentile=(1, 99))),
+        (ConvexHullApplicabilityDomain, dict()),  # No special parameters needed
+        (HotellingT2ApplicabilityDomain, dict(significance=0.05)),
+        (
+            IsolationForestApplicabilityDomain,
+            dict(
+                n_estimators=100,
+                contamination=0.1,
+                random_state=42,  # Add fixed random state
+            ),
+        ),
     ]
 )
 def ad_estimator(request):
