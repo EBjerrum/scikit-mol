@@ -3,7 +3,7 @@ import pytest
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from scikit_mol.applicability import KNNApplicabilityDomain
+from scikit_mol.applicability import KNNApplicabilityDomain, LeverageApplicabilityDomain
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 
 from ..fixtures import mols_list
@@ -12,7 +12,7 @@ from ..fixtures import mols_list
 @pytest.fixture(
     params=[
         (KNNApplicabilityDomain, dict(n_neighbors=3)),
-        # Add other AD estimators here as (class, params) tuples
+        (LeverageApplicabilityDomain, dict(threshold_factor=3)),
     ]
 )
 def ad_estimator(request):
