@@ -116,6 +116,7 @@ Scikit-Mol has been featured in blog-posts or used in research, some examples wh
 - [WAE-DTI: Ensemble-based architecture for drug–target interaction prediction using descriptors and embeddings](https://www.sciencedirect.com/science/article/pii/S2352914824001618)
 - [Data Driven Estimation of Molecular Log-Likelihood using Fingerprint Key Counting](https://chemrxiv.org/engage/chemrxiv/article-details/661402ee21291e5d1d646651)
 - [AUTONOMOUS DRUG DISCOVERY](https://www.proquest.com/openview/3e830e36bc618f263905a99e787c66c6/1?pq-origsite=gscholar&cbl=18750&diss=y)
+- [DrugGym: A testbed for the economics of autonomous drug discovery](https://www.biorxiv.org/content/10.1101/2024.05.28.596296v1.abstract)
 
 ## Roadmap and Contributing
 
