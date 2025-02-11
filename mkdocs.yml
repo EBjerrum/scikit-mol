@@ -4,7 +4,7 @@ repo_url: "https://github.com/EBjerrum/scikit-mol"
 repo_name: "EBjerrum/scikit-mol"
 copyright: Copyright 2022 - 2025
 
-use_directory_urls: false
+use_directory_urls: true
 docs_dir: "docs"
 
 theme: 
@@ -41,7 +41,7 @@ nav:
     - scikit-mol.core: api/scikit_mol.core.md
     - scikit-mol.conversion: api/scikit_mol.conversions.md
     - scikit-mol.descriptors: api/scikit_mol.descriptors.md
-    - scikit-mol.fingerprints: api/fingerprints.md
+    - scikit-mol.fingerprints: api/scikit_mol.fingerprints.md
     - scikit_mol.fingerprints.baseclasses: api/fingerprints.base.md
     - scikit-mol.parallel: api/scikit_mol.parallel.md
     - scikit-mol.plotting: api/scikit_mol.plotting.md

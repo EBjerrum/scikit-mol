@@ -11,6 +11,8 @@ from sklearn.utils import check_array
 from sklearn.utils.metaestimators import available_if
 from sklearn.utils.validation import NotFittedError, check_is_fitted
 
+from scikit_mol._constants import DOCS_BASE_URL
+
 from .utilities import set_safe_inference_mode
 
 __all__ = ["MaskedArrayError", "SafeInferenceWrapper", "set_safe_inference_mode"]
@@ -119,6 +121,11 @@ class SafeInferenceWrapper(TransformerMixin, BaseEstimator):
     This wrapper is designed to be applied to trained models for use in production settings.
     While it can be included during model development and training, the safe inference mode
     should only be enabled when deploying models for inference in production."""
+
+    _doc_link_module = "scikit_mol"
+    _doc_link_template = (
+        DOCS_BASE_URL + "{estimator_module}/#{estimator_module}.{estimator_name}"
+    )
 
     def __init__(
         self,

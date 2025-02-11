@@ -11,6 +11,7 @@ from rdkit.Chem.MolStandardize import rdMolStandardize
 from rdkit.rdBase import BlockLogs
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from scikit_mol._constants import DOCS_BASE_URL
 from scikit_mol.core import (
     InvalidMol,
     NoFitNeededMixin,
@@ -22,6 +23,11 @@ from scikit_mol.parallel import parallelized_with_batches
 
 class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     """Standardize molecules with RDKit"""
+
+    _doc_link_module = "scikit_mol"
+    _doc_link_template = (
+        DOCS_BASE_URL + "{estimator_module}/#{estimator_module}.{estimator_name}"
+    )
 
     def __init__(
         self,
