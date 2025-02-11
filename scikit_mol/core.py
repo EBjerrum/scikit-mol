@@ -18,7 +18,7 @@ DEFAULT_MOL_COLUMN_NAME = "ROMol"
 
 class NoFitNeededMixin:
     """
-    Mixin class to add a __sklearn_is_fitted__ method to a transformes, which does not need to be fitted.
+    Mixin class to add a `__sklearn_is_fitted__` method to a transformes, which does not need to be fitted.
     """
 
     def __sklearn_is_fitted__(self):
@@ -27,9 +27,15 @@ class NoFitNeededMixin:
 
 @dataclass
 class InvalidMol:
-    """
-    Represents molecules which raised an error during a pipeline step.
-    Evaluates to False in boolean contexts.
+    """Represents molecules which raised an error during a pipeline step.
+    Evaluates to `False` in boolean contexts.
+
+    Parameters
+    -----------
+    pipeline_step : str
+        The name of the pipeline step where the error occurred.
+    error : str
+        The error message.
     """
 
     pipeline_step: str

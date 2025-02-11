@@ -65,13 +65,27 @@ class CheckSmilesSanitazion:
 
             return X_out, X_errors
 
-
-def set_safe_inference_mode(estimator, value):
     """
-    Recursively set the safe_inference_mode parameter for all compatible estimators.
+    R
 
     :param estimator: A scikit-learn estimator, pipeline, or custom wrapper
     :param value: Boolean value to set for safe_inference_mode
+    """
+
+
+def set_safe_inference_mode(estimator: BaseEstimator, value: bool) -> BaseEstimator:
+    """Recursively set the safe_inference_mode parameter for all compatible estimators.
+
+    Parameters
+    ----------
+    estimator :
+         A scikit-learn estimator, pipeline, or custom wrapper
+    value :
+        Boolean value to set for safe_inference_mode
+    Returns
+    -------
+    BaseEstimator
+        The estimator with the `safe_inference_mode` parameter set to the specified value
     """
 
     def _set_safe_inference_mode_recursive(est, val):

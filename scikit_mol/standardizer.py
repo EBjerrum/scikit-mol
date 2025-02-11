@@ -21,19 +21,7 @@ from scikit_mol.parallel import parallelized_with_batches
 
 
 class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
-    """Standardize molecules with RDKit
-
-    Parameters
-    ----------
-    neutralize : bool, optional
-        If True, neutralizes the molecule, by default True
-    n_jobs : Optional[int], optional
-        The maximum number of concurrently running jobs.
-        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs., by default None
-    safe_inference_mode : bool, optional
-        If True, enables safeguards for handling invalid data during inference.
-        This should only be set to True when deploying models to production, by default False
-    """
+    """Standardize molecules with RDKit"""
 
     def __init__(
         self,
@@ -41,6 +29,18 @@ class Standardizer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
         n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
+        """
+        Parameters
+        ----------
+        neutralize : bool, optional
+            If True, neutralizes the molecule
+        n_jobs : Optional[int], optional
+            The maximum number of concurrently running jobs.
+            None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs
+        safe_inference_mode : bool, optional
+            If True, enables safeguards for handling invalid data during inference.
+            This should only be set to True when deploying models to production
+        """
         self.neutralize = neutralize
         self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
