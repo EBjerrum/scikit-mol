@@ -7,6 +7,7 @@ from rdkit import Chem
 from rdkit.rdBase import BlockLogs
 from sklearn.base import BaseEstimator, TransformerMixin
 
+from scikit_mol._constants import DOCS_BASE_URL
 from scikit_mol.core import (
     InvalidMol,
     NoFitNeededMixin,
@@ -26,6 +27,11 @@ class SmilesToMolTransformer(TransformerMixin, NoFitNeededMixin, BaseEstimator):
     but the safe inference mode should only be enabled when deploying models for
     inference in production environments.
     """
+
+    _doc_link_module = "scikit_mol"
+    _doc_link_template = (
+        DOCS_BASE_URL + "{estimator_module}/#{estimator_module}.{estimator_name}"
+    )
 
     def __init__(
         self, n_jobs: Optional[None] = None, safe_inference_mode: bool = False

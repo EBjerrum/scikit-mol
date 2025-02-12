@@ -1,3 +1,5 @@
+from scikit_mol._constants import DOCS_BASE_URL
+
 from .atompair import AtomPairFingerprintTransformer
 from .avalon import AvalonFingerprintTransformer
 
@@ -26,3 +28,13 @@ __all__ = [
     "SECFingerprintTransformer",
     "TopologicalTorsionFingerprintTransformer",
 ]
+
+for name in __all__:
+    if name.startswith("Fps"):
+        continue
+    cls = locals()[name]
+    cls._doc_link_module = "scikit_mol"
+    cls._doc_link_template = (
+        DOCS_BASE_URL
+        + "scikit_mol.fingerprints/#scikit_mol.fingerprints.{estimator_name}"
+    )
