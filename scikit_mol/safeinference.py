@@ -11,6 +11,8 @@ from sklearn.utils import check_array
 from sklearn.utils.metaestimators import available_if
 from sklearn.utils.validation import NotFittedError, check_is_fitted
 
+from scikit_mol._constants import DOCS_BASE_URL
+
 from .utilities import set_safe_inference_mode
 
 __all__ = ["MaskedArrayError", "SafeInferenceWrapper", "set_safe_inference_mode"]
@@ -114,23 +116,16 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
 
 
 class SafeInferenceWrapper(TransformerMixin, BaseEstimator):
-    """
-    Wrapper for sklearn estimators to ensure safe inference in production environments.
+    """Wrapper for sklearn estimators to ensure safe inference in production environments.
 
     This wrapper is designed to be applied to trained models for use in production settings.
     While it can be included during model development and training, the safe inference mode
-    should only be enabled when deploying models for inference in production.
+    should only be enabled when deploying models for inference in production."""
 
-    Parameters:
-    -----------
-    estimator : BaseEstimator
-        The trained sklearn estimator to be wrapped.
-    safe_inference_mode : bool, default=False
-        If True, enables safeguards for handling invalid data during inference.
-        This should only be set to True when deploying models to production.
-    replace_value : any, default=np.nan
-        The value to use for replacing invalid data points.
-    """
+    _doc_link_module = "scikit_mol"
+    _doc_link_template = (
+        DOCS_BASE_URL + "{estimator_module}/#{estimator_module}.{estimator_name}"
+    )
 
     def __init__(
         self,
@@ -139,6 +134,18 @@ class SafeInferenceWrapper(TransformerMixin, BaseEstimator):
         replace_value: Union[int, float, str] = np.nan,
         mask_nonfinite: bool = True,
     ):
+        """
+        Parameters
+        -----------
+        estimator : BaseEstimator
+            The trained sklearn estimator to be wrapped.
+        safe_inference_mode : bool, default=False
+            If True, enables safeguards for handling invalid data during inference.
+            This should only be set to True when deploying models to production.
+        replace_value : any, default=np.nan
+            The value to use for replacing invalid data points.
+        """
+
         self.estimator = estimator
         self.safe_inference_mode = safe_inference_mode
         self.replace_value = replace_value

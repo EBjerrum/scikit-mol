@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block outdated %}
+  You're not viewing the latest version.
+  <a href="{{ '../' ~ base_url }}"> 
+    <strong>Click here to go to latest.</strong>
+  </a>
+{% endblock %}
+
+{% block site_meta %}
+{{ super() }}
+<meta name="readthedocs-addons-api-version" content="1" />
+{% endblock %}

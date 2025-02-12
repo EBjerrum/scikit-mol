@@ -1,0 +1,28 @@
+# Read the Docs configuration file for MkDocs projects
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Set the version of Python and other tools you might need
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+  jobs:
+    # Use uv to speed up the build
+    # https://docs.readthedocs.io/en/stable/build-customization.html#install-dependencies-with-uv
+    pre_create_environment:
+    - asdf plugin add uv
+    - asdf install uv 0.5.24
+    - asdf global uv 0.5.24
+    create_environment:
+    - uv venv
+    install:
+    - uv sync --group docs
+    build:
+      html:
+      - uv run mkdocs build -d $READTHEDOCS_OUTPUT/html
+mkdocs:
+  configuration: mkdocs.yml
+

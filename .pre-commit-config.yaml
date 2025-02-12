@@ -8,6 +8,7 @@ repos:
     -   id: check-json
     -   id: pretty-format-json
         args: ['--autofix']
+        exclude: .ipynb
     -   id: check-added-large-files
     -   id: check-merge-conflict
 - repo: https://github.com/astral-sh/ruff-pre-commit

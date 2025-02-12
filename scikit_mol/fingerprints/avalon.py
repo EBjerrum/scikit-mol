@@ -7,7 +7,8 @@ from .baseclasses import FpsTransformer
 
 
 class AvalonFingerprintTransformer(FpsTransformer):
-    # Fingerprint from the Avalon toolkeit, https://doi.org/10.1021/ci050413p
+    "Fingerprint from the Avalon toolkit, https://doi.org/10.1021/ci050413p"
+
     def __init__(
         self,
         fpSize: int = 512,
@@ -26,13 +27,19 @@ class AvalonFingerprintTransformer(FpsTransformer):
         fpSize : int, optional
             Size of the fingerprint, by default 512
         isQuery : bool, optional
-            use the fingerprint for a query structure, by default False
+            Use the fingerprint for a query structure, by default False
         resetVect : bool, optional
-            reset vector, by default False      NB: only used in GetAvalonFP (not for GetAvalonCountFP)
+            Reset vector, by default False. NB: only used in GetAvalonFP (not for GetAvalonCountFP)
         bitFlags : int, optional
-            Substructure fingerprint (32767) or similarity fingerprint (15761407) by default 15761407
+            Substructure fingerprint (32767) or similarity fingerprint (15761407), by default 15761407
         useCounts : bool, optional
             If toggled will create the count and not bit-based fingerprint, by default False
+        n_jobs : int, optional
+            The number of jobs to run in parallel, by default None
+        safe_inference_mode : bool, optional
+            If True, enables safe inference mode, by default False
+        dtype : numpy.dtype, optional
+            Data type of the fingerprint array, by default numpy.int8
         """
         super().__init__(
             n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, dtype=dtype

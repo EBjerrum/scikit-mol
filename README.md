@@ -10,7 +10,7 @@
 
 [![pypi version](https://img.shields.io/pypi/v/scikit-mol.svg)](https://pypi.org/project/scikit-mol/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/scikit-mol.svg)](https://anaconda.org/conda-forge/scikit-mol)
-[![license](https://img.shields.io/pypi/l/scikit-mol)](#)
+[![license](https://img.shields.io/github/license/EBjerrum/scikit-mol)](#)
 
 [![powered by rdkit](https://img.shields.io/badge/Powered%20by-RDKit-3838ff.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAFVBMVEXc3NwUFP8UPP9kZP+MjP+0tP////9ZXZotAAAAAXRSTlMAQObYZgAAAAFiS0dEBmFmuH0AAAAHdElNRQfmAwsPGi+MyC9RAAAAQElEQVQI12NgQABGQUEBMENISUkRLKBsbGwEEhIyBgJFsICLC0iIUdnExcUZwnANQWfApKCK4doRBsKtQFgKAQC5Ww1JEHSEkAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMi0wMy0xMVQxNToyNjo0NyswMDowMDzr2J4AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjItMDMtMTFUMTU6MjY6NDcrMDA6MDBNtmAiAAAAAElFTkSuQmCC)](https://www.rdkit.org/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -32,60 +32,26 @@ The scikit-learn compatibility should also make it easier to include the fingerp
 
 The first draft for the project was created at the [RDKIT UGM 2022 hackathon](https://github.com/rdkit/UGM_2022) 2022-October-14
 
-## Implemented
-
-- Descriptors
-  - MolecularDescriptorTransformer
-
-<br>
-
-- Fingerprints
-  - MorganFingerprintTransformer
-  - MACCSKeysFingerprintTransformer
-  - RDKitFingerprintTransformer
-  - AtomPairFingerprintTransformer
-  - TopologicalTorsionFingerprintTransformer
-  - MHFingerprintTransformer
-  - SECFingerprintTransformer
-  - AvalonFingerprintTransformer
-
-<br>
-
-- Conversions
-  - SmilesToMol
-
-<br>
-
-- Standardizer
-  - Standardizer
-
-<br>
-
-- safeinference
-  - SafeInferenceWrapper
-  - set_safe_inference_mode
-
-<br>
-
-- Utilities
-  - CheckSmilesSanitazion
-
 ## Installation
 
 Users can install latest tagged release from pip
 
-    pip install scikit-mol
+```sh
+pip install scikit-mol
+```
 
 or from conda-forge
 
-    conda install -c conda-forge scikit-mol
-
+```sh
+conda install -c conda-forge scikit-mol
+```
 The conda forge package should get updated shortly after a new tagged release on pypi.
 
 Bleeding edge
 
-    pip install git+https://github.com:EBjerrum/scikit-mol.git
-
+```sh
+pip install git+https://github.com:EBjerrum/scikit-mol.git
+```
 ## Documentation
 
 There are a collection of notebooks in the notebooks directory which demonstrates some different aspects and use cases
@@ -102,7 +68,7 @@ There are a collection of notebooks in the notebooks directory which demonstrate
 - [Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/10_pipeline_pandas_output.ipynb)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/11_safe_inference.ipynb)
 
-  We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
+We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
 ## Other use-examples
 
@@ -132,6 +98,10 @@ There are more information about how to contribute to the project in [CONTRIBUTI
 Probably still, please check issues at GitHub and report there
 
 ## Contributers:
+
+Scikit-Mol has been developed as a community effort with contributions from people from many different companies, consortia, foundations and academic institutions.
+
+[Cheminformania Consulting](https://www.cheminformania.com), [Aptuit](https://www.linkedin.com/company/aptuit/), [BASF](https://www.basf.com), [Bayer AG](https://www.bayer.com), [Boehringer Ingelheim](https://www.boehringer-ingelheim.com/), [Chodera Lab (MSKCC)](https://www.choderalab.org/), [EPAM Systems](https://www.epam.com/),[ETH Zürich](https://ethz.ch/en.html), [Evotec](https://www.evotec.com/), [Johannes Gutenberg University](https://www.uni-mainz.de/en/), [Martin Luther University](https://www.uni-halle.de/?lang=en), [Odyssey Therapeutics](https://odysseytx.com/), [Open Molecular Software Foundation](https://omsf.io/), [Openfree.energy](https://openfree.energy/), [Polish Academy of Sciences](https://pasific.pan.pl/polish-academy-of-sciences/), [Productivista](https://www.productivista.com), [Simulations-Plus Inc.](https://www.simulations-plus.com/), [University of Vienna](https://www.univie.ac.at/en/)
 
 - Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esbenbjerrum+scikit_mol@gmail.com
 - Carmen Esposito [@cespos](https://github.com/cespos)

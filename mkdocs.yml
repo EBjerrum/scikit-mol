@@ -1,0 +1,64 @@
+site_name: "scikit-mol"
+site_description: "scikit-learn classes for molecular vectorization using RDKit"
+repo_url: "https://github.com/EBjerrum/scikit-mol"
+repo_name: "EBjerrum/scikit-mol"
+copyright: Copyright 2022 - 2025
+
+use_directory_urls: true
+docs_dir: "docs"
+
+theme: 
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.expand
+
+extra_javascript:
+    - assets/js/readthedocs.js
+
+watch:
+  - "scikit_mol"
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+          inventories:
+            - https://scikit-learn.org/stable/objects.inv
+            - https://docs.python.org/objects.inv
+            - https://www.rdkit.org/docs/objects.inv
+  - mkdocs-jupyter:
+      execute: false
+      include: ["*.ipynb"]
+
+nav:
+  - Overview: index.md
+  - API:
+    - scikit-mol.core: api/scikit_mol.core.md
+    - scikit-mol.conversion: api/scikit_mol.conversions.md
+    - scikit-mol.descriptors: api/scikit_mol.descriptors.md
+    - scikit-mol.fingerprints: api/scikit_mol.fingerprints.md
+    - scikit_mol.fingerprints.baseclasses: api/fingerprints.base.md
+    - scikit-mol.parallel: api/scikit_mol.parallel.md
+    - scikit-mol.plotting: api/scikit_mol.plotting.md
+    - scikit-mol.safeinference: api/scikit_mol.safeinference.md
+    - scikit-mol.standardizer: api/scikit_mol.standardizer.md
+    
+  - Notebooks:
+    - Basic Usage and fingerprint transformers: notebooks/01_basic_usage.ipynb
+    - Descriptor transformer: notebooks/02_descriptor_transformer.ipynb
+    - Pipelining with Scikit-Learn classes: notebooks/03_example_pipeline.ipynb
+    - Molecular standardization: notebooks/04_standardizer.ipynb
+    - Sanitizing SMILES input: notebooks/05_smiles_sanitaztion.ipynb
+    - Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer: notebooks/06_hyperparameter_tuning.ipynb
+    - Using parallel execution to speed up descriptor and fingerprint calculations: notebooks/07_parallel_transforms.ipynb
+    - Using skopt for hyperparameter tuning: notebooks/08_external_library_skopt.ipynb
+    - Testing different fingerprints as part of the hyperparameter optimization: notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers.ipynb
+    - Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations: notebooks/10_pipeline_pandas_output.ipynb
+    - Working with pipelines and estimators in safe inference mode: notebooks/11_safe_inference.ipynb
+
+  - Contributing: contributing.md
