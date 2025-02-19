@@ -2,8 +2,17 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
+from sklearn.utils import Bunch
+from sklearn.utils.metadata_routing import (
+    _raise_for_params,
+    _routing_enabled,
+    process_routing,
+)
+from sklearn.utils.parallel import Parallel as skParallel
+from sklearn.utils.parallel import delayed
+from sklearn.utils.validation import check_is_fitted
 
 
 class EstimatorUnion(FeatureUnion):
@@ -133,35 +142,108 @@ class EstimatorUnion(FeatureUnion):
             output = output.reshape(-1, 1)
         return output
 
-    def transform(self, X: NDArray) -> NDArray:
-        """Transform X using the selected method for each estimator.
+    # def transform_old(self, X: NDArray) -> NDArray:
+    #     """Transform X using the selected method for each estimator.
+
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape (n_samples, n_features)
+    #         Input data to be transformed.
+
+    #     Returns
+    #     -------
+    #     ndarray of shape (n_samples, sum_n_output_features)
+    #         Horizontally stacked results of all estimators.
+    #         sum_n_output_features is the sum of n_output_features for each
+    #         estimator.
+    #     """
+    #     Xs = self._parallel_func(X, self._get_estimator_output)
+    #     if not Xs:
+    #         # All transformers are None
+    #         return np.zeros((X.shape[0], 0))
+
+    #     if self.transformer_weights is not None:
+    #         Xs = [
+    #             (Xs[name] * self.transformer_weights[name])
+    #             if name in self.transformer_weights
+    #             else Xs[name]
+    #             for name in self._iter()
+    #         ]
+
+    #     return np.hstack(Xs)
+    def _validate_transformers(self):
+        names, transformers = zip(*self.transformer_list)
+
+        # validate names
+        self._validate_names(names)
+
+        # validate estimators
+        for t in transformers:
+            if t in ("drop", "passthrough"):
+                continue
+            # TODO, make a check that the methods in the method_resolution_order /method mappting are present
+            # if not (hasattr(t, "fit") or hasattr(t, "fit_transform")) or not hasattr(
+            #     t, "transform"
+            # ):
+            #     raise TypeError(
+            #         "All estimators should implement fit and "
+            #         "transform. '%s' (type %s) doesn't" % (t, type(t))
+            #     )
+
+    def transform(self, X, **params):
+        """Transform X separately by each transformer, concatenate results.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : iterable or array-like, depending on transformers
             Input data to be transformed.
+
+        **params : dict, default=None
+
+            Parameters routed to the `transform` method of the sub-transformers via the
+            metadata routing API. See :ref:`Metadata Routing User Guide
+            <metadata_routing>` for more details.
+
+            .. versionadded:: 1.5
 
         Returns
         -------
-        ndarray of shape (n_samples, sum_n_output_features)
-            Horizontally stacked results of all estimators.
-            sum_n_output_features is the sum of n_output_features for each
-            estimator.
+        X_t : array-like or sparse matrix of shape (n_samples, sum_n_components)
+            The `hstack` of results of transformers. `sum_n_components` is the
+            sum of `n_components` (output dimension) over transformers.
         """
-        Xs = self._parallel_func(X, self._get_estimator_output)
+        _raise_for_params(params, self, "transform")
+
+        if _routing_enabled():
+            routed_params = process_routing(self, "transform", **params)
+        else:
+            # TODO(SLEP6): remove when metadata routing cannot be disabled.
+            routed_params = Bunch()
+            for name, _ in self.transformer_list:
+                routed_params[name] = Bunch(transform={})
+
+        # Build delayed jobs with custom methods
+        delayed_jobs = []
+        for name, trans, weight in self._iter():
+            method_name = self._get_method_name((name, trans))
+            delayed_jobs.append(
+                delayed(_transform_one)(
+                    trans,
+                    X,
+                    None,
+                    weight,
+                    params=routed_params[name],
+                    method=method_name,
+                )
+            )
+
+        Xs = skParallel(n_jobs=self.n_jobs)(delayed_jobs)
+
         if not Xs:
             # All transformers are None
             return np.zeros((X.shape[0], 0))
 
-        if self.transformer_weights is not None:
-            Xs = [
-                (Xs[name] * self.transformer_weights[name])
-                if name in self.transformer_weights
-                else Xs[name]
-                for name in self._iter()
-            ]
-
-        return np.hstack(Xs)
+        return self._hstack(Xs)
 
     def predict(self, X: NDArray) -> NDArray:
         """Predict using all estimators.
@@ -179,3 +261,147 @@ class EstimatorUnion(FeatureUnion):
             Horizontally stacked predictions of all estimators.
         """
         return self.transform(X)
+
+
+def _transform_one(transformer, X, y, weight, params=None, method="transform"):
+    """Call transform and apply weight to output.
+
+    Parameters
+    ----------
+    transformer : estimator
+        Estimator to be used for transformation.
+
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        Input data to be transformed.
+
+    y : ndarray of shape (n_samples,)
+        Ignored.
+
+    weight : float
+        Weight to be applied to the output of the transformation.
+
+    method : str
+        Method to use for transformation (e.g. "transform", "predict", "predict_proba").
+
+    params : dict
+        Parameters to be passed to the transformer's ``transform`` method.
+
+        This should be of the form ``process_routing()["step_name"]``.
+    """
+    res = getattr(transformer, method)(X, **params.transform)
+    # Ensure 2D output
+    if res.ndim == 1:
+        res = res.reshape(-1, 1)
+    # if we have a weight for this transformer, multiply output
+    if weight is None:
+        return res
+    return res * weight
+
+
+# def _fit_transform_one(
+#     transformer, X, y, weight, message_clsname="", message=None, params=None, method="transform"
+# ):
+#     """
+#     Fits ``transformer`` to ``X`` and ``y``. The transformed result is returned
+#     with the fitted transformer. If ``weight`` is not ``None``, the result will
+#     be multiplied by ``weight``.
+
+#     ``params`` needs to be of the form ``process_routing()["step_name"]``.
+#     """
+#     params = params or {}
+#     with _print_elapsed_time(message_clsname, message):
+#         if hasattr(transformer, "fit_transform"):
+#             res = transformer.fit_transform(X, y, **params.get("fit_transform", {}))
+#         else:
+#             res = transformer.fit(X, y, **params.get("fit", {})).transform(
+#                 X, **params.get("transform", {})
+#             )
+
+#     if weight is None:
+#         return res, transformer
+#     return res * weight, transformer
+
+
+class PredictToTransformAdapter(TransformerMixin, BaseEstimator):
+    """Adapter that exposes an estimator's predict method as transform.
+
+    Parameters
+    ----------
+    estimator : BaseEstimator
+        Estimator with a predict method.
+    method : str, default="predict"
+        The method to use for transformation (e.g., "predict", "predict_proba").
+    """
+
+    def __init__(self, estimator: BaseEstimator, method: str = "predict"):
+        self.estimator = estimator
+        self.method = method
+
+    def fit(self, X, y=None):
+        self.estimator.fit(X, y)
+        return self
+
+    def transform(self, X):
+        check_is_fitted(self)
+        return getattr(self.estimator, self.method)(X)
+
+    def get_feature_names_out(self, input_features=None):
+        """Delegate feature names to wrapped estimator if available."""
+        if hasattr(self.estimator, "get_feature_names_out"):
+            return self.estimator.get_feature_names_out(input_features)
+        return None
+
+    def __sklearn_is_fitted__(self):
+        """Delegate fit check to wrapped estimator."""
+        try:
+            check_is_fitted(self.estimator)
+            return True
+        except ValueError:
+            return False
+
+    def _repr_html_(self):
+        """HTML representation for notebooks."""
+        if hasattr(self.estimator, "_repr_html_"):
+            return f"<div>PredictToTransformAdapter using method '{self.method}' on:<br/>{self.estimator._repr_html_()}</div>"
+        return f"<div>PredictToTransformAdapter(method='{self.method}', estimator={self.estimator})</div>"
+
+
+class TransformToPredictAdapter(BaseEstimator):
+    """Adapter that exposes an estimator's transform method as predict.
+
+    Parameters
+    ----------
+    transformer : BaseEstimator
+        Estimator with a transform method.
+    """
+
+    def __init__(self, transformer: BaseEstimator):
+        self.transformer = transformer
+
+    def fit(self, X, y=None):
+        self.transformer.fit(X, y)
+        return self
+
+    def predict(self, X):
+        check_is_fitted(self)
+        return self.transformer.transform(X)
+
+    def get_feature_names_out(self, input_features=None):
+        """Delegate feature names to wrapped transformer if available."""
+        if hasattr(self.transformer, "get_feature_names_out"):
+            return self.transformer.get_feature_names_out(input_features)
+        return None
+
+    def __sklearn_is_fitted__(self):
+        """Delegate fit check to wrapped transformer."""
+        try:
+            check_is_fitted(self.transformer)
+            return True
+        except ValueError:
+            return False
+
+    def _repr_html_(self):
+        """HTML representation for notebooks."""
+        if hasattr(self.transformer, "_repr_html_"):
+            return f"<div>TransformToPredictAdapter on:<br/>{self.transformer._repr_html_()}</div>"
+        return f"<div>TransformToPredictAdapter(transformer={self.transformer})</div>"
