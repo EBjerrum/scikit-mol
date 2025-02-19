@@ -1,14 +1,12 @@
 import hashlib
 import shutil
-from pathlib import Path
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from urllib.parse import urlsplit
 from urllib.request import urlopen
 
 import pandas as pd
 import pytest
 import sklearn
-
 
 TEST_DATA_URL = "https://ndownloader.figshare.com/files/25747817"
 TEST_DATA_MD5 = "1ec89bde544c3c4bc400d5b75315921e"
@@ -32,9 +30,7 @@ def data_pth(tmp_path_factory) -> Path:
 
     if not data_fn.is_file():
         # download svs from openslide test images
-        with urlopen(TEST_DATA_URL) as response, open(
-            data_fn, "wb"
-        ) as out_file:
+        with urlopen(TEST_DATA_URL) as response, open(data_fn, "wb") as out_file:
             shutil.copyfileobj(response, out_file)
 
         if md5(data_fn) != TEST_DATA_MD5:  # pragma: no cover
@@ -43,9 +39,11 @@ def data_pth(tmp_path_factory) -> Path:
 
     yield data_fn.absolute()
 
+
 @pytest.fixture()
 def data(data_pth) -> pd.DataFrame:
     yield pd.read_csv(data_pth)
+
 
 @pytest.fixture(scope="module")
 def pandas_output():
