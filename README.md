@@ -58,7 +58,7 @@ pip install git+https://github.com:EBjerrum/scikit-mol.git
 
 Example notebooks and API documentation are now hosted on [https://scikit-mol.readthedocs.io](https://scikit-mol.readthedocs.io/en/latest/)
 
-- [Basic Usage and fingerprint transformers](hhttps://scikit-mol.readthedocs.io/en/latest/notebooks/01_basic_usage/)
+- [Basic Usage and fingerprint transformers](https://scikit-mol.readthedocs.io/en/latest/notebooks/01_basic_usage/)
 - [Descriptor transformer](https://scikit-mol.readthedocs.io/en/latest/notebooks/02_descriptor_transformer/)
 - [Pipelining with Scikit-Learn classes](https://scikit-mol.readthedocs.io/en/latest/notebooks/03_example_pipeline/)
 - [Molecular standardization](https://scikit-mol.readthedocs.io/en/latest/notebooks/04_standardizer/)
