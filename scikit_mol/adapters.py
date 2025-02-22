@@ -16,7 +16,7 @@ from sklearn.utils.validation import check_is_fitted
 
 
 class EstimatorUnion(FeatureUnion):
-    """A more flexible version of FeatureUnion that supports various estimator types.
+    """EXPERIMENTAL: more flexible version of FeatureUnion that supports various estimator types.
 
     This class extends scikit-learn's FeatureUnion to support estimators with different
     method interfaces (predict, transform, etc.) and allows explicit method selection.
@@ -41,6 +41,8 @@ class EstimatorUnion(FeatureUnion):
         names, values are weights.
     verbose : bool, default=False
         If True, the time elapsed while fitting each transformer will be printed.
+    verbose_feature_names_out : bool, default=True
+        If True, the feature names out will be verbose.
 
     Attributes
     ----------
@@ -68,6 +70,7 @@ class EstimatorUnion(FeatureUnion):
         n_jobs: Optional[int] = None,
         transformer_weights: Optional[Dict[str, float]] = None,
         verbose: bool = False,
+        verbose_feature_names_out: bool = True,
     ) -> None:
         # Store all parameters as properties
         self.estimator_list = estimator_list
@@ -76,6 +79,7 @@ class EstimatorUnion(FeatureUnion):
         self.n_jobs = n_jobs
         self.transformer_weights = transformer_weights
         self.verbose = verbose
+        self.verbose_feature_names_out = verbose_feature_names_out
 
     @property
     def estimator_list(self) -> List[Tuple[str, BaseEstimator]]:
@@ -261,6 +265,40 @@ class EstimatorUnion(FeatureUnion):
             Horizontally stacked predictions of all estimators.
         """
         return self.transform(X)
+
+    def get_feature_names_out(self, input_features=None):
+        """Get output feature names for transformation.
+
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None
+            Input features.
+
+        Returns
+        -------
+        feature_names_out : ndarray of str objects
+            Transformed feature names.
+        """
+        # List of tuples (name, feature_names_out)
+        transformer_with_feature_names_out = []
+        for name, trans, _ in self._iter():
+            if hasattr(trans, "predict") and not hasattr(
+                trans, "get_feature_names_out"
+            ):
+                # Assume predictors only return 1D output and thus we use their name as feature_name
+                feature_names_out = np.array([name])
+            elif not hasattr(trans, "get_feature_names_out"):
+                raise AttributeError(
+                    "Transformer %s (type %s) does not provide get_feature_names_out."
+                    % (str(name), type(trans).__name__)
+                )
+            else:
+                feature_names_out = trans.get_feature_names_out(input_features)
+            transformer_with_feature_names_out.append((name, feature_names_out))
+
+        return self._add_prefix_for_feature_names_out(
+            transformer_with_feature_names_out
+        )
 
 
 def _transform_one(transformer, X, y, weight, params=None, method="transform"):

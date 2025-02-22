@@ -203,7 +203,13 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
     def predict(
         self, X: Union[ArrayLike, pd.DataFrame]
     ) -> Union[NDArray[np.int_], pd.DataFrame]:
-        """Predict whether samples are within the applicability domain."""
+        """Predict whether samples are within the applicability domain.
+
+        Returns
+        -------
+        predictions : ndarray of shape (n_samples,)
+            Returns 1 for inside and -1 for outside.
+        """
         check_is_fitted(self)
         X = check_array(X, **self._check_params)
 
@@ -244,6 +250,7 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
             # No sign flip needed
             return (1 / (1 + np.exp(self.threshold_ - scores))).reshape(-1, 1)
 
-    def get_feature_names_out(self) -> NDArray[np.str_]:
+    def get_feature_names_out(self, input_features=None) -> NDArray[np.str_]:
         """Get feature name for output column."""
+        # TODO: what is the mechanism around input_features?
         return np.array([f"{self.feature_name}"])
