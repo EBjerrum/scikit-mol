@@ -6,6 +6,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
 from sklearn.utils import Bunch
 from sklearn.utils._estimator_html_repr import _VisualBlock
+from sklearn.utils._user_interface import _print_elapsed_time
 from sklearn.utils.metadata_routing import (
     _raise_for_params,
     _routing_enabled,
@@ -250,6 +251,61 @@ class EstimatorUnion(FeatureUnion):
 
         return self._hstack(Xs)
 
+    def fit_transform(self, X, y=None, **params):
+        """Fit all transformers, transform the data and concatenate results.
+
+        Parameters
+        ----------
+        X : iterable or array-like, depending on transformers
+            Input data to be transformed.
+
+        y : array-like of shape (n_samples, n_outputs), default=None
+            Targets for supervised learning.
+
+        **params : dict, default=None
+            - If `enable_metadata_routing=False` (default):
+              Parameters directly passed to the `fit` methods of the
+              sub-transformers.
+
+            - If `enable_metadata_routing=True`:
+              Parameters safely routed to the `fit` methods of the
+              sub-transformers. See :ref:`Metadata Routing User Guide
+              <metadata_routing>` for more details.
+
+            .. versionchanged:: 1.5
+                `**params` can now be routed via metadata routing API.
+
+        Returns
+        -------
+        X_t : array-like or sparse matrix of \
+                shape (n_samples, sum_n_components)
+            The `hstack` of results of transformers. `sum_n_components` is the
+            sum of `n_components` (output dimension) over transformers.
+        """
+        if _routing_enabled():
+            routed_params = process_routing(self, "fit_transform", **params)
+        else:
+            # TODO(SLEP6): remove when metadata routing cannot be disabled.
+            routed_params = Bunch()
+            for name, obj in self.transformer_list:
+                if hasattr(obj, "fit_transform"):
+                    routed_params[name] = Bunch(fit_transform={})
+                    routed_params[name].fit_transform = params
+                else:
+                    routed_params[name] = Bunch(fit={})
+                    routed_params[name] = Bunch(transform={})
+                    routed_params[name].fit = params
+
+        results = self._parallel_func(X, y, _fit_transform_one, routed_params)
+        if not results:
+            # All transformers are None
+            return np.zeros((X.shape[0], 0))
+
+        Xs, transformers = zip(*results)
+        self._update_transformer_list(transformers)
+
+        return self._hstack(Xs)
+
     def predict(self, X: NDArray) -> NDArray:
         """Predict using all estimators.
 
@@ -337,49 +393,57 @@ def _transform_one(transformer, X, y, weight, params=None, method="transform"):
     return res * weight
 
 
-# def _fit_transform_one(
-#     transformer, X, y, weight, message_clsname="", message=None, params=None, method="transform"
-# ):
-#     """
-#     Fits ``transformer`` to ``X`` and ``y``. The transformed result is returned
-#     with the fitted transformer. If ``weight`` is not ``None``, the result will
-#     be multiplied by ``weight``.
+# Ouch, this seem to be a problem with the EstimatorUnion class.
+def _fit_transform_one(
+    transformer,
+    X,
+    y,
+    weight,
+    message_clsname="",
+    message=None,
+    params=None,
+    method="transform",
+):
+    """
+    Fits ``transformer`` to ``X`` and ``y``. The transformed result is returned
+    with the fitted transformer. If ``weight`` is not ``None``, the result will
+    be multiplied by ``weight``.
 
-#     ``params`` needs to be of the form ``process_routing()["step_name"]``.
-#     """
-#     params = params or {}
-#     with _print_elapsed_time(message_clsname, message):
-#         if hasattr(transformer, "fit_transform"):
-#             res = transformer.fit_transform(X, y, **params.get("fit_transform", {}))
-#         else:
-#             res = transformer.fit(X, y, **params.get("fit", {})).transform(
-#                 X, **params.get("transform", {})
-#             )
+    ``params`` needs to be of the form ``process_routing()["step_name"]``.
+    """
+    params = params or {}
+    with _print_elapsed_time(message_clsname, message):
+        if hasattr(transformer, "fit_transform"):
+            res = transformer.fit_transform(X, y, **params.get("fit_transform", {}))
+        elif hasattr(transformer, "transform"):
+            res = transformer.fit(X, y, **params.get("fit", {})).transform(
+                X, **params.get("transform", {})
+            )
+        elif hasattr(transformer, "predict"):
+            transformer.fit(X, y, **params.get("fit", {}))
+            res = transformer.predict(X, **params.get("predict", {}))
+            if res.ndim == 1:
+                res = res.reshape(-1, 1)
+        else:
+            raise ValueError(
+                f"Transformer {transformer} does not have a fit_transform, fit or predict method."
+            )
 
-#     if weight is None:
-#         return res, transformer
-#     return res * weight, transformer
+    if weight is None:
+        return res, transformer
+    return res * weight, transformer
 
 
-class PredictToTransformAdapter(TransformerMixin, BaseEstimator):
-    """Adapter that exposes an estimator's predict method as transform."""
+class _BaseAdapter(BaseEstimator):
+    """EXPERIMENTAL: Base class for adapters that wrap estimators and modify their interface."""
 
-    def __init__(self, estimator: BaseEstimator, method: str = "predict"):
+    def __init__(self, estimator: BaseEstimator):
         self.estimator = estimator
-        self.method = method
-
-    def transform(self, X):
-        check_is_fitted(self)
-        prediction = getattr(self.estimator, self.method)(X)
-        if prediction.ndim == 1:
-            prediction = prediction.reshape(-1, 1)
-        return prediction
 
     def __getattr__(self, name):
         """Delegate any unknown attributes/methods to wrapped estimator."""
         if hasattr(self.estimator, name):
             attr = getattr(self.estimator, name)
-            # If it's a property, get its value
             if isinstance(attr, property):
                 return attr.__get__(self.estimator)
             return attr
@@ -395,15 +459,11 @@ class PredictToTransformAdapter(TransformerMixin, BaseEstimator):
     @property
     def __dict__(self):
         """Include estimator's properties in the instance dict."""
-        # Get our own dict
         d = super().__dict__.copy()
-
-        # Add estimator instance attributes and properties
         estimator_dict = vars(self.estimator)
         for name, value in estimator_dict.items():
-            if not name.startswith("_"):  # Skip private attributes
+            if not name.startswith("_"):
                 d[name] = value
-
         return d
 
     def _sk_visual_block_(self):
@@ -412,54 +472,39 @@ class PredictToTransformAdapter(TransformerMixin, BaseEstimator):
             "parallel",
             [self.estimator],
             names=None,
-            # [
-            #     f"{self.estimator.__class__.__name__}",
-            # ],
             name_details=None,
-            # [
-            #     f"{self.method} from {self.estimator}",
-            # ],
             name_caption=None,
             dash_wrapped=False,
         )
 
 
-class TransformToPredictAdapter(BaseEstimator):
-    """Adapter that exposes an estimator's transform method as predict.
+class PredictToTransformAdapter(_BaseAdapter, TransformerMixin):
+    """EXPERIMENTAL: Adapter that exposes an estimator's predict method as transform."""
 
-    Parameters
-    ----------
-    transformer : BaseEstimator
-        Estimator with a transform method.
-    """
+    def __init__(self, estimator: BaseEstimator, method: str = "predict"):
+        super().__init__(estimator)
+        self.method = method
 
-    def __init__(self, transformer: BaseEstimator):
-        self.transformer = transformer
+    def transform(self, X):
+        check_is_fitted(self)
+        prediction = getattr(self.estimator, self.method)(X)
+        if prediction.ndim == 1:
+            prediction = prediction.reshape(-1, 1)
+        return prediction
 
-    def fit(self, X, y=None):
-        self.transformer.fit(X, y)
-        return self
+
+class TransformToPredictAdapter(_BaseAdapter, TransformerMixin):
+    """EXPERIMENTAL: Adapter that exposes an estimator's transform method as predict.
+
+    2D column vector output is flattened to 1D."""
+
+    def __init__(self, estimator: BaseEstimator, method: str = "transform"):
+        super().__init__(estimator)
+        self.method = method
 
     def predict(self, X):
         check_is_fitted(self)
-        return self.transformer.transform(X)
-
-    def get_feature_names_out(self, input_features=None):
-        """Delegate feature names to wrapped transformer if available."""
-        if hasattr(self.transformer, "get_feature_names_out"):
-            return self.transformer.get_feature_names_out(input_features)
-        return None
-
-    def __sklearn_is_fitted__(self):
-        """Delegate fit check to wrapped transformer."""
-        try:
-            check_is_fitted(self.transformer)
-            return True
-        except ValueError:
-            return False
-
-    def _repr_html_(self):
-        """HTML representation for notebooks."""
-        if hasattr(self.transformer, "_repr_html_"):
-            return f"<div>TransformToPredictAdapter on:<br/>{self.transformer._repr_html_()}</div>"
-        return f"<div>TransformToPredictAdapter(transformer={self.transformer})</div>"
+        prediction = self.estimator.transform(X)
+        if prediction.shape[1] == 1:
+            prediction = prediction.flatten()
+        return prediction
