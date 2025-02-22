@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
 from sklearn.utils import Bunch
+from sklearn.utils._estimator_html_repr import _VisualBlock
 from sklearn.utils.metadata_routing import (
     _raise_for_params,
     _routing_enabled,
@@ -361,47 +362,66 @@ def _transform_one(transformer, X, y, weight, params=None, method="transform"):
 
 
 class PredictToTransformAdapter(TransformerMixin, BaseEstimator):
-    """Adapter that exposes an estimator's predict method as transform.
-
-    Parameters
-    ----------
-    estimator : BaseEstimator
-        Estimator with a predict method.
-    method : str, default="predict"
-        The method to use for transformation (e.g., "predict", "predict_proba").
-    """
+    """Adapter that exposes an estimator's predict method as transform."""
 
     def __init__(self, estimator: BaseEstimator, method: str = "predict"):
         self.estimator = estimator
         self.method = method
 
-    def fit(self, X, y=None):
-        self.estimator.fit(X, y)
-        return self
-
     def transform(self, X):
         check_is_fitted(self)
-        return getattr(self.estimator, self.method)(X)
+        prediction = getattr(self.estimator, self.method)(X)
+        if prediction.ndim == 1:
+            prediction = prediction.reshape(-1, 1)
+        return prediction
 
-    def get_feature_names_out(self, input_features=None):
-        """Delegate feature names to wrapped estimator if available."""
-        if hasattr(self.estimator, "get_feature_names_out"):
-            return self.estimator.get_feature_names_out(input_features)
-        return None
+    def __getattr__(self, name):
+        """Delegate any unknown attributes/methods to wrapped estimator."""
+        if hasattr(self.estimator, name):
+            attr = getattr(self.estimator, name)
+            # If it's a property, get its value
+            if isinstance(attr, property):
+                return attr.__get__(self.estimator)
+            return attr
+        raise AttributeError(
+            f"Neither {self.__class__.__name__} nor {self.estimator.__class__.__name__} "
+            f"has attribute '{name}'"
+        )
 
-    def __sklearn_is_fitted__(self):
-        """Delegate fit check to wrapped estimator."""
-        try:
-            check_is_fitted(self.estimator)
-            return True
-        except ValueError:
-            return False
+    def __dir__(self):
+        """List all attributes including those from wrapped estimator."""
+        return list(set(super().__dir__() + dir(self.estimator)))
 
-    def _repr_html_(self):
-        """HTML representation for notebooks."""
-        if hasattr(self.estimator, "_repr_html_"):
-            return f"<div>PredictToTransformAdapter using method '{self.method}' on:<br/>{self.estimator._repr_html_()}</div>"
-        return f"<div>PredictToTransformAdapter(method='{self.method}', estimator={self.estimator})</div>"
+    @property
+    def __dict__(self):
+        """Include estimator's properties in the instance dict."""
+        # Get our own dict
+        d = super().__dict__.copy()
+
+        # Add estimator instance attributes and properties
+        estimator_dict = vars(self.estimator)
+        for name, value in estimator_dict.items():
+            if not name.startswith("_"):  # Skip private attributes
+                d[name] = value
+
+        return d
+
+    def _sk_visual_block_(self):
+        """Generate information about how to display the adapter."""
+        return _VisualBlock(
+            "parallel",
+            [self.estimator],
+            names=None,
+            # [
+            #     f"{self.estimator.__class__.__name__}",
+            # ],
+            name_details=None,
+            # [
+            #     f"{self.method} from {self.estimator}",
+            # ],
+            name_caption=None,
+            dash_wrapped=False,
+        )
 
 
 class TransformToPredictAdapter(BaseEstimator):
