@@ -124,6 +124,10 @@ class LocalOutlierFactorApplicabilityDomain(BaseApplicabilityDomain):
         scores = -self.lof_.score_samples(X)
         return scores.reshape(-1, 1)
 
+    def _set_statistical_threshold(self, X):
+        """Set the statistical threshold for the LOF scores."""
+        self.threshold_ = -self.lof_.offset_
+
     # def predict(self, X):
     #     """Predict whether samples are within the applicability domain.
 

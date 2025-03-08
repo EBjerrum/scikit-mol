@@ -33,7 +33,7 @@ class KernelDensityApplicabilityDomain(BaseApplicabilityDomain):
         'exponential', 'linear', 'cosine'].
     percentile : float or None, default=None
         The percentile of training set densities to use as threshold (0-100).
-        If None, uses 1.0 (exclude bottom 1% of training samples).
+        If None, uses 99.0 (exclude bottom 1% of training samples).
     feature_name : str, default="KernelDensity"
         Name for the output feature column.
 
@@ -68,7 +68,7 @@ class KernelDensityApplicabilityDomain(BaseApplicabilityDomain):
         percentile: Optional[float] = None,
         feature_name: str = "KernelDensity",
     ) -> None:
-        super().__init__(percentile=percentile or 1.0, feature_name=feature_name)
+        super().__init__(percentile=percentile or 99.0, feature_name=feature_name)
         self.bandwidth = bandwidth
         self.kernel = kernel
 

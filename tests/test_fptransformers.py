@@ -4,7 +4,17 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from fixtures import (
+from rdkit import Chem
+from sklearn import clone
+
+from scikit_mol.fingerprints import (
+    AvalonFingerprintTransformer,
+    MACCSKeysFingerprintTransformer,
+    MHFingerprintTransformer,
+    SECFingerprintTransformer,
+)
+
+from .fixtures import (
     chiral_mols_list,
     chiral_smiles_list,
     fingerprint,
@@ -14,15 +24,6 @@ from fixtures import (
     smiles_container,
     smiles_list,
     smiles_list_with_invalid,
-)
-from rdkit import Chem
-from sklearn import clone
-
-from scikit_mol.fingerprints import (
-    AvalonFingerprintTransformer,
-    MACCSKeysFingerprintTransformer,
-    MHFingerprintTransformer,
-    SECFingerprintTransformer,
 )
 
 

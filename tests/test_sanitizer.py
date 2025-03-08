@@ -1,9 +1,11 @@
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 from rdkit import Chem
-from fixtures import smiles_list, smiles_list_with_invalid
+
 from scikit_mol.utilities import CheckSmilesSanitazion
+
+from .fixtures import smiles_list, smiles_list_with_invalid
 
 
 @pytest.fixture
@@ -23,7 +25,9 @@ def test_checksmilessanitation(smiles_list, smiles_list_with_invalid, sanitizer)
     assert errors[0] == sanitizer.errors.SMILES[0]
 
 
-def test_checksmilessanitation_x_and_y(smiles_list, smiles_list_with_invalid, sanitizer):
+def test_checksmilessanitation_x_and_y(
+    smiles_list, smiles_list_with_invalid, sanitizer
+):
     smiles_list_sanitized, y_sanitized, errors, y_errors = sanitizer.sanitize(
         smiles_list_with_invalid, list(range(len(smiles_list_with_invalid)))
     )
@@ -36,14 +40,18 @@ def test_checksmilessanitation_x_and_y(smiles_list, smiles_list_with_invalid, sa
 
 
 def test_checksmilessanitation_np(smiles_list, smiles_list_with_invalid, sanitizer):
-    smiles_list_sanitized, errors = sanitizer.sanitize(np.array(smiles_list_with_invalid))
+    smiles_list_sanitized, errors = sanitizer.sanitize(
+        np.array(smiles_list_with_invalid)
+    )
     assert len(smiles_list_with_invalid) > len(smiles_list_sanitized)
     assert all([a == b for a, b in zip(smiles_list, smiles_list_sanitized)])
     assert errors[0] == sanitizer.errors.SMILES[0]
 
 
 def test_checksmilessanitation_numpy(smiles_list, smiles_list_with_invalid, sanitizer):
-    smiles_list_sanitized, errors = sanitizer.sanitize(pd.Series(smiles_list_with_invalid))
+    smiles_list_sanitized, errors = sanitizer.sanitize(
+        pd.Series(smiles_list_with_invalid)
+    )
     assert len(smiles_list_with_invalid) > len(smiles_list_sanitized)
     assert all([a == b for a, b in zip(smiles_list, smiles_list_sanitized)])
     assert errors[0] == sanitizer.errors.SMILES[0]
@@ -52,7 +60,9 @@ def test_checksmilessanitation_numpy(smiles_list, smiles_list_with_invalid, sani
 def test_checksmilessanitation_return_mol(
     smiles_list, smiles_list_with_invalid, return_mol_sanitizer
 ):
-    smiles_list_sanitized, errors = return_mol_sanitizer.sanitize(smiles_list_with_invalid)
+    smiles_list_sanitized, errors = return_mol_sanitizer.sanitize(
+        smiles_list_with_invalid
+    )
     assert len(smiles_list_with_invalid) > len(smiles_list_sanitized)
     assert all(
         [

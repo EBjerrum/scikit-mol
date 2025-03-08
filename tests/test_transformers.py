@@ -6,36 +6,36 @@
 # pytest tests/test_transformers.py --> tests/test_transformers.py::test_transformer PASSED
 
 
-import pytest
-import pandas as pd
-from packaging.version import Version
-import sklearn
 import numpy as np
-from sklearn.pipeline import Pipeline
+import pandas as pd
+import pytest
+import sklearn
+from packaging.version import Version
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import Pipeline
+
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
+from scikit_mol.descriptors import MolecularDescriptorTransformer
 from scikit_mol.fingerprints import (
-    MACCSKeysFingerprintTransformer,
-    RDKitFingerprintTransformer,
     AtomPairFingerprintTransformer,
-    TopologicalTorsionFingerprintTransformer,
-    MorganFingerprintTransformer,
-    SECFingerprintTransformer,
-    MHFingerprintTransformer,
     AvalonFingerprintTransformer,
+    MACCSKeysFingerprintTransformer,
+    MHFingerprintTransformer,
+    MorganFingerprintTransformer,
+    RDKitFingerprintTransformer,
+    SECFingerprintTransformer,
+    TopologicalTorsionFingerprintTransformer,
 )
 from scikit_mol.fingerprints.baseclasses import BaseFpsTransformer
 
-from scikit_mol.descriptors import MolecularDescriptorTransformer
-
-from fixtures import (
+from .fixtures import (
     SLC6A4_subset,
     SLC6A4_subset_with_cddd,
-    skip_pandas_output_test,
-    mols_container,
-    featurizer,
     combined_transformer,
+    featurizer,
+    mols_container,
+    skip_pandas_output_test,
 )
 
 

@@ -19,8 +19,8 @@ def test_n_neighbors_effect():
     outlier = np.array([[10, 10]])
 
     # Compare different n_neighbors settings
-    ad_small = LocalOutlierFactorApplicabilityDomain(n_neighbors=5)
-    ad_large = LocalOutlierFactorApplicabilityDomain(n_neighbors=20)
+    ad_small = LocalOutlierFactorApplicabilityDomain(n_neighbors=2)
+    ad_large = LocalOutlierFactorApplicabilityDomain(n_neighbors=5)
 
     ad_small.fit(X)
     ad_large.fit(X)
@@ -51,8 +51,8 @@ def test_contamination_effect():
     X = np.random.randn(100, 2)
 
     # Compare different contamination levels
-    ad_low = LocalOutlierFactorApplicabilityDomain(contamination=0.1)
-    ad_high = LocalOutlierFactorApplicabilityDomain(contamination=0.2)
+    ad_low = LocalOutlierFactorApplicabilityDomain(contamination=0.05)
+    ad_high = LocalOutlierFactorApplicabilityDomain(contamination=0.25)
 
     ad_low.fit(X)
     ad_high.fit(X)
