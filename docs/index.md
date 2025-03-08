@@ -65,6 +65,7 @@ Example notebooks and API documentation are now hosted on [https://scikit-mol.re
 - [Testing different fingerprints as part of the hyperparameter optimization](https://scikit-mol.readthedocs.io/en/latest/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers/)
 - [Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations](https://scikit-mol.readthedocs.io/en/latest/notebooks/10_pipeline_pandas_output/)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/)
+- [Estimating applicability domain using feature based estimators](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/12_applicability_domain/)
 
 We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
