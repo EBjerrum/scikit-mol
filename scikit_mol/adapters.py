@@ -18,7 +18,7 @@ from sklearn.utils.validation import check_is_fitted
 
 
 class EstimatorUnion(FeatureUnion):
-    """EXPERIMENTAL: more flexible version of FeatureUnion that supports various estimator types.
+    """EXPERIMENTAL: A more flexible version of FeatureUnion that supports various estimator types.
 
     This class extends scikit-learn's FeatureUnion to support estimators with different
     method interfaces (predict, transform, etc.) and allows explicit method selection.
@@ -148,35 +148,6 @@ class EstimatorUnion(FeatureUnion):
             output = output.reshape(-1, 1)
         return output
 
-    # def transform_old(self, X: NDArray) -> NDArray:
-    #     """Transform X using the selected method for each estimator.
-
-    #     Parameters
-    #     ----------
-    #     X : array-like of shape (n_samples, n_features)
-    #         Input data to be transformed.
-
-    #     Returns
-    #     -------
-    #     ndarray of shape (n_samples, sum_n_output_features)
-    #         Horizontally stacked results of all estimators.
-    #         sum_n_output_features is the sum of n_output_features for each
-    #         estimator.
-    #     """
-    #     Xs = self._parallel_func(X, self._get_estimator_output)
-    #     if not Xs:
-    #         # All transformers are None
-    #         return np.zeros((X.shape[0], 0))
-
-    #     if self.transformer_weights is not None:
-    #         Xs = [
-    #             (Xs[name] * self.transformer_weights[name])
-    #             if name in self.transformer_weights
-    #             else Xs[name]
-    #             for name in self._iter()
-    #         ]
-
-    #     return np.hstack(Xs)
     def _validate_transformers(self):
         names, transformers = zip(*self.transformer_list)
 
@@ -233,7 +204,9 @@ class EstimatorUnion(FeatureUnion):
         for name, trans, weight in self._iter():
             method_name = self._get_method_name((name, trans))
             delayed_jobs.append(
-                delayed(_transform_one)(
+                delayed(
+                    _transform_one
+                )(  # Seems like the only reason we modify this method from base class is to handle it with a custom function for parallel processing
                     trans,
                     X,
                     None,
@@ -393,7 +366,6 @@ def _transform_one(transformer, X, y, weight, params=None, method="transform"):
     return res * weight
 
 
-# Ouch, this seem to be a problem with the EstimatorUnion class.
 def _fit_transform_one(
     transformer,
     X,
@@ -419,6 +391,7 @@ def _fit_transform_one(
             res = transformer.fit(X, y, **params.get("fit", {})).transform(
                 X, **params.get("transform", {})
             )
+        # Custom handling of methods that has predict but no fit_transform or transform
         elif hasattr(transformer, "predict"):
             transformer.fit(X, y, **params.get("fit", {}))
             res = transformer.predict(X, **params.get("predict", {}))
@@ -437,8 +410,22 @@ def _fit_transform_one(
 class _BaseAdapter(BaseEstimator):
     """EXPERIMENTAL: Base class for adapters that wrap estimators and modify their interface."""
 
-    def __init__(self, estimator: BaseEstimator):
+    def __init__(
+        self, estimator: BaseEstimator, _feature_names_out: Optional[List[str]] = None
+    ):
+        """Initialize the adapter with an estimator."""
         self.estimator = estimator
+        self._feature_names_out = _feature_names_out
+
+    def get_feature_names_out(self, input_features=None):
+        """Get output feature names for transformation.
+
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None
+            Input features."""
+
+        return ["tester"]
 
     def __getattr__(self, name):
         """Delegate any unknown attributes/methods to wrapped estimator."""
@@ -467,6 +454,7 @@ class _BaseAdapter(BaseEstimator):
         return d
 
     def _sk_visual_block_(self):
+        # TODO: this looks strange when putting the wrapped estimator into a pipeline
         """Generate information about how to display the adapter."""
         return _VisualBlock(
             "parallel",
@@ -482,11 +470,36 @@ class PredictToTransformAdapter(_BaseAdapter, TransformerMixin):
     """EXPERIMENTAL: Adapter that exposes an estimator's predict method as transform."""
 
     def __init__(self, estimator: BaseEstimator, method: str = "predict"):
+        """Initialize the adapter with an estimator and a method to use.
+
+        Parameters
+        ----------
+        estimator : BaseEstimator
+            The estimator to wrap.
+        method : str, default="predict"
+            The method to use for transformation.
+        """
         super().__init__(estimator)
         self.method = method
 
     def transform(self, X):
+        """Transform X using the wrapped estimator's specified method.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data to transform.
         check_is_fitted(self)
+
+        Example
+        --------
+        >>> from sklearn.linear_model import LogisticRegression
+        >>> from sklearn_mol.adapters import PredictToTransformAdapter
+        >>> estimator = LogisticRegression()
+        >>> adapter = PredictToTransformAdapter(estimator, method="predict"")
+        >>> adapter.fit(X, y)
+        >>> adapter.transform(X)
+        """
         prediction = getattr(self.estimator, self.method)(X)
         if prediction.ndim == 1:
             prediction = prediction.reshape(-1, 1)
@@ -503,6 +516,22 @@ class TransformToPredictAdapter(_BaseAdapter, TransformerMixin):
         self.method = method
 
     def predict(self, X):
+        """Predict using the wrapped estimator's specified method.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data to predict.
+
+        Example
+        --------
+        >>> from sklearn.preprocessing import StandardScaler
+        >>> from sklearn_mol.adapters import TransformToPredictAdapter
+        >>> estimator = StandardScaler()
+        >>> adapter = TransformToPredictAdapter(estimator, method="transform")
+        >>> adapter.fit(X, y)
+        >>> adapter.predict(X)
+        """
         check_is_fitted(self)
         prediction = self.estimator.transform(X)
         if prediction.shape[1] == 1:
