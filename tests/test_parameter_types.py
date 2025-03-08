@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
-from fixtures import (
+from rdkit import Chem
+
+from .fixtures import (
     atompair_transformer,
     mols_list,
     morgan_transformer,
@@ -8,8 +10,7 @@ from fixtures import (
     smiles_list,
     topologicaltorsion_transformer,
 )
-from rdkit import Chem
-from test_fptransformers import (
+from .test_fptransformers import (
     avalon_transformer,
 )
 

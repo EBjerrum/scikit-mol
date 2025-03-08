@@ -6,15 +6,6 @@ import numpy.ma as ma
 import pandas as pd
 import pytest
 import sklearn
-from fixtures import (
-    mols_container,
-    mols_list,
-    mols_with_invalid_container,
-    skip_pandas_output_test,
-    smiles_container,
-    smiles_list,
-    smiles_list_with_invalid,
-)
 from packaging.version import Version
 from rdkit.Chem import Descriptors
 from sklearn import clone
@@ -23,6 +14,16 @@ from sklearn.pipeline import Pipeline
 from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.core import SKLEARN_VERSION_PANDAS_OUT
 from scikit_mol.descriptors import MolecularDescriptorTransformer
+
+from .fixtures import (
+    mols_container,
+    mols_list,
+    mols_with_invalid_container,
+    skip_pandas_output_test,
+    smiles_container,
+    smiles_list,
+    smiles_list_with_invalid,
+)
 
 
 @pytest.fixture
