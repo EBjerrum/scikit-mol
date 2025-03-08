@@ -4,6 +4,7 @@ from pathlib import Path, PurePath
 from urllib.parse import urlsplit
 from urllib.request import urlopen
 
+import numpy as np
 import pandas as pd
 import pytest
 import sklearn
@@ -60,3 +61,10 @@ def pandas_output():
     sklearn.set_config(transform_output="pandas")
     yield
     sklearn.set_config(transform_output="default")
+
+
+# Fixed Numpy random seed in all tests automatically
+@pytest.fixture(autouse=True)
+def setup_random():
+    """Set fixed random seed before each test."""
+    np.random.seed(0xDEADFACE)
