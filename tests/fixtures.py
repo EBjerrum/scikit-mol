@@ -1,33 +1,35 @@
 import os
 from pathlib import Path
-import pytest
+
 import numpy as np
 import pandas as pd
+import pytest
+import sklearn
+from packaging.version import Version
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
-from packaging.version import Version
-import sklearn
-from sklearn.preprocessing import FunctionTransformer
-from sklearn.pipeline import make_pipeline
 from sklearn.compose import make_column_selector, make_column_transformer
-from scikit_mol.fingerprints import (
-    MACCSKeysFingerprintTransformer,
-    RDKitFingerprintTransformer,
-    AtomPairFingerprintTransformer,
-    TopologicalTorsionFingerprintTransformer,
-    MorganFingerprintTransformer,
-    SECFingerprintTransformer,
-    MHFingerprintTransformer,
-    AvalonFingerprintTransformer,
-)
-from scikit_mol.descriptors import MolecularDescriptorTransformer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import FunctionTransformer
+
 from scikit_mol.conversions import SmilesToMolTransformer
-from scikit_mol.standardizer import Standardizer
 from scikit_mol.core import (
-    SKLEARN_VERSION_PANDAS_OUT,
     DEFAULT_MOL_COLUMN_NAME,
+    SKLEARN_VERSION_PANDAS_OUT,
     InvalidMol,
 )
+from scikit_mol.descriptors import MolecularDescriptorTransformer
+from scikit_mol.fingerprints import (
+    AtomPairFingerprintTransformer,
+    AvalonFingerprintTransformer,
+    MACCSKeysFingerprintTransformer,
+    MHFingerprintTransformer,
+    MorganFingerprintTransformer,
+    RDKitFingerprintTransformer,
+    SECFingerprintTransformer,
+    TopologicalTorsionFingerprintTransformer,
+)
+from scikit_mol.standardizer import Standardizer
 
 # TODO these should really go into the conftest.py, so that they are automatically imported in the tests
 
@@ -88,11 +90,13 @@ def chiral_smiles_list():  # Need to be a certain size, so the fingerprints reac
         ]
     ]
 
+
 @pytest.fixture
 def smiles_list_with_invalid(smiles_list):
     data = smiles_list.copy()
     data.extend(["invalid"])
     return data
+
 
 @pytest.fixture
 def invalid_smiles_list():
