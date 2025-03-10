@@ -5,6 +5,7 @@ from .avalon import AvalonFingerprintTransformer
 
 # TODO, these baseclasses needed for backwards compatibility with tests, needs to be removed when tests updated
 from .baseclasses import (
+    _TRANSFORMERS,
     FpsGeneratorTransformer,
     FpsTransformer,
 )
@@ -17,6 +18,7 @@ from .topologicaltorsion import (
 )
 
 __all__ = [
+    "_TRANSFORMERS",
     "AtomPairFingerprintTransformer",
     "AvalonFingerprintTransformer",
     "FpsGeneratorTransformer",
@@ -30,7 +32,7 @@ __all__ = [
 ]
 
 for name in __all__:
-    if name.startswith("Fps"):
+    if name.startswith("Fps") or name.startswith("_"):
         continue
     cls = locals()[name]
     cls._doc_link_module = "scikit_mol"

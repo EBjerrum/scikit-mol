@@ -1,6 +1,7 @@
 import functools
 import inspect
 import re
+import warnings
 from abc import ABC, abstractmethod
 from typing import Optional
 from warnings import simplefilter, warn
@@ -20,6 +21,9 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
     r"^(?P<fingerprint_name>\w+)FingerprintTransformer$"
 )
 
+_BASE_TRANSFORMERS = {}
+_TRANSFORMERS = {}
+
 
 class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator):
     def __init__(
@@ -29,6 +33,18 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
     ):
         self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
+
+    def __init_subclass__(cls, is_abstract=False):
+        super().__init_subclass__()
+        name = cls.__name__
+        register = _BASE_TRANSFORMERS if is_abstract else _TRANSFORMERS
+        if name in register:
+            warnings.warn(
+                f"The {name!r} transformer has been superseded by a "
+                f"new class with id {id(cls):#x}",
+                stacklevel=2,
+            )
+        register[name] = cls
 
     # TODO, remove when finally deprecating nBits and dtype
     @property
@@ -143,7 +159,7 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
         """
         func = functools.partial(
             parallel_helper,
-            classname=self.__class__.__name__,
+            cls=self.__class__,
             parameters=self.get_params(),
         )
         arrays = parallelized_with_batches(func, X, self.n_jobs)
@@ -154,7 +170,7 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
             return np.concatenate(arrays)
 
 
-class FpsTransformer(BaseFpsTransformer):
+class FpsTransformer(BaseFpsTransformer, is_abstract=True):
     """Classic fingerprint transformer using mol2fp pattern"""
 
     def __init__(
@@ -207,7 +223,7 @@ class FpsTransformer(BaseFpsTransformer):
         return [p for p in params if p not in ("nBits")]
 
 
-class FpsGeneratorTransformer(BaseFpsTransformer):
+class FpsGeneratorTransformer(BaseFpsTransformer, is_abstract=True):
     """Abstract base class for fingerprint transformers based on (unpicklable)fingerprint generators"""
 
     _regenerate_on_properties = ()
@@ -287,11 +303,9 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
         return [p for p in params if p not in ("dtype", "nBits")]
 
 
-def parallel_helper(X_mols, classname, parameters):
+def parallel_helper(X_mols, cls, parameters):
     """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
     Then instantiates the class with the parameters and processes the mol.
     Intention is to be able to do this in child processes as some classes can't be pickled"""
-    from scikit_mol import fingerprints
-
-    transformer = getattr(fingerprints, classname)(**parameters)
+    transformer = cls(**parameters)
     return transformer._transform(X_mols)
