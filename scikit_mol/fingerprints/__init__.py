@@ -5,7 +5,6 @@ from .avalon import AvalonFingerprintTransformer
 
 # TODO, these baseclasses needed for backwards compatibility with tests, needs to be removed when tests updated
 from .baseclasses import (
-    _TRANSFORMERS,
     FpsGeneratorTransformer,
     FpsTransformer,
 )
@@ -18,7 +17,6 @@ from .topologicaltorsion import (
 )
 
 __all__ = [
-    "_TRANSFORMERS",
     "AtomPairFingerprintTransformer",
     "AvalonFingerprintTransformer",
     "FpsGeneratorTransformer",
