@@ -22,13 +22,29 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
 
 
 class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator):
+    """Base class for fingerprint transformers
+
+    Parameters
+    ----------
+    name : Optional[str], optional
+        name of the fingerprint, used for column prefix in when the output mode is set to `pandas`, by default None
+    n_jobs : int optional default: None
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
+    safe_inference_mode : bool
+        If True, enables safeguards for handling invalid data during inference.
+        This should only be set to True when deploying models to production.
+    """
+
     def __init__(
         self,
+        name: Optional[str] = None,
         n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
+        self._fp_name = name
 
     # TODO, remove when finally deprecating nBits and dtype
     @property
@@ -52,6 +68,8 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
             self.fpSize = nBits
 
     def _get_column_prefix(self) -> str:
+        if hasattr(self, "_fp_name") and self._fp_name:
+            return str(self._fp_name).lower()
         cls_name = type(self).__name__
         matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(cls_name)
         if matched:
