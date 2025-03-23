@@ -16,6 +16,9 @@ theme:
 extra_javascript:
     - assets/js/readthedocs.js
 
+extra_css:
+  - assets/css/tweak-width.css
+
 watch:
   - "scikit_mol"
 
