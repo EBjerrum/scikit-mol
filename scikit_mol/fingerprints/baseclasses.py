@@ -28,12 +28,12 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
     ----------
     name : Optional[str], optional
         name of the fingerprint, used for column prefix in when the output mode is set to `pandas`, by default None
-    n_jobs : int optional default: None
+    n_jobs : Optional[str], optional
         The maximum number of concurrently running jobs.
-        None is a marker for 'unset' that will be interpreted as n_jobs=1 unless the call is performed under a parallel_config() context manager that sets another value for n_jobs.
+        None is a marker for 'unset' that will be interpreted as `n_jobs=1` unless the call is performed under a `parallel_config()` context manager that sets another value for `n_jobs`.
     safe_inference_mode : bool
-        If True, enables safeguards for handling invalid data during inference.
-        This should only be set to True when deploying models to production.
+        If `True`, enables safeguards for handling invalid data during inference.
+        This should only be set to `True` when deploying models to production.
     """
 
     def __init__(
