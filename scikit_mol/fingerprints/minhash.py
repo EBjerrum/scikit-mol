@@ -30,11 +30,11 @@ class MHFingerprintTransformer(FpsTransformer):
         radius : int, optional
             The MHFP radius.
         rings : bool, optional
-            Whether or not to include rings in the shingling.
+            Whether to include rings in the shingling.
         isomeric : bool, optional
             Whether the isomeric SMILES to be considered
         kekulize : bool, optional
-            Whether or not to kekulize the extracted SMILES
+            Whether to kekulize the extracted SMILES
         min_radius : int, optional
             The minimum radius that is used to extract n-gram.
         fpSize : int, optional
@@ -140,9 +140,9 @@ class SECFingerprintTransformer(FpsTransformer):
 
         Args:
             radius (int, optional): The MHFP radius. Defaults to 3.
-            rings (bool, optional): Whether or not to include rings in the shingling. Defaults to True.
+            rings (bool, optional): Whether to include rings in the shingling. Defaults to True.
             isomeric (bool, optional): Whether the isomeric SMILES to be considered. Defaults to False.
-            kekulize (bool, optional): Whether or not to kekulize the extracted SMILES. Defaults to False.
+            kekulize (bool, optional): Whether to kekulize the extracted SMILES. Defaults to False.
             min_radius (int, optional): The minimum radius that is used to extract n-gram. Defaults to 1.
             fpSize (int, optional): The length of the folded fingerprint. Defaults to 2048.
             n_permutations (int, optional): The number of permutations used for hashing. Defaults to 0.
@@ -199,7 +199,7 @@ class SECFingerprintTransformer(FpsTransformer):
     @seed.setter
     def seed(self, seed):
         self._seed = seed
-        # each time the seed parameter is modified refresh an instace of the encoder
+        # each time the seed parameter is modified refresh an instance of the encoder
         self._recreate_encoder()
 
     @property
@@ -209,7 +209,7 @@ class SECFingerprintTransformer(FpsTransformer):
     @n_permutations.setter
     def n_permutations(self, n_permutations):
         self._n_permutations = n_permutations
-        # each time the n_permutations parameter is modified refresh an instace of the encoder
+        # each time the n_permutations parameter is modified refresh an instance of the encoder
         self._recreate_encoder()
 
     @property

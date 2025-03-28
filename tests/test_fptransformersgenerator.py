@@ -194,7 +194,7 @@ def test_topologicaltorsion_set_params(chiral_mols_list):
     new_params = {  #'atomInvariants': 0,
         #'fromAtoms': 0,
         #'ignoreAtoms': 0,
-        #'includeChirality': True, #TODO, figure out why this setting seems to give same FP wheter toggled or not
+        #'includeChirality': True, #TODO, figure out why this setting seems to give same FP whether toggled or not
         "fpSize": 1024,
         #'nBitsPerEntry': 3, #Todo: not setable with the generators?
         "targetSize": 5,

@@ -64,7 +64,7 @@ jobs:
     name: Publish to PyPI
     needs: build-and-create-signed-release
     runs-on: ubuntu-latest
-    # will be enable in the future
+    # will be enabled in the future
     # environment:
     #   name: pypi
     #   url: https://pypi.org/p/scikit-mol

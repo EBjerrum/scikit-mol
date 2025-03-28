@@ -17,7 +17,7 @@
 #
 # This notebook highlights the ability of scikit-mol transformers to return data in DataFrames with meaningful column names. Some use-cases of this feature are illustrated.
 #
-# ***NOTE***: The goal of this notebook is to highlight the advantages of storing transformer output in DataFrames with meaningful column names. This notebook should *not* be considered a set of good practices for training and evaluating QSAR pipelines. The performance metrics of the resulting pipelines are pretty bad: the dataset they have been trained on is pretty small. Tuning the hyperparameters of the Random Forest regressor model (maximum depth of the trees, maximum features to consider when splitting...) can be beneficial. Also including dimensionality reduction / feature selection techniques can be beneficial, since pipelines use an high number of features for a small number of samples. Of course, to further reduce the risk of overfitting, the best hyperparameters and preprocessing techniques should be chosen in cross validation.
+# ***NOTE***: The goal of this notebook is to highlight the advantages of storing transformer output in DataFrames with meaningful column names. This notebook should *not* be considered a set of good practices for training and evaluating QSAR pipelines. The performance metrics of the resulting pipelines are pretty bad: the dataset they have been trained on is pretty small. Tuning the hyperparameters of the Random Forest regressor model (maximum depth of the trees, maximum features to consider when splitting...) can be beneficial. Also including dimensionality reduction / feature selection techniques can be beneficial, since pipelines use a high number of features for a small number of samples. Of course, to further reduce the risk of overfitting, the best hyperparameters and preprocessing techniques should be chosen in cross validation.
 
 # %%
 from pathlib import Path
@@ -212,7 +212,7 @@ data_combined_train = combine_datasets(data_train, df_cddd)
 data_combined_test = combine_datasets(data_test, df_cddd)
 
 # %%
-# The CDDD descriptors couldn't be computed for few molecules and can be removed as outcommented below. The Datafile is now prefiltered
+# The CDDD descriptors couldn't be computed for few molecules and can be removed as commented out below. The Datafile is now prefiltered
 # target_train = data_train.loc[data_train["Ambit_InchiKey"].isin(data_combined_train["Ambit_InchiKey"]), column_target]
 # target_test = data_test.loc[data_test["Ambit_InchiKey"].isin(data_combined_test["Ambit_InchiKey"]), column_target]
 
@@ -267,7 +267,7 @@ df_performance = pd.DataFrame(
 df_performance
 
 # %% [markdown]
-# All performance metrics were improved by the includion of the CDDD features.
+# All performance metrics were improved by the inclusion of the CDDD features.
 # Let's analyze the feature importances of the model:
 
 # %%

@@ -67,7 +67,7 @@ Example notebooks and API documentation are now hosted on [https://scikit-mol.re
 - [Using parallel execution to speed up descriptor and fingerprint calculations](https://scikit-mol.readthedocs.io/en/latest/notebooks/07_parallel_transforms/)
 - [Using skopt for hyperparameter tuning](https://scikit-mol.readthedocs.io/en/latest/notebooks/08_external_library_skopt/)
 - [Testing different fingerprints as part of the hyperparameter optimization](https://scikit-mol.readthedocs.io/en/latest/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers/)
-- [Using pandas output for easy feature importance analysis and combine pre-exisitng values with new computations](https://scikit-mol.readthedocs.io/en/latest/notebooks/10_pipeline_pandas_output/)
+- [Using pandas output for easy feature importance analysis and combine pre-existing values with new computations](https://scikit-mol.readthedocs.io/en/latest/notebooks/10_pipeline_pandas_output/)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/)
 
 We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
@@ -90,7 +90,7 @@ Scikit-Mol has been featured in blog-posts or used in research, some examples wh
 _Help wanted!_ Are you a PhD student that want a "side-quest" to procrastinate your thesis writing or are you simply interested in computational chemistry, cheminformatics or simply with an interest in QSAR modelling, Python Programming open-source software? Do you want to learn more about machine learning with Scikit-Learn? Or do you use scikit-mol for your current work and would like to pay a little back to the project and see it improved as well?
 With a little bit of help, this project can be improved much faster! Reach to me (Esben), for a discussion about how we can proceed.
 
-Currently we are working on fixing some deprecation warnings, its not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
+Currently, we are working on fixing some deprecation warnings, it's not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
 
 There are more information about how to contribute to the project in [CONTRIBUTING](CONTRIBUTING.md)
 
@@ -98,7 +98,7 @@ There are more information about how to contribute to the project in [CONTRIBUTI
 
 Probably still, please check issues at GitHub and report there
 
-## Contributers:
+## Contributors:
 
 Scikit-Mol has been developed as a community effort with contributions from people from many different companies, consortia, foundations and academic institutions.
 

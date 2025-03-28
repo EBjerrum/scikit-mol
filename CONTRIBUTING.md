@@ -1,6 +1,6 @@
 # Contribution
 
-For up to date information, see
+For up-to-date information, see
 
 [docs/contribution.md](docs/contributing.md)
 

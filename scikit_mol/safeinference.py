@@ -84,7 +84,7 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
             else:
                 reduced_y = None
 
-            # handle case where all rows are masked e.g single invalid input is passed
+            # handle case where all rows are masked e.g. single invalid input is passed
             if len(valid_indices) == 0:
                 result = np.array([])
             else:

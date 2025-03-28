@@ -49,7 +49,7 @@ smiles_list_valid, y_valid, smiles_errors, y_errors = smileschecker.sanitize(
 )
 
 # %% [markdown]
-# Now the smiles_list_valid should be all valid and the y_values filtered as well. Errors are returned, but also accesible after the call to .sanitize() in the .errors property
+# Now the smiles_list_valid should be all valid and the y_values filtered as well. Errors are returned, but also accessible after the call to .sanitize() in the .errors property
 
 # %%
 smileschecker.errors
