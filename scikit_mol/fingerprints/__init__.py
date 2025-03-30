@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 for name in __all__:
-    if name.startswith("Fps"):
+    if name.startswith("Fps") or name.startswith("_"):
         continue
     cls = locals()[name]
     cls._doc_link_module = "scikit_mol"
