@@ -2,7 +2,7 @@ import functools
 import inspect
 import re
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Type
 from warnings import simplefilter, warn
 
 # from rdkit.Chem.AllChem import GetMorganFingerprintAsBitVect
@@ -22,13 +22,29 @@ _PATTERN_FINGERPRINT_TRANSFORMER = re.compile(
 
 
 class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator):
+    """Base class for fingerprint transformers
+
+    Parameters
+    ----------
+    name : Optional[str], optional
+        name of the fingerprint, used for column prefix in when the output mode is set to `pandas`, by default None
+    n_jobs : Optional[str], optional
+        The maximum number of concurrently running jobs.
+        None is a marker for 'unset' that will be interpreted as `n_jobs=1` unless the call is performed under a `parallel_config()` context manager that sets another value for `n_jobs`.
+    safe_inference_mode : bool
+        If `True`, enables safeguards for handling invalid data during inference.
+        This should only be set to `True` when deploying models to production.
+    """
+
     def __init__(
         self,
+        name: Optional[str] = None,
         n_jobs: Optional[int] = None,
         safe_inference_mode: bool = False,
     ):
         self.n_jobs = n_jobs
         self.safe_inference_mode = safe_inference_mode
+        self._fp_name = name
 
     # TODO, remove when finally deprecating nBits and dtype
     @property
@@ -52,12 +68,15 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
             self.fpSize = nBits
 
     def _get_column_prefix(self) -> str:
-        matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(type(self).__name__)
+        if hasattr(self, "_fp_name") and self._fp_name:
+            return str(self._fp_name).lower()
+        cls_name = type(self).__name__
+        matched = _PATTERN_FINGERPRINT_TRANSFORMER.match(cls_name)
         if matched:
             fingerprint_name = matched.group("fingerprint_name")
             return f"fp_{fingerprint_name.lower()}"
         else:
-            return "fp"
+            return cls_name.lower()
 
     def _get_n_digits_column_suffix(self) -> int:
         return len(str(self.fpSize))
@@ -143,7 +162,7 @@ class BaseFpsTransformer(TransformerMixin, NoFitNeededMixin, ABC, BaseEstimator)
         """
         func = functools.partial(
             parallel_helper,
-            classname=self.__class__.__name__,
+            cls=self.__class__,
             parameters=self.get_params(),
         )
         arrays = parallelized_with_batches(func, X, self.n_jobs)
@@ -287,11 +306,11 @@ class FpsGeneratorTransformer(BaseFpsTransformer):
         return [p for p in params if p not in ("dtype", "nBits")]
 
 
-def parallel_helper(X_mols, classname, parameters):
-    """Parallel_helper takes a tuple with classname, the objects parameters and the mols to process.
+def parallel_helper(X_mols, cls: Type[BaseFpsTransformer], parameters: dict):
+    """Parallel_helper takes a tuple with class, the objects parameters and the mols to process.
     Then instantiates the class with the parameters and processes the mol.
-    Intention is to be able to do this in child processes as some classes can't be pickled"""
-    from scikit_mol import fingerprints
-
-    transformer = getattr(fingerprints, classname)(**parameters)
+    Intention is to be able to do this in child processes as some classes can't be pickled.
+    This is a workaround for the fact that joblib doesn't support initialiers like multiprocessing does.
+    """
+    transformer = cls(**parameters)
     return transformer._transform(X_mols)
