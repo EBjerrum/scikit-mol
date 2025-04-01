@@ -51,7 +51,7 @@ The conda forge package should get updated shortly after a new tagged release on
 Bleeding edge
 
 ```sh
-pip install git+https://github.com:EBjerrum/scikit-mol.git
+pip install git+https://github.com/EBjerrum/scikit-mol.git
 ```
 
 ## Documentation
