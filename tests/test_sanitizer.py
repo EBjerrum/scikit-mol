@@ -4,17 +4,17 @@ import pytest
 from fixtures import smiles_list, smiles_list_with_invalid
 from rdkit import Chem
 
-from scikit_mol.utilities import CheckSmilesSanitazion
+from scikit_mol.utilities import CheckSmilesSanitization
 
 
 @pytest.fixture
 def sanitizer():
-    return CheckSmilesSanitazion()
+    return CheckSmilesSanitization()
 
 
 @pytest.fixture
 def return_mol_sanitizer():
-    return CheckSmilesSanitazion(return_mol=True)
+    return CheckSmilesSanitization(return_mol=True)
 
 
 def test_checksmilessanitation(smiles_list, smiles_list_with_invalid, sanitizer):

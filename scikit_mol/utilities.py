@@ -9,7 +9,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline
 
 
-class CheckSmilesSanitazion:
+class CheckSmilesSanitization:
     def __init__(self, return_mol=False):
         self.return_mol = return_mol
         self.errors = pd.DataFrame()
