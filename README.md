@@ -62,7 +62,7 @@ Example notebooks and API documentation are now hosted on [https://scikit-mol.re
 - [Descriptor transformer](https://scikit-mol.readthedocs.io/en/latest/notebooks/02_descriptor_transformer/)
 - [Pipelining with Scikit-Learn classes](https://scikit-mol.readthedocs.io/en/latest/notebooks/03_example_pipeline/)
 - [Molecular standardization](https://scikit-mol.readthedocs.io/en/latest/notebooks/04_standardizer/)
-- [Sanitizing SMILES input](https://scikit-mol.readthedocs.io/en/latest/notebooks/05_smiles_sanitaztion/)
+- [Sanitizing SMILES input](https://scikit-mol.readthedocs.io/en/latest/notebooks/05_smiles_sanitization/)
 - [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://scikit-mol.readthedocs.io/en/latest/notebooks/06_hyperparameter_tuning/)
 - [Using parallel execution to speed up descriptor and fingerprint calculations](https://scikit-mol.readthedocs.io/en/latest/notebooks/07_parallel_transforms/)
 - [Using skopt for hyperparameter tuning](https://scikit-mol.readthedocs.io/en/latest/notebooks/08_external_library_skopt/)

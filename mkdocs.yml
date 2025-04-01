@@ -56,7 +56,7 @@ nav:
     - Descriptor transformer: notebooks/02_descriptor_transformer.ipynb
     - Pipelining with Scikit-Learn classes: notebooks/03_example_pipeline.ipynb
     - Molecular standardization: notebooks/04_standardizer.ipynb
-    - Sanitizing SMILES input: notebooks/05_smiles_sanitaztion.ipynb
+    - Sanitizing SMILES input: notebooks/05_smiles_sanitization.ipynb
     - Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer: notebooks/06_hyperparameter_tuning.ipynb
     - Using parallel execution to speed up descriptor and fingerprint calculations: notebooks/07_parallel_transforms.ipynb
     - Using skopt for hyperparameter tuning: notebooks/08_external_library_skopt.ipynb

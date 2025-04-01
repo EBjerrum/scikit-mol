@@ -8,7 +8,7 @@ This is a collection of notebooks in the notebooks directory which demonstrates 
 - [Descriptor transformer](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/02_descriptor_transformer.ipynb)
 - [Pipelining with Scikit-Learn classes](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/03_example_pipeline.ipynb)
 - [Molecular standardization](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/04_standardizer.ipynb)
-- [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/05_smiles_sanitaztion.ipynb)
+- [Sanitizing SMILES input](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/05_smiles_sanitization.ipynb)
 - [Integrated hyperparameter tuning of Scikit-Learn estimator and Scikit-Mol transformer](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/06_hyperparameter_tuning.ipynb)
 - [Using parallel execution to speed up descriptor and fingerprint calculations](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/07_parallel_transforms.ipynb)
 - [Using skopt for hyperparameter tuning](https://github.com/EBjerrum/scikit-mol/tree/main/notebooks/08_external_library_skopt.ipynb)
