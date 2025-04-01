@@ -1,6 +1,6 @@
 # scikit-mol
 
-<img src="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/ressources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true" alt="Fancy logo">
+<img src="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/resources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true" alt="Fancy logo">
 
 [![python versions](https://shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)]()
 
