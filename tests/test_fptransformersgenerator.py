@@ -3,15 +3,6 @@ import tempfile
 
 import numpy as np
 import pytest
-from fixtures import (
-    chiral_mols_list,
-    chiral_smiles_list,
-    fingerprint,
-    mols_container,
-    mols_list,
-    smiles_container,
-    smiles_list,
-)
 from sklearn import clone
 
 from scikit_mol.fingerprints import (
@@ -19,6 +10,16 @@ from scikit_mol.fingerprints import (
     MorganFingerprintTransformer,
     RDKitFingerprintTransformer,
     TopologicalTorsionFingerprintTransformer,
+)
+
+from .fixtures import (
+    chiral_mols_list,
+    chiral_smiles_list,
+    fingerprint,
+    mols_container,
+    mols_list,
+    smiles_container,
+    smiles_list,
 )
 
 test_transformers = [

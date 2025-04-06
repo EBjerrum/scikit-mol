@@ -133,7 +133,7 @@ class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEst
         """Transform a list of molecules into an array of descriptor values
         Parameters
         ----------
-        X : (List, np.array, pd.Series)
+        x : (List, np.array, pd.Series)
             A list of RDKit molecules
         y : NoneType, optional
             Target values for scikit-learn compatibility, not used, by default None

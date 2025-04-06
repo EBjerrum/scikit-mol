@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 import pytest
-from fixtures import smiles_list, smiles_list_with_invalid
 from rdkit import Chem
 
 from scikit_mol.utilities import CheckSmilesSanitization
+
+from .fixtures import smiles_list, smiles_list_with_invalid
 
 
 @pytest.fixture

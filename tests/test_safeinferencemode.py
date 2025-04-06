@@ -1,12 +1,6 @@
 import numpy as np
 import pandas as pd
 import pytest
-from fixtures import (
-    SLC6A4_subset,
-    invalid_smiles_list,
-    skip_pandas_output_test,
-    smiles_list,
-)
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import Pipeline
 
@@ -14,6 +8,13 @@ from scikit_mol.conversions import SmilesToMolTransformer
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 from scikit_mol.safeinference import SafeInferenceWrapper
 from scikit_mol.utilities import set_safe_inference_mode
+
+from .fixtures import (
+    SLC6A4_subset,
+    invalid_smiles_list,
+    skip_pandas_output_test,
+    smiles_list,
+)
 
 
 def equal_val(value, expected_value):

@@ -10,14 +10,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import sklearn
-from fixtures import (
-    SLC6A4_subset,
-    SLC6A4_subset_with_cddd,
-    combined_transformer,
-    featurizer,
-    mols_container,
-    skip_pandas_output_test,
-)
 from packaging.version import Version
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import Pipeline
@@ -36,6 +28,15 @@ from scikit_mol.fingerprints import (
     TopologicalTorsionFingerprintTransformer,
 )
 from scikit_mol.fingerprints.baseclasses import BaseFpsTransformer
+
+from .fixtures import (
+    SLC6A4_subset,
+    SLC6A4_subset_with_cddd,
+    combined_transformer,
+    featurizer,
+    mols_container,
+    skip_pandas_output_test,
+)
 
 
 def test_transformer(SLC6A4_subset):

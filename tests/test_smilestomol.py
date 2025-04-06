@@ -2,12 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import sklearn
-from fixtures import (
-    skip_pandas_output_test,
-    smiles_container,
-    smiles_list,
-    smiles_list_with_invalid,
-)
 from packaging.version import Version
 from rdkit import Chem
 from sklearn import clone
@@ -17,6 +11,13 @@ from scikit_mol.core import (
     DEFAULT_MOL_COLUMN_NAME,
     SKLEARN_VERSION_PANDAS_OUT,
     InvalidMol,
+)
+
+from .fixtures import (
+    skip_pandas_output_test,
+    smiles_container,
+    smiles_list,
+    smiles_list_with_invalid,
 )
 
 

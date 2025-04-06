@@ -69,6 +69,7 @@ Example notebooks and API documentation are now hosted on [https://scikit-mol.re
 - [Testing different fingerprints as part of the hyperparameter optimization](https://scikit-mol.readthedocs.io/en/latest/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers/)
 - [Using pandas output for easy feature importance analysis and combine pre-existing values with new computations](https://scikit-mol.readthedocs.io/en/latest/notebooks/10_pipeline_pandas_output/)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/)
+- [Estimating applicability domain using feature based estimators](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/12_applicability_domain/)
 
 We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
@@ -84,6 +85,7 @@ Scikit-Mol has been featured in blog-posts or used in research, some examples wh
 - [WAE-DTI: Ensemble-based architecture for drug–target interaction prediction using descriptors and embeddings](https://www.sciencedirect.com/science/article/pii/S2352914824001618)
 - [Data Driven Estimation of Molecular Log-Likelihood using Fingerprint Key Counting](https://chemrxiv.org/engage/chemrxiv/article-details/661402ee21291e5d1d646651)
 - [AUTONOMOUS DRUG DISCOVERY](https://www.proquest.com/openview/3e830e36bc618f263905a99e787c66c6/1?pq-origsite=gscholar&cbl=18750&diss=y)
+- [DrugGym: A testbed for the economics of autonomous drug discovery](https://www.biorxiv.org/content/10.1101/2024.05.28.596296v1.abstract)
 
 ## Roadmap and Contributing
 
@@ -98,7 +100,7 @@ There are more information about how to contribute to the project in [CONTRIBUTI
 
 Probably still, please check issues at GitHub and report there
 
-## Contributors:
+## Contributors
 
 Scikit-Mol has been developed as a community effort with contributions from people from many different companies, consortia, foundations and academic institutions.
 
