@@ -117,38 +117,3 @@ class KernelDensityApplicabilityDomain(BaseApplicabilityDomain):
         """
         scores = self.kde_.score_samples(X)
         return scores.reshape(-1, 1)
-
-    # def predict(self, X):
-    #     """Predict whether samples are within the applicability domain.
-
-    #     Parameters
-    #     ----------
-    #     X : array-like of shape (n_samples, n_features)
-    #         The samples to predict.
-
-    #     Returns
-    #     -------
-    #     y_pred : ndarray of shape (n_samples,)
-    #         Returns 1 for samples inside the domain and -1 for samples outside
-    #         (following scikit-learn's convention for outlier detection).
-    #     """
-    #     scores = self._transform(X).ravel()
-    #     return np.where(scores >= self.threshold_, 1, -1)
-
-    # def fit_threshold(self, X):
-    #     """Update the threshold using new data without refitting the model.
-
-    #     Parameters
-    #     ----------
-    #     X : array-like of shape (n_samples, n_features)
-    #         Data to compute threshold from.
-
-    #     Returns
-    #     -------
-    #     self : object
-    #         Returns the instance itself.
-    #     """
-    #     densities = self._transform(X).ravel()
-    #     self.threshold_ = np.percentile(densities, self.percentile)
-
-    #     return self

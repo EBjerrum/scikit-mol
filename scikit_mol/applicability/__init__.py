@@ -1,3 +1,4 @@
+from .base import BaseApplicabilityDomain  # noqa: F401
 from .bounding_box import BoundingBoxApplicabilityDomain
 from .convex_hull import ConvexHullApplicabilityDomain
 from .hotelling import HotellingT2ApplicabilityDomain
