@@ -1,6 +1,6 @@
 # scikit-mol
 
-<img src="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/resources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true" alt="Fancy logo">
+![Scikit-Mol Logo](https://raw.githubusercontent.com/EBjerrum/scikit-mol/029036fed8575705eaa80f6e3b08e70463b9a0c4/resources/logo/ScikitMol_Logo_Hybrid_300.png)
 
 [![python versions](https://shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)]()
 
@@ -47,7 +47,7 @@ The conda forge package should get updated shortly after a new tagged release on
 Bleeding edge
 
 ```sh
-pip install git+https://github.com:EBjerrum/scikit-mol.git
+pip install git+https://github.com/EBjerrum/scikit-mol.git
 ```
 
 ## Documentation
@@ -66,7 +66,7 @@ Example notebooks and API documentation are now hosted on [https://scikit-mol.re
 - [Using pandas output for easy feature importance analysis and combine pre-existing values with new computations](https://scikit-mol.readthedocs.io/en/latest/notebooks/10_pipeline_pandas_output/)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/)
 - [Creating custom fingerprint transformers](https://scikit-mol.readthedocs.io/en/latest/notebooks/12_custom_fingerprint_transformer/)
-- [Estimating applicability domain using feature based estimators](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/13_applicability_domain/)
+- [Estimating applicability domain using feature based estimators](https://scikit-mol.readthedocs.io/en/latest/notebooks/13_applicability_domain/)
 
 We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
@@ -82,6 +82,7 @@ Scikit-Mol has been featured in blog-posts or used in research, some examples wh
 - [WAE-DTI: Ensemble-based architecture for drug–target interaction prediction using descriptors and embeddings](https://www.sciencedirect.com/science/article/pii/S2352914824001618)
 - [Data Driven Estimation of Molecular Log-Likelihood using Fingerprint Key Counting](https://chemrxiv.org/engage/chemrxiv/article-details/661402ee21291e5d1d646651)
 - [AUTONOMOUS DRUG DISCOVERY](https://www.proquest.com/openview/3e830e36bc618f263905a99e787c66c6/1?pq-origsite=gscholar&cbl=18750&diss=y)
+- [DrugGym: A testbed for the economics of autonomous drug discovery](https://www.biorxiv.org/content/10.1101/2024.05.28.596296v1.abstract)
 
 ## Roadmap and Contributing
 
@@ -90,13 +91,13 @@ With a little bit of help, this project can be improved much faster! Reach to me
 
 Currently, we are working on fixing some deprecation warnings, it's not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
 
-There are more information about how to contribute to the project in [CONTRIBUTING]()
+There are more information about how to contribute to the project in [CONTRIBUTING](https://scikit-mol.readthedocs.io/en/latest/contributing/)
 
 ## BUGS
 
 Probably still, please check issues at GitHub and report there
 
-## Contributors:
+## Contributors
 
 Scikit-Mol has been developed as a community effort with contributions from people from many different companies, consortia, foundations and academic institutions.
 

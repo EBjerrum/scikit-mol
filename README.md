@@ -1,10 +1,6 @@
 # scikit-mol
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/resources/logo/ScikitMol_Logo_DarkBG_300px.png?raw=true">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/resources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true">
-  <img src="https://github.com/EBjerrum/scikit-mol/blob/30c74b3648c0087bdb1b659bc67ba757d7498e9a/resources/logo/ScikitMol_Logo_LightBG_300px.png?raw=true" alt="Fancy logo">
-</picture>
+![Scikit-Mol Logo](https://raw.githubusercontent.com/EBjerrum/scikit-mol/029036fed8575705eaa80f6e3b08e70463b9a0c4/resources/logo/ScikitMol_Logo_Hybrid_300.png)
 
 [![python versions](https://shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)]()
 
@@ -69,7 +65,8 @@ Example notebooks and API documentation are now hosted on [https://scikit-mol.re
 - [Testing different fingerprints as part of the hyperparameter optimization](https://scikit-mol.readthedocs.io/en/latest/notebooks/09_Combinatorial_Method_Usage_with_FingerPrint_Transformers/)
 - [Using pandas output for easy feature importance analysis and combine pre-existing values with new computations](https://scikit-mol.readthedocs.io/en/latest/notebooks/10_pipeline_pandas_output/)
 - [Working with pipelines and estimators in safe inference mode for handling prediction on batches with invalid smiles or molecules](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/)
-- [Estimating applicability domain using feature based estimators](https://scikit-mol.readthedocs.io/en/latest/notebooks/11_safe_inference/12_applicability_domain/)
+- [Creating custom fingerprint transformers](https://scikit-mol.readthedocs.io/en/latest/notebooks/12_custom_fingerprint_transformer/)
+- [Estimating applicability domain using feature based estimators](https://scikit-mol.readthedocs.io/en/latest/notebooks/13_applicability_domain/)
 
 We also put a software note on ChemRxiv. [https://doi.org/10.26434/chemrxiv-2023-fzqwd](https://doi.org/10.26434/chemrxiv-2023-fzqwd)
 
@@ -94,7 +91,7 @@ With a little bit of help, this project can be improved much faster! Reach to me
 
 Currently, we are working on fixing some deprecation warnings, it's not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
 
-There are more information about how to contribute to the project in [CONTRIBUTING](CONTRIBUTING.md)
+There are more information about how to contribute to the project in [CONTRIBUTING](https://scikit-mol.readthedocs.io/en/latest/contributing/)
 
 ## BUGS
 
