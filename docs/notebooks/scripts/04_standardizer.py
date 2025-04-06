@@ -56,7 +56,7 @@ standard_smiles
 # %% [markdown]
 # Some of the molecules were desalted and neutralized.
 #
-# A typical usecase would be to add the standardizer to a pipeline for prediction
+# A typical use case would be to add the standardizer to a pipeline for prediction
 
 # %%
 # Typical use case is to use it in an sklearn pipeline, like below
@@ -82,7 +82,7 @@ print(f"Predictions with standardization:    {std_pipe.predict(smiles_strings)}"
 
 
 # %% [markdown]
-# As we can see, the predictions with the standardizer and without are different. The two first molecules were benzoic acid and sodium benzoate, which with the standardized pipeline is predicted as the same, but differently with the nonstandardized pipeline. Wheter we want to make the prediction on the parent compound, or predict the exact form, will of course depend on the use-case, but now there is at least a way to handle it easily in pipelined predictors.
+# As we can see, the predictions with the standardizer and without are different. The two first molecules were benzoic acid and sodium benzoate, which with the standardized pipeline is predicted as the same, but differently with the nonstandardized pipeline. Whether we want to make the prediction on the parent compound, or predict the exact form, will of course depend on the use-case, but now there is at least a way to handle it easily in pipelined predictors.
 #
 # The example also demonstrate another feature. We created the ridge regressor before creating the two pipelines. Fitting one of the pipelines thus also updated the object in the other pipeline. This can be useful for building inference pipelines that takes in SMILES molecules, but rather do the fitting on already converted and standardized molecules. However, be aware that the crossvalidation classes of scikit-learn may clone the estimators internally when doing the search loop, which would break this interdependence, and necessitate the rebuilding of the inference pipeline.
 #

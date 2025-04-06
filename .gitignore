@@ -140,4 +140,6 @@ tests/data/
 scikit_mol/_version.py
 notebooks/SLC6A4_active_excape_export.csv
 sandbox/
-scikit_mol/_version.py
+
+# PyCharm settings
+.idea

@@ -69,7 +69,7 @@ mol_list_train, mol_list_test, y_train, y_test = train_test_split(
 
 
 # %% [markdown]
-# We will standardize the molecules before modelling. This is best done before the hyperparameter optimizatiion of the featurization with the scikit-mol transformer and regression modelling, as the standardization is otherwise done for every loop in the hyperparameter optimization, which will make it take longer time.
+# We will standardize the molecules before modelling. This is best done before the hyperparameter optimization of the featurization with the scikit-mol transformer and regression modelling, as the standardization is otherwise done for every loop in the hyperparameter optimization, which will make it take longer time.
 
 # %%
 # Probably the recommended way would be to prestandardize the data if there's no changes to the transformer,

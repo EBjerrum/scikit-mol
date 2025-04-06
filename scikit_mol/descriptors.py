@@ -58,7 +58,7 @@ class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEst
                 for desc_name in self.desc_list
                 if desc_name not in self.available_descriptors
             ]
-            assert not unknown_descriptors, f"Unknown descriptor names {unknown_descriptors} specified, please check available_descriptors property\nPlease check availble list {self.available_descriptors}"
+            assert not unknown_descriptors, f"Unknown descriptor names {unknown_descriptors} specified, please check available_descriptors property\nPlease check available list {self.available_descriptors}"
         else:
             self.desc_list = self.available_descriptors
         return MolecularDescriptorCalculator(self.desc_list)
@@ -92,7 +92,7 @@ class MolecularDescriptorTransformer(TransformerMixin, NoFitNeededMixin, BaseEst
 
     @start_method.setter
     def start_method(self, start_method):
-        """Allowed methods are spawn, fork and forkserver on MacOS and Linux, only spawn is possible on Windows.
+        """Allowed methods are spawn, fork and forkserver on macOS and Linux, only spawn is possible on Windows.
         None will choose the default for the OS and version of Python."""
         allowed_start_methods = ["spawn", "fork", "forkserver", None]
         assert (

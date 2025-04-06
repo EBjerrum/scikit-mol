@@ -15,7 +15,7 @@
 # %% [markdown]
 # # Example: Using Multiple Different Fingerprint Transformer
 #
-# In this notebook we will explore how to evaluate the performance of machine learning models depending on different fingerprint transformers (Featurization techniques). This is an example, that you easily could adapt for many different combinations of featurizers, optimizaiton and other modelling techniques.
+# In this notebook we will explore how to evaluate the performance of machine learning models depending on different fingerprint transformers (Featurization techniques). This is an example, that you easily could adapt for many different combinations of featurizers, optimization and other modelling techniques.
 #
 # Following steps will happen:
 # * Data Parsing
@@ -75,9 +75,9 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 
 # %% [markdown]
 # ## Build Pipeline:
-# In this stage we will build the Pipeline consisting of the featurization part (finger print transformers) and the model part (Ridge Regression).
+# In this stage we will build the Pipeline consisting of the featurization part (fingerprint transformers) and the model part (Ridge Regression).
 #
-# Note that the featurization in this section is an hyperparameter, living in `param_grid`, and the `"fp_transformer"` string is just a placeholder, being replaced during pipeline execution.
+# Note that the featurization in this section is a hyperparameter, living in `param_grid`, and the `"fp_transformer"` string is just a placeholder, being replaced during pipeline execution.
 #
 # This way we can define multiple different scenarios in `param_grid`, that allow us to rapidly explore different combinations of settings and methodologies.
 
@@ -142,7 +142,7 @@ print(f"Runtime: {t1-t0:0.2F}")
 # %% [markdown]
 # ## Analysis
 #
-# Now let's investigate our results from the training stage. Which one is the best finger print method for this data set? Which parameters are optimal?
+# Now let's investigate our results from the training stage. Which one is the best fingerprint method for this data set? Which parameters are optimal?
 
 # %%
 df_training_stats = pd.DataFrame(grid.cv_results_)

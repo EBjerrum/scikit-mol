@@ -18,7 +18,7 @@ DEFAULT_MOL_COLUMN_NAME = "ROMol"
 
 class NoFitNeededMixin:
     """
-    Mixin class to add a `__sklearn_is_fitted__` method to a transformes, which does not need to be fitted.
+    Mixin class to add a `__sklearn_is_fitted__` method to a transformer, which does not need to be fitted.
     """
 
     def __sklearn_is_fitted__(self):

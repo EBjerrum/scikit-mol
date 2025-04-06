@@ -47,7 +47,7 @@ build.hooks.vcs.version-file = "scikit_mol/_version.py"
 version.source = "vcs"  # Get the version from git, eg: 0.0.6.dev0+g1234567
 # Drop the local version part (eg: +g1234567) or pypi will reject package
 version.raw-options.local_scheme = "no-local-version"
-# A manually triggered github release workflow may generate a new tag
+# A manually triggered GitHub release workflow may generate a new tag
 # with .devN suffix. We need to tell setuptools_scm to ignore past tags with
 # this suffix when calculating the version number else it refuses to
 # bump the version number.

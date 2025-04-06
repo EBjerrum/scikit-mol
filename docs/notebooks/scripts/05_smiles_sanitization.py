@@ -40,16 +40,16 @@ print(f"Dataset contains {data.ROMol.isna().sum()} unparsable mols")
 # If we use these SMILES for the scikit-learn pipeline, we would face an error, so we need to check and clean the dataset first. The CheckSmilesSanitation can help us with that.
 
 # %%
-from scikit_mol.utilities import CheckSmilesSanitazion
+from scikit_mol.utilities import CheckSmilesSanitization
 
-smileschecker = CheckSmilesSanitazion()
+smileschecker = CheckSmilesSanitization()
 
 smiles_list_valid, y_valid, smiles_errors, y_errors = smileschecker.sanitize(
     list(data.SMILES), list(data.pXC50)
 )
 
 # %% [markdown]
-# Now the smiles_list_valid should be all valid and the y_values filtered as well. Errors are returned, but also accesible after the call to .sanitize() in the .errors property
+# Now the smiles_list_valid should be all valid and the y_values filtered as well. Errors are returned, but also accessible after the call to .sanitize() in the .errors property
 
 # %%
 smileschecker.errors
