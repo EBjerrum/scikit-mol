@@ -7,7 +7,7 @@ Modifications Copyright (c) 2025 scikit-mol contributors (LGPL License)
 See LICENSE.MIT in this directory for the original MIT license.
 """
 
-from typing import Callable, ClassVar, Optional, Union
+from typing import Callable, ClassVar, Literal, Optional, Union
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -32,7 +32,7 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
         Percentile of training set distances to use as threshold (0-100).
         If None, uses 99.0 (include 99% of training samples).
     distance_metric : str or callable, default='euclidean'
-        Distance metric to use. Options:
+        Distance metric to use. As examples:
         - 'euclidean': Euclidean distance (default)
         - 'manhattan': Manhattan distance
         - 'cosine': Cosine distance
@@ -95,7 +95,9 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
         self,
         n_neighbors: int = 5,
         percentile: Optional[float] = None,
-        distance_metric: Union[str, Callable] = "euclidean",
+        distance_metric: Union[
+            Literal["euclidean", "manhattan", "cosine", "tanimoto", "jaccard"], Callable
+        ] = "euclidean",
         n_jobs: Optional[int] = None,
         feature_name: str = "KNN",
     ) -> None:

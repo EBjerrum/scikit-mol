@@ -60,12 +60,12 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
 
     Notes
     -----
-    Subclasses must define _scoring_convention as either:
+    Subclasses must define `_scoring_convention` as either:
     - 'high_outside': Higher scores indicate samples outside domain (e.g., distances)
     - 'high_inside': Higher scores indicate samples inside domain (e.g., likelihoods)
 
-    The raw scores from transform() should maintain their natural interpretation,
-    while predict() will handle the conversion to ensure consistent output
+    The raw scores from `.transform()` should maintain their natural interpretation,
+    while `.predict()` will handle the conversion to ensure consistent output
     (1 = inside domain, -1 = outside domain).
 
     Attributes
@@ -171,7 +171,7 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
         Returns
         -------
         scores : ndarray or pandas DataFrame
-            Method-specific scores. Interpretation depends on _scoring_convention:
+            Method-specific scores. Interpretation depends on `_scoring_convention`:
             - 'high_outside': Higher scores indicate samples further from training data
             - 'high_inside': Higher scores indicate samples closer to training data
             Shape (n_samples, 1).

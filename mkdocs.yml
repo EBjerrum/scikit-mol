@@ -41,6 +41,7 @@ plugins:
 nav:
   - Overview: index.md
   - API:
+    - scikit-mol.applicability: api/scikit_mol.applicability.md
     - scikit-mol.core: api/scikit_mol.core.md
     - scikit-mol.conversion: api/scikit_mol.conversions.md
     - scikit-mol.descriptors: api/scikit_mol.descriptors.md
