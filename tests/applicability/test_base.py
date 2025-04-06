@@ -5,10 +5,6 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from sklearn.utils.estimator_checks import check_estimator
 
-# def test_estimator_api(ad_estimator):
-#     """Test scikit-learn API compatibility."""
-#     check_estimator(ad_estimator)
-
 
 def test_basic_functionality(ad_estimator, reduced_fingerprints):
     """Test basic fit/transform on reduced fingerprints."""

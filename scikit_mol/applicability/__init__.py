@@ -1,4 +1,4 @@
-from .base import BaseApplicabilityDomain  # noqa: F401
+from .base import BaseApplicabilityDomain
 from .bounding_box import BoundingBoxApplicabilityDomain
 from .convex_hull import ConvexHullApplicabilityDomain
 from .hotelling import HotellingT2ApplicabilityDomain
@@ -12,6 +12,7 @@ from .standardization import StandardizationApplicabilityDomain
 from .topkat import TopkatApplicabilityDomain
 
 __all__ = [
+    "BaseApplicabilityDomain",
     "BoundingBoxApplicabilityDomain",
     "ConvexHullApplicabilityDomain",
     "HotellingT2ApplicabilityDomain",

@@ -100,7 +100,7 @@ There are more information about how to contribute to the project in [CONTRIBUTI
 
 Probably still, please check issues at GitHub and report there
 
-## Contributors:
+## Contributors
 
 Scikit-Mol has been developed as a community effort with contributions from people from many different companies, consortia, foundations and academic institutions.
 
