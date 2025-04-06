@@ -1,7 +1,7 @@
 """
 Kernel Density applicability domain.
 
-This module was adapted from MLChemAD (https://github.com/OlivierBeq/MLChemAD)
+This module was adapted from [MLChemAD](https://github.com/OlivierBeq/MLChemAD)Chem
 Original work Copyright (c) 2023 Olivier J. M. Béquignon (MIT License)
 Modifications Copyright (c) 2025 scikit-mol contributors (LGPL License)
 See LICENSE.MIT in this directory for the original MIT license.

@@ -64,5 +64,6 @@ nav:
     - Using pandas output for easy feature importance analysis and combine pre-existing values with new computations: notebooks/10_pipeline_pandas_output.ipynb
     - Working with pipelines and estimators in safe inference mode: notebooks/11_safe_inference.ipynb
     - Creating custom fingerptint transformers: notebooks/12_custom_fingerprint_transformer.ipynb
+    - Estimating applicability domain using feature based estimators: notebooks/13_applicability_domain.ipynb
 
   - Contributing: contributing.md
