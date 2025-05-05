@@ -117,3 +117,4 @@ Scikit-Mol has been developed as a community effort with contributions from peop
 - [@enricogandini](https://github.com/enricogandini)
 - [@mikemhenry](https://github.com/mikemhenry)
 - [@c-feldmann](https://github.com/c-feldmann)
+- Mieczyslaw Torchala [@mieczyslaw](https://github.com/mieczyslaw)
