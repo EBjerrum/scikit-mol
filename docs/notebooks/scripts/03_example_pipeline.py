@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: Python 3.9.4 ('rdkit')
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -31,7 +31,7 @@ from time import time
 import numpy as np
 
 # %%
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
+csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
 data = pd.read_csv(csv_file)
 # %% [markdown]
 # The dataset is a subset of the SLC6A4 actives from ExcapeDB. They are hand selected to give test set performance despite the small size, and are provided as example data only and should not be used to build serious QSAR models.
