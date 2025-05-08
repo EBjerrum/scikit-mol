@@ -7,7 +7,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: Python 3.9.4 ('rdkit')
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -72,7 +72,7 @@ pipe.fit(mol_list_train, y_train)
 print(f"Train score is :{pipe.score(mol_list_train,y_train):0.2F}")
 print(f"Test score is  :{pipe.score(mol_list_test, y_test):0.2F}")
 # %% [markdown]
-# Nevermind the performance, or the exact value of the prediction, this is for demonstration purposes. We can easily predict on lists of molecules
+# Nevermind the performance, or the exact value of the prediction, this is for demonstration purpures. We can easily predict on lists of molecules
 
 # %%
 pipe.predict([Chem.MolFromSmiles("c1ccccc1C(=O)[OH]")])
