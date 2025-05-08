@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: Python 3.9.4 ('rdkit')
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -45,7 +45,7 @@ from scikit_mol.applicability import KNNApplicabilityDomain, LeverageApplicabili
 
 # %%
 # Load the dataset
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"
+csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"
 data = pd.read_csv(csv_file)
 
 # Add RDKit mol objects

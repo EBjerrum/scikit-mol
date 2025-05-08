@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: vscode
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---

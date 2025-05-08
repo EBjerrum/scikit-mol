@@ -8,9 +8,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: aniEnv
+#     display_name: .venv
 #     language: python
-#     name: anienv
+#     name: python3
 # ---
 
 # %% [markdown]
@@ -66,7 +66,7 @@ if full_set:
         url = "https://ndownloader.figshare.com/files/25747817"
         urllib.request.urlretrieve(url, csv_file)
 else:
-    csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"
+    csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"
 
 # Parse Database
 data = pd.read_csv(csv_file)

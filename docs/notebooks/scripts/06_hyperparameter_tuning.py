@@ -47,7 +47,7 @@ if full_set:
         url = "https://ndownloader.figshare.com/files/25747817"
         urllib.request.urlretrieve(url, csv_file)
 else:
-    csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"
+    csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"
 
 # %% [markdown]
 # The CSV data is loaded into a Pandas dataframe and the PandasTools utility from RDKit is used to add a column with RDKit molecules

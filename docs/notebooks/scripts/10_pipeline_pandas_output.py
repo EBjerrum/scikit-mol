@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: Python 3.9.4 ('rdkit')
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -36,7 +36,7 @@ from scikit_mol.descriptors import MolecularDescriptorTransformer
 from scikit_mol.fingerprints import MorganFingerprintTransformer
 
 # %%
-csv_file = Path("../tests/data/SLC6A4_active_excapedb_subset.csv")
+csv_file = Path("../../tests/data/SLC6A4_active_excapedb_subset.csv")
 assert csv_file.is_file()
 data = pd.read_csv(csv_file)
 data.drop_duplicates(subset="Ambit_InchiKey", inplace=True)
@@ -131,7 +131,7 @@ pred_test = regression_pipeline.predict(smis_test)
 # %%
 def compute_metrics(y_true, y_pred):
     result = {
-        "RMSE": mean_squared_error(y_true=y_true, y_pred=y_pred, squared=False),
+        "RMSE": mean_squared_error(y_true=y_true, y_pred=y_pred) ** 0.5,
         "MAE": mean_absolute_error(y_true=y_true, y_pred=y_pred),
         "R2": r2_score(y_true=y_true, y_pred=y_pred),
     }
@@ -187,7 +187,7 @@ for feature in top_features:
 # We have precomputed these features and stored them in a file:
 
 # %%
-file_cddd_features = Path("../tests/data/CDDD_SLC6A4_active_excapedb_subset.csv.gz")
+file_cddd_features = Path("../../tests/data/CDDD_SLC6A4_active_excapedb_subset.csv.gz")
 assert file_cddd_features.is_file()
 df_cddd = pd.read_csv(file_cddd_features)
 df_cddd

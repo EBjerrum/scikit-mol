@@ -21,7 +21,7 @@
 import pandas as pd
 from rdkit.Chem import PandasTools
 
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
+csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
 data = pd.read_csv(csv_file)
 
 
