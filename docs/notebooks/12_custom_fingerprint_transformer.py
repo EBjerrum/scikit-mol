@@ -32,16 +32,20 @@ from scikit_mol.fingerprints.baseclasses import BaseFpsTransformer
 import numpy as np
 from rdkit import Chem
 
+
 class DummyFingerprintTransformer(BaseFpsTransformer):
-    def __init__(self, fpSize=64, n_jobs=1, safe_inference_mode = False):
+    def __init__(self, fpSize=64, n_jobs=1, safe_inference_mode=False):
         self.fpSize = fpSize
-        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, name="dummy")
+        super().__init__(
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, name="dummy"
+        )
 
     def _transform_mol(self, mol):
         return mol.GetNumAtoms() * np.ones(self.fpSize)
-    
+
+
 trans = DummyFingerprintTransformer(n_jobs=4)
-mols = [Chem.MolFromSmiles('CC')] * 100
+mols = [Chem.MolFromSmiles("CC")] * 100
 trans.transform(mols)
 
 # %% [markdown]
@@ -55,15 +59,21 @@ trans.transform(mols)
 # %%
 from rdkit.Chem import rdFingerprintGenerator
 
+
 class UnpickableFingerprintTransformer(BaseFpsTransformer):
     def __init__(self, fpSize=1024, n_jobs=1, safe_inference_mode=False, **kwargs):
         self.fpSize = fpSize
-        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, **kwargs)
-        self.fp_gen = rdFingerprintGenerator.GetRDKitFPGenerator(maxPath=2, fpSize=self.fpSize)
+        super().__init__(
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, **kwargs
+        )
+        self.fp_gen = rdFingerprintGenerator.GetRDKitFPGenerator(
+            maxPath=2, fpSize=self.fpSize
+        )
 
     def _transform_mol(self, mol):
         return self.fp_gen.GetFingerprintAsNumPy(mol)
-    
+
+
 trans = UnpickableFingerprintTransformer(n_jobs=4, fpSize=512)
 trans.transform(mols)
 
@@ -71,11 +81,13 @@ trans.transform(mols)
 # %% [markdown]
 # Non-pickable object should not be present among the `__init__` arguments of the transformer. Doing so will prevent them to be pickled to recreate a transformer instance in the worker processes. If you for some reason need to pass a non-pickable object to the transformer you can do so (**highly discouraged**, please [open the issue](https://github.com/EBjerrum/scikit-mol/issues), maybe we will be able to help you do it better) by using the transformer in the sequential mode (i.e. `n_jobs=1`).
 
+
 # %%
 class BadTransformer(BaseFpsTransformer):
     def __init__(self, generator, n_jobs=1):
         self.generator = generator
         super().__init__(n_jobs=n_jobs)
+
     def _transform_mol(self, mol):
         return self.generator.GetFingerprint(mol)
 
@@ -86,32 +98,37 @@ print("n_jobs=1 is fine")
 try:
     BadTransformer(fp_gen, n_jobs=2).transform(mols)
 except Exception as e:
-    print("n_jobs=2 is not fine, because the generator passed as an argument is not picklable")
+    print(
+        "n_jobs=2 is not fine, because the generator passed as an argument is not picklable"
+    )
     print(f"Error msg: {e}")
 
 
 # %% [markdown]
 # ## Fingerprint name
 #
-# To use the fingerptint in the `pandas` output mode it needes to know the name of the fingerprint and the number of bits (features) in it to generate the columns names. The number of feature is derived from `fpSize` attribute 
+# To use the fingerptint in the `pandas` output mode it needes to know the name of the fingerprint and the number of bits (features) in it to generate the columns names. The number of feature is derived from `fpSize` attribute
 #
 # And the name resolution works as follows (in order of priority):
 # - if the fingerprint has a name set during the initialization of the base class, it is used
 # - if the name of the class follows the pattern `XFingerprintTransformer`, the name (`fp_X`) is extracted from it
 # - as a last resort, the name is set to name of the class
 
+
 # %%
 class NamedTansformer1(UnpickableFingerprintTransformer):
     pass
+
 
 class NamedTansformer2(UnpickableFingerprintTransformer):
     def __init__(self):
         super().__init__(name="fp_fancy")
 
+
 class FancyFingerprintTransformer(UnpickableFingerprintTransformer):
     pass
+
 
 print(NamedTansformer1().get_feature_names_out())
 print(NamedTansformer2().get_feature_names_out())
 print(FancyFingerprintTransformer().get_feature_names_out())
-

@@ -105,6 +105,5 @@ docs = [
 ]
 
 
-[tool.jupytext.formats]
-"docs/notebooks/" = "ipynb"
-"docs/notebooks/scripts" = "py:percent"
+[tool.jupytext]
+formats = "docs//notebooks//ipynb,docs//notebooks//scripts//py:percent"

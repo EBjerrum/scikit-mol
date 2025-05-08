@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -11,6 +12,8 @@
 #     language: python
 #     name: python3
 # ---
+
+# %%
 
 # %% [markdown]
 # # Desc2DTransformer: RDKit descriptors transformer

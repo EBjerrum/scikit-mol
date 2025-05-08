@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -82,7 +83,6 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 # This way we can define multiple different scenarios in `param_grid`, that allow us to rapidly explore different combinations of settings and methodologies.
 
 # %%
-
 regressor = Ridge()
 optimization_pipe = Pipeline(
     [

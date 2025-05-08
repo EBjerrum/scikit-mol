@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -94,7 +95,6 @@ def objective(**params):
 
 
 # %% THIS takes forever on my machine with a GradientBoostingRegressor
-
 pipe_gp = gp_minimize(objective, search_space, n_calls=10, random_state=0)
 "Best score=%.4f" % pipe_gp.fun
 # %%

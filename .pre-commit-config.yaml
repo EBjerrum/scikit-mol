@@ -21,9 +21,4 @@ repos:
       types_or: [ python, pyi ]
     # Run the formatter.
     - id: ruff-format
-
--   repo: https://github.com/mwouts/jupytext
-    rev: v1.16.6  # CURRENT_TAG/COMMIT_HASH
-    hooks:
-    - id: jupytext
-      args: [--sync]
+    

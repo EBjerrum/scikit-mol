@@ -1,27 +1,14 @@
 # ---
 # jupyter:
 #   jupytext:
-#     cell_metadata_filter: -all
-#     formats: ipynb,py:percent
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
-# ---
-
-# %%
-# ---
-# jupyter:
-#   jupytext:
-#     formats: ipynb,py:percent
-#     text_representation:
-#       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.16.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: Python 3.9.4 ('rdkit')
 #     language: python
 #     name: python3
 # ---
@@ -70,7 +57,9 @@ X = data.ROMol
 y = data.pXC50
 
 X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(
+    X_temp, y_temp, test_size=0.25, random_state=42
+)
 
 # %% [markdown]
 # ## Example 1: k-NN Applicability Domain with Binary Morgan Fingerprints
@@ -80,10 +69,12 @@ X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25
 
 # %%
 # Create pipeline for binary fingerprints
-binary_fp_pipe = Pipeline([
-    ('fp', MorganFingerprintTransformer(fpSize=2048, radius=2)),
-    ('rf', RandomForestRegressor(n_estimators=100, random_state=42))
-])
+binary_fp_pipe = Pipeline(
+    [
+        ("fp", MorganFingerprintTransformer(fpSize=2048, radius=2)),
+        ("rf", RandomForestRegressor(n_estimators=100, random_state=42)),
+    ]
+)
 
 # Train the model
 binary_fp_pipe.fit(X_train, y_train)
@@ -93,14 +84,14 @@ y_pred_test = binary_fp_pipe.predict(X_test)
 abs_errors = np.abs(y_test - y_pred_test)
 
 # Create and fit k-NN AD estimator
-knn_ad = KNNApplicabilityDomain(n_neighbors=3, distance_metric='tanimoto')
-knn_ad.fit(binary_fp_pipe.named_steps['fp'].transform(X_train))
+knn_ad = KNNApplicabilityDomain(n_neighbors=3, distance_metric="tanimoto")
+knn_ad.fit(binary_fp_pipe.named_steps["fp"].transform(X_train))
 
 # Fit threshold using validation set
-knn_ad.fit_threshold(binary_fp_pipe.named_steps['fp'].transform(X_val))
+knn_ad.fit_threshold(binary_fp_pipe.named_steps["fp"].transform(X_val))
 
 # Get AD scores for test set
-knn_scores = knn_ad.transform(binary_fp_pipe.named_steps['fp'].transform(X_test))
+knn_scores = knn_ad.transform(binary_fp_pipe.named_steps["fp"].transform(X_test))
 
 # %% [markdown]
 # Let's visualize the relationship between prediction errors and AD scores:
@@ -108,15 +99,15 @@ knn_scores = knn_ad.transform(binary_fp_pipe.named_steps['fp'].transform(X_test)
 # %%
 plt.figure(figsize=(10, 6))
 plt.scatter(knn_scores, abs_errors, alpha=0.5)
-plt.axvline(x=knn_ad.threshold_, color='r', linestyle='--', label='AD Threshold')
-plt.xlabel('k-NN AD Score')
-plt.ylabel('Absolute Prediction Error')
-plt.title('Prediction Errors vs k-NN AD Scores')
+plt.axvline(x=knn_ad.threshold_, color="r", linestyle="--", label="AD Threshold")
+plt.xlabel("k-NN AD Score")
+plt.ylabel("Absolute Prediction Error")
+plt.title("Prediction Errors vs k-NN AD Scores")
 plt.legend()
 plt.show()
 
 # Calculate error statistics
-in_domain = knn_ad.predict(binary_fp_pipe.named_steps['fp'].transform(X_test))
+in_domain = knn_ad.predict(binary_fp_pipe.named_steps["fp"].transform(X_test))
 errors_in = abs_errors[in_domain == 1]
 errors_out = abs_errors[in_domain == -1]
 
@@ -132,12 +123,14 @@ print(f"Fraction of samples outside domain: {(in_domain == -1).mean():.2f}")
 
 # %%
 # Create pipeline for count-based fingerprints with PCA
-count_fp_pipe = Pipeline([
-    ('fp', MorganFingerprintTransformer(fpSize=2048, radius=2, useCounts=True)),
-    ('pca', PCA(n_components=0.9)),  # Keep 90% of variance
-    ('scaler', StandardScaler()),
-    ('rf', RandomForestRegressor(n_estimators=100, random_state=42))
-])
+count_fp_pipe = Pipeline(
+    [
+        ("fp", MorganFingerprintTransformer(fpSize=2048, radius=2, useCounts=True)),
+        ("pca", PCA(n_components=0.9)),  # Keep 90% of variance
+        ("scaler", StandardScaler()),
+        ("rf", RandomForestRegressor(n_estimators=100, random_state=42)),
+    ]
+)
 
 # Train the model
 count_fp_pipe.fit(X_train, y_train)
@@ -148,25 +141,25 @@ abs_errors = np.abs(y_test - y_pred_test)
 
 # Create and fit leverage AD estimator
 leverage_ad = LeverageApplicabilityDomain()
-X_train_transformed = count_fp_pipe.named_steps['scaler'].transform(
-    count_fp_pipe.named_steps['pca'].transform(
-        count_fp_pipe.named_steps['fp'].transform(X_train)
+X_train_transformed = count_fp_pipe.named_steps["scaler"].transform(
+    count_fp_pipe.named_steps["pca"].transform(
+        count_fp_pipe.named_steps["fp"].transform(X_train)
     )
 )
 leverage_ad.fit(X_train_transformed)
 
 # Fit threshold using validation set
-X_val_transformed = count_fp_pipe.named_steps['scaler'].transform(
-    count_fp_pipe.named_steps['pca'].transform(
-        count_fp_pipe.named_steps['fp'].transform(X_val)
+X_val_transformed = count_fp_pipe.named_steps["scaler"].transform(
+    count_fp_pipe.named_steps["pca"].transform(
+        count_fp_pipe.named_steps["fp"].transform(X_val)
     )
 )
 leverage_ad.fit_threshold(X_val_transformed)
 
 # Get AD scores for test set
-X_test_transformed = count_fp_pipe.named_steps['scaler'].transform(
-    count_fp_pipe.named_steps['pca'].transform(
-        count_fp_pipe.named_steps['fp'].transform(X_test)
+X_test_transformed = count_fp_pipe.named_steps["scaler"].transform(
+    count_fp_pipe.named_steps["pca"].transform(
+        count_fp_pipe.named_steps["fp"].transform(X_test)
     )
 )
 leverage_scores = leverage_ad.transform(X_test_transformed)
@@ -177,10 +170,10 @@ leverage_scores = leverage_ad.transform(X_test_transformed)
 # %%
 plt.figure(figsize=(10, 6))
 plt.scatter(leverage_scores, abs_errors, alpha=0.5)
-plt.axvline(x=leverage_ad.threshold_, color='r', linestyle='--', label='AD Threshold')
-plt.xlabel('Leverage AD Score')
-plt.ylabel('Absolute Prediction Error')
-plt.title('Prediction Errors vs Leverage Scores')
+plt.axvline(x=leverage_ad.threshold_, color="r", linestyle="--", label="AD Threshold")
+plt.xlabel("Leverage AD Score")
+plt.ylabel("Absolute Prediction Error")
+plt.title("Prediction Errors vs Leverage Scores")
 plt.legend()
 plt.show()
 
@@ -201,48 +194,52 @@ print(f"Fraction of samples outside domain: {(in_domain == -1).mean():.2f}")
 # %%
 # Define famous drugs
 famous_drugs = {
-    'Aspirin': 'CC(=O)OC1=CC=CC=C1C(=O)O',
-    'Viagra': 'CCc1nn(C)c2c(=O)[nH]c(nc12)c3cc(ccc3OCC)S(=O)(=O)N4CCN(C)CC4',
-    'Heroin': 'CN1CC[C@]23[C@H]4Oc5c(O)ccc(CC1[C@H]2C=C[C@@H]4O3)c5',
+    "Aspirin": "CC(=O)OC1=CC=CC=C1C(=O)O",
+    "Viagra": "CCc1nn(C)c2c(=O)[nH]c(nc12)c3cc(ccc3OCC)S(=O)(=O)N4CCN(C)CC4",
+    "Heroin": "CN1CC[C@]23[C@H]4Oc5c(O)ccc(CC1[C@H]2C=C[C@@H]4O3)c5",
 }
+
 
 # Function to process a drug through both AD pipelines
 def check_drug_applicability(smiles, name):
     mol = Chem.MolFromSmiles(smiles)
-    
+
     # k-NN AD
-    fp_binary = binary_fp_pipe.named_steps['fp'].transform([mol])
+    fp_binary = binary_fp_pipe.named_steps["fp"].transform([mol])
     knn_score = knn_ad.transform(fp_binary)[0][0]
     knn_status = "Inside" if knn_ad.predict(fp_binary)[0] == 1 else "Outside"
-    
+
     # Leverage AD
-    fp_count = count_fp_pipe.named_steps['fp'].transform([mol])
-    fp_pca = count_fp_pipe.named_steps['pca'].transform(fp_count)
-    fp_scaled = count_fp_pipe.named_steps['scaler'].transform(fp_pca)
+    fp_count = count_fp_pipe.named_steps["fp"].transform([mol])
+    fp_pca = count_fp_pipe.named_steps["pca"].transform(fp_count)
+    fp_scaled = count_fp_pipe.named_steps["scaler"].transform(fp_pca)
     leverage_score = leverage_ad.transform(fp_scaled)[0][0]
     leverage_status = "Inside" if leverage_ad.predict(fp_scaled)[0] == 1 else "Outside"
-    
+
     return {
-        'knn_score': knn_score,
-        'knn_status': knn_status,
-        'leverage_score': leverage_score,
-        'leverage_status': leverage_status
+        "knn_score": knn_score,
+        "knn_status": knn_status,
+        "leverage_score": leverage_score,
+        "leverage_status": leverage_status,
     }
+
 
 # Process each drug
 results = []
 for name, smiles in famous_drugs.items():
     result = check_drug_applicability(smiles, name)
-    results.append({
-        'Drug': name,
-        'k-NN Score': result['knn_score'],
-        'k-NN Status': result['knn_status'],
-        'Leverage Score': result['leverage_score'],
-        'Leverage Status': result['leverage_status']
-    })
+    results.append(
+        {
+            "Drug": name,
+            "k-NN Score": result["knn_score"],
+            "k-NN Status": result["knn_status"],
+            "Leverage Score": result["leverage_score"],
+            "Leverage Status": result["leverage_status"],
+        }
+    )
 
 # Display results
-pd.DataFrame(results).set_index('Drug')
+pd.DataFrame(results).set_index("Drug")
 
 # %% [markdown]
 # Let's visualize where these drugs fall in our AD plots:
@@ -251,31 +248,31 @@ pd.DataFrame(results).set_index('Drug')
 # Plot for k-NN AD
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
-plt.scatter(knn_scores, abs_errors, alpha=0.2, label='Test compounds')
-plt.axvline(x=knn_ad.threshold_, color='r', linestyle='--', label='AD Threshold')
+plt.scatter(knn_scores, abs_errors, alpha=0.2, label="Test compounds")
+plt.axvline(x=knn_ad.threshold_, color="r", linestyle="--", label="AD Threshold")
 
 for result in results:
-    plt.axvline(x=result['k-NN Score'], color='g', alpha=0.5,
-                label=f"{result['Drug']}")
+    plt.axvline(x=result["k-NN Score"], color="g", alpha=0.5, label=f"{result['Drug']}")
 
-plt.xlabel('k-NN AD Score')
-plt.ylabel('Absolute Prediction Error')
-plt.title('k-NN AD Scores')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.xlabel("k-NN AD Score")
+plt.ylabel("Absolute Prediction Error")
+plt.title("k-NN AD Scores")
+plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
 
 # Plot for Leverage AD
 plt.subplot(1, 2, 2)
-plt.scatter(leverage_scores, abs_errors, alpha=0.2, label='Test compounds')
-plt.axvline(x=leverage_ad.threshold_, color='r', linestyle='--', label='AD Threshold')
+plt.scatter(leverage_scores, abs_errors, alpha=0.2, label="Test compounds")
+plt.axvline(x=leverage_ad.threshold_, color="r", linestyle="--", label="AD Threshold")
 
 for result in results:
-    plt.axvline(x=result['Leverage Score'], color='g', alpha=0.5,
-                label=f"{result['Drug']}")
+    plt.axvline(
+        x=result["Leverage Score"], color="g", alpha=0.5, label=f"{result['Drug']}"
+    )
 
-plt.xlabel('Leverage AD Score')
-plt.ylabel('Absolute Prediction Error')
-plt.title('Leverage AD Scores')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.xlabel("Leverage AD Score")
+plt.ylabel("Absolute Prediction Error")
+plt.title("Leverage AD Scores")
+plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
 
 plt.tight_layout()
 plt.show()
