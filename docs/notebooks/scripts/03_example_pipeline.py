@@ -1,13 +1,14 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: Python 3.9.4 ('rdkit')
+#     display_name: .venv
 #     language: python
 #     name: python3
 # ---
@@ -30,7 +31,7 @@ from time import time
 import numpy as np
 
 # %%
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
+csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
 data = pd.read_csv(csv_file)
 # %% [markdown]
 # The dataset is a subset of the SLC6A4 actives from ExcapeDB. They are hand selected to give test set performance despite the small size, and are provided as example data only and should not be used to build serious QSAR models.
@@ -72,7 +73,7 @@ pipe.fit(mol_list_train, y_train)
 print(f"Train score is :{pipe.score(mol_list_train,y_train):0.2F}")
 print(f"Test score is  :{pipe.score(mol_list_test, y_test):0.2F}")
 # %% [markdown]
-# Nevermind the performance, or the exact value of the prediction, this is for demonstration purposes. We can easily predict on lists of molecules
+# Nevermind the performance, or the exact value of the prediction, this is for demonstration purpures. We can easily predict on lists of molecules
 
 # %%
 pipe.predict([Chem.MolFromSmiles("c1ccccc1C(=O)[OH]")])
