@@ -22,7 +22,7 @@ class ParallelTester:
     def __init__(
         self,
         transformer: object,
-        mols: list[Chem.Mol],
+        mols: list["Chem.Mol"],
         n_mols: Sequence[int] = (10, 100, 100, 1000, 10000, 100000),
         n_jobs: Sequence[int] = (1, 2, 4, 8),
         backend: str = "loky",

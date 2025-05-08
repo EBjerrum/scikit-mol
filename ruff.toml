@@ -27,7 +27,8 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-    "notebooks"
+    "notebooks",
+    "docs/notebooks/scripts",
 ]
 
 # Same as Black.
