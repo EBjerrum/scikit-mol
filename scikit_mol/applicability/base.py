@@ -100,7 +100,7 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
             "estimator": self,
             "accept_sparse": False,
             "dtype": None,
-            "force_all_finite": True,
+            "ensure_all_finite": True,
             "ensure_2d": True,
         }
 

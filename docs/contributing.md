@@ -103,6 +103,14 @@ If you updated any of the existing py/ipynb files, you can run `make sync-notebo
 
 `make run-notebooks` will sync, run and save the notebooks, expects an ipython kernel with scikit-mol installed.
 
+If you only want to sync and run a single notebook if you are working on updating one you can adapt the commands from the MakeFile
+
+```bash
+uv run jupytext --set-formats docs//notebooks//ipynb,docs//notebooks//scripts//py:percent --sync docs/notebooks/XX_YourNotebook.ipynb
+uv run ruff format "docs/notebooks/XX_YourNotebook.ipynb"
+uv run jupytext --execute docs/notebooks/XX_YourNotebook.ipynb
+```
+
 ## Documentation
 
 We use [MkDocs](https://www.mkdocs.org/) to host scikit-mol documentation on ReadTheDocs. If you're making some changes to the documentation or just what to see live preview of your docstring you can take a look at rendered documentation.

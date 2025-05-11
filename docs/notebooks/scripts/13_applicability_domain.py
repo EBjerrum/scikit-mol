@@ -8,7 +8,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.16.6
 #   kernelspec:
-#     display_name: .venv
+#     display_name: vscode
 #     language: python
 #     name: python3
 # ---
@@ -25,6 +25,7 @@
 # First, let's import the necessary libraries and load our dataset:
 
 # %%
+import os
 import numpy as np
 import pandas as pd
 from rdkit import Chem
@@ -45,7 +46,22 @@ from scikit_mol.applicability import KNNApplicabilityDomain, LeverageApplicabili
 
 # %%
 # Load the dataset
-csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"
+# Results are better with the full set, but it takes longer to run, so for the notebook documentation we standard use a subset.
+# The subset has been filtered to only include nicely predicted compounds, and is thus artificial.
+
+full_set = False
+
+if full_set:
+    csv_file = "SLC6A4_active_excape_export.csv"
+    if not os.path.exists(csv_file):
+        import urllib.request
+
+        url = "https://ndownloader.figshare.com/files/25747817"
+        urllib.request.urlretrieve(url, csv_file)
+        percentile = 95
+else:
+    csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"
+    percentile = 90
 data = pd.read_csv(csv_file)
 
 # Add RDKit mol objects
@@ -72,7 +88,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 binary_fp_pipe = Pipeline(
     [
         ("fp", MorganFingerprintTransformer(fpSize=2048, radius=2)),
-        ("rf", RandomForestRegressor(n_estimators=100, random_state=42)),
+        ("rf", RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)),
     ]
 )
 
@@ -84,7 +100,7 @@ y_pred_test = binary_fp_pipe.predict(X_test)
 abs_errors = np.abs(y_test - y_pred_test)
 
 # Create and fit k-NN AD estimator
-knn_ad = KNNApplicabilityDomain(n_neighbors=3, distance_metric="tanimoto")
+knn_ad = KNNApplicabilityDomain(n_neighbors=3, distance_metric="tanimoto", percentile=percentile)
 knn_ad.fit(binary_fp_pipe.named_steps["fp"].transform(X_train))
 
 # Fit threshold using validation set
@@ -140,7 +156,7 @@ y_pred_test = count_fp_pipe.predict(X_test)
 abs_errors = np.abs(y_test - y_pred_test)
 
 # Create and fit leverage AD estimator
-leverage_ad = LeverageApplicabilityDomain()
+leverage_ad = LeverageApplicabilityDomain(percentile=percentile)
 X_train_transformed = count_fp_pipe.named_steps["scaler"].transform(
     count_fp_pipe.named_steps["pca"].transform(
         count_fp_pipe.named_steps["fp"].transform(X_train)
@@ -291,5 +307,5 @@ plt.show()
 # The famous drugs we tested showed varying degrees of being within the applicability domain, which makes sense given
 # that our training set is focused on SLC6A4 actives, while these drugs have different primary targets.
 #
-# The error analysis shows that compounds outside the applicability domain tend to have higher prediction errors,
+# The error analysis shows that compounds outside the applicability domain tend to have higher prediction errors (when using the full set),
 # validating the usefulness of these approaches for identifying potentially unreliable predictions.

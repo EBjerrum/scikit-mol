@@ -146,6 +146,10 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
             metric=self.distance_metric,
             n_jobs=self.n_jobs,
         )
+
+        if self.distance_metric == "jaccard":
+            X = X.astype(bool)
+
         self.nn_.fit(X)
 
         # Set initial threshold based on training data
@@ -167,6 +171,10 @@ class KNNApplicabilityDomain(BaseApplicabilityDomain):
             Mean distance to k nearest neighbors. Higher values indicate samples
             further from the training set.
         """
+
+        if self.distance_metric == "jaccard":
+            X = X.astype(bool)
+
         distances, _ = self.nn_.kneighbors(X)
         mean_distances = distances[:, 1:].mean(axis=1)  # Skip first (self) neighbor
         return mean_distances.reshape(-1, 1)
