@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -46,13 +47,12 @@ if full_set:
         url = "https://ndownloader.figshare.com/files/25747817"
         urllib.request.urlretrieve(url, csv_file)
 else:
-    csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"
+    csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"
 
 # %% [markdown]
 # The CSV data is loaded into a Pandas dataframe and the PandasTools utility from RDKit is used to add a column with RDKit molecules
 
 # %%
-
 data = pd.read_csv(csv_file)
 
 PandasTools.AddMoleculeColumnToFrame(data, smilesCol="SMILES")
@@ -62,7 +62,6 @@ print(f"{data.ROMol.isna().sum()} out of {len(data)} SMILES failed in conversion
 # We use the train_test_split to, well, split the dataframe's molecule columns and pXC50 column into lists for train and testing
 
 # %%
-
 mol_list_train, mol_list_test, y_train, y_test = train_test_split(
     data.ROMol, data.pXC50, random_state=42
 )
@@ -84,7 +83,6 @@ mol_list_std_train = standardizer.transform(mol_list_train)
 # A simple pipeline with a MorganTransformer and a Ridge() regression for demonstration.
 
 # %%
-
 moltransformer = MorganFingerprintTransformer()
 regressor = Ridge()
 
@@ -104,14 +102,12 @@ from scipy.stats import loguniform
 # With the pipelines, getting the names of the parameters to tune is a bit more tricky, as they are concatenations of the name of the step and the parameter with double underscores in between. We can get the available parameters from the pipeline with the get_params() method, and select the parameters we want to change from there.
 
 # %% Which keys do we have?
-
 optimization_pipe.get_params().keys()
 
 # %% [markdown]
 # We will tune the regularization strength of the Ridge regressor, and try out different parameters for the Morgan fingerprint, namely the number of bits, the radius of the fingerprint, wheter to use counts or bits and features.
 
 # %%
-
 param_dist = {
     "ridge__alpha": loguniform(1e-2, 1e3),
     "morganfingerprinttransformer__fpSize": [256, 512, 1024, 2048, 4096],

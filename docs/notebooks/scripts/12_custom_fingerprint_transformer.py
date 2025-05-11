@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: .venv
 #     language: python
@@ -32,16 +32,20 @@ from scikit_mol.fingerprints.baseclasses import BaseFpsTransformer
 import numpy as np
 from rdkit import Chem
 
+
 class DummyFingerprintTransformer(BaseFpsTransformer):
-    def __init__(self, fpSize=64, n_jobs=1, safe_inference_mode = False):
+    def __init__(self, fpSize=64, n_jobs=1, safe_inference_mode=False):
         self.fpSize = fpSize
-        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, name="dummy")
+        super().__init__(
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, name="dummy"
+        )
 
     def _transform_mol(self, mol):
         return mol.GetNumAtoms() * np.ones(self.fpSize)
-    
+
+
 trans = DummyFingerprintTransformer(n_jobs=4)
-mols = [Chem.MolFromSmiles('CC')] * 100
+mols = [Chem.MolFromSmiles("CC")] * 100
 trans.transform(mols)
 
 # %% [markdown]
@@ -55,15 +59,21 @@ trans.transform(mols)
 # %%
 from rdkit.Chem import rdFingerprintGenerator
 
+
 class UnpickableFingerprintTransformer(BaseFpsTransformer):
     def __init__(self, fpSize=1024, n_jobs=1, safe_inference_mode=False, **kwargs):
         self.fpSize = fpSize
-        super().__init__(n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, **kwargs)
-        self.fp_gen = rdFingerprintGenerator.GetRDKitFPGenerator(maxPath=2, fpSize=self.fpSize)
+        super().__init__(
+            n_jobs=n_jobs, safe_inference_mode=safe_inference_mode, **kwargs
+        )
+        self.fp_gen = rdFingerprintGenerator.GetRDKitFPGenerator(
+            maxPath=2, fpSize=self.fpSize
+        )
 
     def _transform_mol(self, mol):
         return self.fp_gen.GetFingerprintAsNumPy(mol)
-    
+
+
 trans = UnpickableFingerprintTransformer(n_jobs=4, fpSize=512)
 trans.transform(mols)
 
@@ -76,6 +86,7 @@ class BadTransformer(BaseFpsTransformer):
     def __init__(self, generator, n_jobs=1):
         self.generator = generator
         super().__init__(n_jobs=n_jobs)
+
     def _transform_mol(self, mol):
         return self.generator.GetFingerprint(mol)
 
@@ -86,7 +97,9 @@ print("n_jobs=1 is fine")
 try:
     BadTransformer(fp_gen, n_jobs=2).transform(mols)
 except Exception as e:
-    print("n_jobs=2 is not fine, because the generator passed as an argument is not picklable")
+    print(
+        "n_jobs=2 is not fine, because the generator passed as an argument is not picklable"
+    )
     print(f"Error msg: {e}")
 
 
@@ -104,12 +117,15 @@ except Exception as e:
 class NamedTansformer1(UnpickableFingerprintTransformer):
     pass
 
+
 class NamedTansformer2(UnpickableFingerprintTransformer):
     def __init__(self):
         super().__init__(name="fp_fancy")
 
+
 class FancyFingerprintTransformer(UnpickableFingerprintTransformer):
     pass
+
 
 print(NamedTansformer1().get_feature_names_out())
 print(NamedTansformer2().get_feature_names_out())

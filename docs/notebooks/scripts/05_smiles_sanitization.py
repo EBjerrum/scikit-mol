@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     formats: docs//notebooks//ipynb,docs//notebooks//scripts//py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -20,7 +21,7 @@
 import pandas as pd
 from rdkit.Chem import PandasTools
 
-csv_file = "../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
+csv_file = "../../tests/data/SLC6A4_active_excapedb_subset.csv"  # Hmm, maybe better to download directly
 data = pd.read_csv(csv_file)
 
 
@@ -31,7 +32,6 @@ data = pd.read_csv(csv_file)
 data.loc[1, "SMILES"] = "CN(C)(C)(C)"
 
 # %%
-
 PandasTools.AddMoleculeColumnToFrame(data, smilesCol="SMILES")
 print(f"Dataset contains {data.ROMol.isna().sum()} unparsable mols")
 
