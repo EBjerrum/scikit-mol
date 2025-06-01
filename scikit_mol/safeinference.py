@@ -74,7 +74,7 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
                 # TODO, how can we check y in the same way as the estimator?
                 y = check_array(
                     y,
-                    force_all_finite=False,  # accept_sparse="csr",
+                    ensure_all_finite=False,  # accept_sparse="csr",
                     ensure_2d=False,
                     dtype=None,
                     input_name="y",

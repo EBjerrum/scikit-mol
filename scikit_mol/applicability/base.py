@@ -9,7 +9,7 @@ from numpy.typing import ArrayLike, NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils import check_array
 from sklearn.utils._set_output import _SetOutputMixin, _wrap_method_output
-from sklearn.utils.validation import check_is_fitted
+from sklearn.utils.validation import check_is_fitted, validate_data
 
 
 class _ADOutputMixin(_SetOutputMixin):
@@ -254,3 +254,10 @@ class BaseApplicabilityDomain(BaseEstimator, TransformerMixin, _ADOutputMixin, A
         """Get feature name for output column."""
         # TODO: what is the mechanism around input_features?
         return np.array([f"{self.feature_name}"])
+
+    def _validate_data(self, X: Any) -> np.ndarray:
+        """
+        Replace deprecated BaseEstimator._validate_data.
+        Internally calls sklearn.utils.validation.validate_data(_estimator=self, X=X, y=None, reset=True).
+        """
+        return validate_data(self, X=X)
