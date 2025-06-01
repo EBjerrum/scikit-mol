@@ -77,7 +77,7 @@ Scikit-Mol has been featured in blog-posts or used in research, some examples wh
 - [Useful ML package for cheminformatics iwatobipen.wordpress.com](https://iwatobipen.wordpress.com/2023/11/12/useful-ml-package-for-cheminformatics-rdkit-cheminformatics-ml/)
 - [Boosted trees Data_in_life_blog](https://jhylin.github.io/Data_in_life_blog/posts/19_ML2-3_Boosted_trees/1_adaboost_xgb.html)
 - [Konnektor: A Framework for Using Graph Theory to Plan Networks for Free Energy Calculations](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.4c01710)
-- [Moldrug algorithm for an automated ligand binding site exploration by 3D aware molecular enumerations](https://chemrxiv.org/engage/chemrxiv/article-details/67688633fa469535b97c1b73)
+- [Moldrug algorithm for an automated ligand binding site exploration by 3D aware molecular enumerations](https://doi.org/10.1186/s13321-025-01022-3)
 - [RandomNets Improve Neural Network Regression Performance via Implicit Ensembling](https://chemrxiv.org/engage/chemrxiv/article-details/67656cfa81d2151a02603f48)
 - [WAE-DTI: Ensemble-based architecture for drug–target interaction prediction using descriptors and embeddings](https://www.sciencedirect.com/science/article/pii/S2352914824001618)
 - [Data Driven Estimation of Molecular Log-Likelihood using Fingerprint Key Counting](https://chemrxiv.org/engage/chemrxiv/article-details/661402ee21291e5d1d646651)
@@ -86,7 +86,7 @@ Scikit-Mol has been featured in blog-posts or used in research, some examples wh
 
 ## Roadmap and Contributing
 
-_Help wanted!_ Are you a PhD student that want a "side-quest" to procrastinate your thesis writing or are you simply interested in computational chemistry, cheminformatics or simply with an interest in QSAR modelling, Python Programming open-source software? Do you want to learn more about machine learning with Scikit-Learn? Or do you use scikit-mol for your current work and would like to pay a little back to the project and see it improved as well?
+_Help wanted!_ Are you a PhD student that want a "side-quest" to procrastinate your thesis writing or are you interested in computational chemistry, cheminformatics or simply with an interest in QSAR modelling, Python Programming open-source software? Do you want to learn more about machine learning with Scikit-Learn? Or do you use scikit-mol for your current work and would like to pay a little back to the project and see it improved as well?
 With a little bit of help, this project can be improved much faster! Reach to me (Esben), for a discussion about how we can proceed.
 
 Currently, we are working on fixing some deprecation warnings, it's not the most exciting work, but it's important to maintain a little. Later on we need to go over the scikit-learn compatibility and update to some of their newer features on their estimator classes. We're also brewing on some feature enhancements and tests, such as new fingerprints and a more versatile standardizer.
@@ -105,10 +105,10 @@ Scikit-Mol has been developed as a community effort with contributions from peop
 
 - Esben Jannik Bjerrum [@ebjerrum](https://github.com/ebjerrum), esbenbjerrum+scikit_mol@gmail.com
 - Carmen Esposito [@cespos](https://github.com/cespos)
-- Son Ha, sonha@uni-mainz.de
-- Oh-hyeon Choung, ohhyeon.choung@gmail.com
-- Andreas Poehlmann, [@ap--](https://github.com/ap--)
-- Ya Chen, [@anya-chen](https://github.com/anya-chen)
+- Son Ha [@son-ha-264](https://github.com/son-ha-264)
+- Oh-hyeon Choung [@Ohyeon5](https://github.com/Ohyeon5)
+- Andreas Poehlmann [@ap--](https://github.com/ap--)
+- Ya Chen [@anya-chen](https://github.com/anya-chen)
 - Anton Siomchen [@asiomchen](https://github.com/asiomchen)
 - Rafał Bachorz [@rafalbachorz](https://github.com/rafalbachorz)
 - Adrien Chaton [@adrienchaton](https://github.com/adrienchaton)
