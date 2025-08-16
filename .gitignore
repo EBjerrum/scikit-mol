@@ -142,3 +142,6 @@ sandbox/
 
 # PyCharm settings
 .idea
+
+# Windsurf
+.windsurfrules
